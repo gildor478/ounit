@@ -1,7 +1,8 @@
 (***********************************************************************)
 (* The OUnit library                                                   *)
 (*                                                                     *)
-(* Copyright (C) 2002, 2003, 2004, 2005 Maas-Maarten Zeeman.           *)
+(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008              *) 
+(* Maas-Maarten Zeeman.                                                *)
 (* All rights reserved. See LICENCE for details.                       *)
 (***********************************************************************)
 
@@ -59,6 +60,24 @@ val assert_equal : ?cmp:('a -> 'a -> bool) ->  ?printer:('a -> string) ->
     @raise Failure description *)
 val assert_raises : ?msg:string -> exn -> (unit -> 'a) -> unit
 
+(** {5 Skipping tests } 
+  
+   In certain condition test can be written but there is no point running it, because they
+   are not significant (missing OS features for example). In this case this is not a failure
+   nor a success. Following function allow you to escape test, just as assertion but without
+   the same error status.
+  
+   A test skipped is counted as success. A test todo is counted as failure.  *)
+
+(** [skip cond msg] If [cond] is true, skip the test for the reason explain in [msg].
+  * For example [skip_if (Sys.os_type = "Win32") "Test a doesn't run on windows"].
+  *)
+val skip_if : bool -> string -> unit
+
+(** The associated test is still to be done, for the reason given.
+  *)
+val todo : string -> unit
+
 (** {5 Compare Functions} *)
 
 (** Compare floats up to a given relative error. *)
@@ -76,9 +95,12 @@ val bracket : (unit -> 'a) -> ('a -> 'b) -> ('a -> 'c) -> unit -> 'c
 
 (** {5 Constructing Tests} *)
 
+(** The type of test function *)
+type test_fun = unit -> unit
+
 (** The type of tests *)
 type test =
-    TestCase of (unit -> unit)
+    TestCase of test_fun
   | TestList of test list
   | TestLabel of string * test
 
@@ -86,7 +108,7 @@ type test =
 val (>:) : string -> test -> test
 
 (** Create a TestLabel for a TestCase *)
-val (>::) : string -> (unit -> unit) -> test
+val (>::) : string -> test_fun -> test
 
 (** Create a TestLabel for a TestList *)
 val (>:::) : string -> test list -> test
@@ -103,6 +125,12 @@ val (>:::) : string -> test list -> test
    - ["test-suite" >::: ["test2" >:: (fun _ -> ());]] =>
    [TestLabel("test-suite", TestSuite([TestLabel("test2", TestCase((fun _ -> ())))]))]
 *)
+
+(** [test_decorate g tst] Apply [g] to test function contains in [tst] tree. *)
+val test_decorate : (test_fun -> test_fun) -> test -> test
+
+(** [test_filter paths tst] Filter test based on their path string representation. *)
+val test_filter : string list -> test -> test option
 
 (** {5 Retrieve Information from Tests} *)
 
@@ -130,6 +158,8 @@ type test_result =
     RSuccess of path
   | RFailure of path * string
   | RError of path * string
+  | RSkip of path * string
+  | RTodo of path * string
 
 (** Events which occur during a test run *)   
 type test_event =
@@ -145,5 +175,6 @@ val perform_test : (test_event -> 'a) -> test -> test_result list
 val run_test_tt : ?verbose:bool -> test -> test_result list
 
 (** Main version of the text based test runner. It reads the supplied command 
-    line arguments to set the verbose level *)
+    line arguments to set the verbose level and limit the number of test to run
+  *)
 val run_test_tt_main : test -> test_result list

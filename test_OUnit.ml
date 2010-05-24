@@ -1,7 +1,8 @@
 (***********************************************************************)
 (* The OUnit library                                                   *)
 (*                                                                     *)
-(* Copyright 2002, 2003, 2004, 2005 Maas-Maarten Zeeman.               *)
+(* Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008                  *)
+(* Maas-Maarten Zeeman.                                                *)
 (* All rights reserved. See LICENCE for details.                       *)
 (***********************************************************************)
 
@@ -67,10 +68,10 @@ let test_assert_raises _ =
     (fun _ -> (assert_raises ~msg:"A label" (Failure "Boo") 
 		 (fun _ -> raise (Failure "Foo"))));
   assert_raises 
-    (Failure "OUnit: expected exception Failure(\"Boo\"), but no exception was not raised.") 
+    (Failure "OUnit: expected exception Failure(\"Boo\"), but no exception was raised.") 
     (fun _ -> (assert_raises (Failure "Boo") (fun _ -> ())));
   assert_raises 
-    (Failure "OUnit: A label\nexpected exception Failure(\"Boo\"), but no exception was not raised.") 
+    (Failure "OUnit: A label\nexpected exception Failure(\"Boo\"), but no exception was raised.") 
     (fun _ -> (assert_raises ~msg:"A label" (Failure "Boo") (fun _ -> ())))
 
 (* Test the float compare, and use the cmp label *)
@@ -90,6 +91,73 @@ let test_assert_bool _ =
   assert_raises (Failure "OUnit: false") 
     (fun _ -> assert_bool "false" false)
 
+let test_case_filter () = 
+  let assert_test_case_count res tst_opt =
+    match tst_opt with 
+      | Some tst ->
+          assert_equal res (OUnit.test_case_count tst)
+      | None ->
+          assert_failure "Unexcpected empty filter result"
+  in
+  assert_equal None (test_filter [] suite_a);
+  assert_equal None (test_filter [] suite_b);
+  assert_equal None (test_filter [] suite_c);
+  assert_equal None (test_filter [] suite_d);
+  assert_test_case_count 1 (test_filter ["suite_a"] suite_a);  
+  assert_test_case_count 1 (test_filter ["suite_a:0"] suite_a);  
+  assert_test_case_count 1 (test_filter ["suite_b:0:label"] suite_b);  
+  assert_test_case_count 1 (test_filter ["suite_c:0"] suite_c);
+  assert_test_case_count 2 (test_filter ["suite_c:0";"suite_c:1:label"] suite_c) 
+
+let assert_equal_test_result =
+  assert_equal 
+    ~printer:(fun tst_results -> 
+                String.concat "; "
+                  (List.map
+                     (function 
+                        | RSuccess path -> 
+                            Printf.sprintf "RSuccess %S" (string_of_path path)
+                        | RFailure (path, str) ->
+                            Printf.sprintf "RFailure(%S, %S)" 
+                              (string_of_path path)
+                              str
+                        | RError (path, str) ->
+                            Printf.sprintf "RError(%S, %S)" 
+                              (string_of_path path)
+                              str
+                        | RSkip (path, str) ->
+                            Printf.sprintf "RSkip(%S, %S)" 
+                              (string_of_path path)
+                              str
+                        | RTodo (path, str) ->
+                            Printf.sprintf "RTodo(%S, %S)" 
+                              (string_of_path path)
+                              str
+                     )
+                     tst_results
+                  ))
+
+let test_case_decorate () = 
+    assert_equal_test_result 
+      [RSuccess [Label "label"; ListItem 1; Label "suite_c"]; 
+       RSuccess [ListItem 0; Label "suite_c"]]
+      (perform_test ignore suite_c);
+    assert_equal_test_result
+      [RFailure([Label "label"; ListItem 1; Label "suite_c"], "OUnit: fail"); 
+       RFailure([ListItem 0; Label "suite_c"], "OUnit: fail")]
+      (perform_test ignore 
+         (test_decorate (fun _ -> (fun () -> assert_failure "fail")) suite_c))
+
+let test_case_skip () = 
+  assert_equal_test_result
+    [RSkip ([Label "skip"], "test")] 
+    (perform_test ignore ("skip" >:: (fun () -> skip_if true "test")))
+
+let test_case_todo () = 
+  assert_equal_test_result
+    [RTodo ([Label "todo"], "test")] 
+    (perform_test ignore ("todo" >:: (fun () -> todo "test")))
+
 (* Construct the test suite *)
 let suite = "OUnit" >::: 
   [ "test_case_count" >:: test_case_count;
@@ -98,6 +166,10 @@ let suite = "OUnit" >:::
     "test_assert_string" >:: test_assert_string;
     "test_assert_bool" >:: test_assert_bool;
     "test_cmp_float" >:: test_cmp_float;
+    "test_case_filter" >:: test_case_filter;
+    "test_case_decorate" >:: test_case_decorate;
+    "test_case_skip" >:: test_case_skip;
+    "test_case_todo" >:: test_case_todo;
   ]
 
 (* Run the tests in test suite *)

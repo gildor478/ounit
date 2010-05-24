@@ -1,7 +1,8 @@
 (***********************************************************************)
 (* The OUnit library                                                   *)
 (*                                                                     *)
-(* Copyright (C) 2002, 2003, 2004, 2005 Maas-Maarten Zeeman.           *)
+(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008              *)
+(* Maas-Maarten Zeeman.                                                *)
 (* All rights reserved. See LICENCE for details.                       *)
 (***********************************************************************)
 
@@ -14,6 +15,15 @@ let bracket set_up f tear_down () =
 	e -> 
 	  tear_down fixture;
 	  raise e
+
+exception Skip of string
+let skip_if b msg =
+  if b then
+    raise (Skip msg)
+
+exception Todo of string
+let todo msg =
+  raise (Todo msg)
 
 let assert_failure msg = 
   failwith ("OUnit: " ^ msg)
@@ -48,7 +58,7 @@ let assert_raises ?msg exn (f: unit -> 'a) =
   let pexn = Printexc.to_string in
   let get_error_string _ =
     let str = Format.sprintf 
-      "expected exception %s, but no exception was not raised." (pexn exn)
+      "expected exception %s, but no exception was raised." (pexn exn)
     in
       match msg with
 	  None -> assert_failure str
@@ -66,9 +76,12 @@ let cmp_float ?(epsilon = 0.00001) a b =
 (* Now some handy shorthands *)
 let (@?) = assert_bool
 
+(* The type of test function *)
+type test_fun = unit -> unit 
+
 (* The type of tests *)
 type test = 
-    TestCase of (unit -> unit)
+    TestCase of test_fun
   | TestList of test list
   | TestLabel of string * test
 
@@ -76,6 +89,16 @@ type test =
 let (>:) s t = TestLabel(s, t)             (* infix *)
 let (>::) s f = TestLabel(s, TestCase(f))  (* infix *)
 let (>:::) s l = TestLabel(s, TestList(l)) (* infix *)
+
+(* Utility function to manipulate test *)
+let rec test_decorate g tst =
+  match tst with
+    | TestCase f -> 
+        TestCase (g f)
+    | TestList tst_lst ->
+        TestList (List.map (test_decorate g) tst_lst)
+    | TestLabel (str, tst) ->
+        TestLabel (str, test_decorate g tst)
 
 (* Return the number of available tests *)
 let rec test_case_count test = 
@@ -132,49 +155,131 @@ let test_case_paths test =
   in
     tcps [] test
 
+(* Test filtering with their path *)
+module SetTestPath = Set.Make(String)
+
+let test_filter only test =
+  let set_test =
+    List.fold_left 
+      (fun st str -> SetTestPath.add str st)
+      SetTestPath.empty
+      only
+  in
+  let foldi f acc lst = 
+    List.fold_left
+      (fun (i, acc) e ->
+         let nacc =
+           f i acc e
+         in
+           (i + 1), nacc
+      )
+      acc
+      lst
+  in
+  let rec filter_test path tst =
+    if SetTestPath.mem (string_of_path path) set_test then
+      (
+        Some tst
+      )
+    else
+      (
+        match tst with
+          | TestCase _ ->
+              None
+          | TestList tst_lst ->
+              let (_, ntst_lst) =
+                foldi 
+                  (fun i ntst_lst tst ->
+                     let nntst_lst =
+                       match filter_test ((ListItem i) :: path) tst with
+                         | Some tst ->
+                             tst :: ntst_lst
+                         | None ->
+                             ntst_lst
+                     in
+                       nntst_lst
+                  )
+                  (0, [])
+                  tst_lst
+              in
+                if ntst_lst = [] then
+                  None
+                else
+                  Some (TestList ntst_lst)
+          | TestLabel (lbl, tst) ->
+              let ntst =
+                filter_test 
+                  ((Label lbl) :: path)
+                  tst
+              in
+                match ntst with
+                  | Some tst ->
+                      Some (TestLabel (lbl, tst))
+                  | None ->
+                      None
+      )
+  in
+    filter_test [] test
+
+
 (* The possible test results *)
 type test_result =
     RSuccess of path
   | RFailure of path * string
   | RError of path * string
+  | RSkip of path * string
+  | RTodo of path * string
 
 let is_success = function
-    RSuccess _ -> true
-  | RError _ -> false
-  | RFailure _ -> false
+    RSuccess _  -> true 
+  | RFailure _ | RError _  | RSkip _ | RTodo _ -> false 
 
 let is_failure = function
     RFailure _ -> true
-  | RError _ -> false
-  | RSuccess _ -> false
+  | RSuccess _ | RError _  | RSkip _ | RTodo _ -> false
 
 let is_error = function 
     RError _ -> true
-  | RFailure _ -> false
-  | RSuccess _ -> false
+  | RSuccess _ | RFailure _ | RSkip _ | RTodo _ -> false
+
+let is_skip = function
+    RSkip _ -> true
+  | RSuccess _ | RFailure _ | RError _  | RTodo _ -> false
+
+let is_todo = function
+    RTodo _ -> true
+  | RSuccess _ | RFailure _ | RError _  | RSkip _ -> false
 
 let result_flavour = function
     RError _ -> "Error"
   | RFailure _ -> "Failure"
   | RSuccess _ -> "Success"
+  | RSkip _ -> "Skip"
+  | RTodo _ -> "Todo"
 
 let result_path = function
-    RSuccess path -> path
-  | RError (path, _) -> path
-  | RFailure (path, _) -> path
+    RSuccess path 
+  | RError (path, _) 
+  | RFailure (path, _) 
+  | RSkip (path, _)
+  | RTodo (path, _) -> path
 
 let result_msg = function
     RSuccess _ -> "Success"
-  | RError (_, msg) -> msg
-  | RFailure (_, msg) -> msg
+  | RError (_, msg) 
+  | RFailure (_, msg) 
+  | RSkip (_, msg)
+  | RTodo (_, msg) -> msg
 
 (* Returns true if the result list contains successes only *)
 let rec was_successful results = 
   match results with 
       [] -> true
-    | RSuccess _::t -> was_successful t
-    | RFailure _::t -> false
-    | RError _::t -> false
+    | RSuccess _::t 
+    | RSkip _::t -> was_successful t
+    | RFailure _::_
+    | RError _::_ 
+    | RTodo _::_ -> false
 
 (* Events which can happen during testing *)
 type test_event =
@@ -190,6 +295,8 @@ let perform_test report test =
       RSuccess path
     with
 	Failure s -> RFailure (path, s)
+      | Skip s -> RSkip (path, s)
+      | Todo s -> RTodo (path, s)
       | s -> RError (path, (Printexc.to_string s))
   in
   let rec run_test path results test = 
@@ -223,12 +330,16 @@ let run_test_tt ?(verbose=false) test =
   let separator2 = 
     "----------------------------------------------------------------------" in
   let string_of_result = function
-      RSuccess path ->
+      RSuccess _ ->
 	if verbose then "ok\n" else "."
-    | RFailure (path, _) ->
+    | RFailure (_, _) ->
 	if verbose then "FAIL\n" else "F"
-    | RError (path, _) -> 
+    | RError (_, _) -> 
 	if verbose then "ERROR\n" else "E"
+    | RSkip (_, _) ->
+	if verbose then "SKIP\n" else "S"
+    | RTodo (_, _) ->
+        if verbose then "TODO\n" else "T"
   in
   let report_event = function
       EStart p -> 
@@ -252,6 +363,8 @@ let run_test_tt ?(verbose=false) test =
   let running_time, results = time_fun perform_test report_event test in
   let errors = List.filter is_error results in
   let failures = List.filter is_failure results in
+  let skips = List.filter is_skip results in
+  let todos = List.filter is_todo results in
     
     if not verbose then printf "\n";
 
@@ -262,12 +375,19 @@ let run_test_tt ?(verbose=false) test =
       (List.length results) running_time;
 
     (* Print final verdict *)
-    if was_successful results then
-      printf "OK\n"
+    if was_successful results then 
+      (
+        if skips = [] then
+          printf "OK"
+        else 
+          printf "OK: Cases: %d Skip: %d\n"
+            (test_case_count test) (List.length skips)
+      )
     else
-      printf "FAILED: Cases: %d Tried: %d Errors: %d Failures: %d\n" 
+      printf "FAILED: Cases: %d Tried: %d Errors: %d Failures: %d Skip:%d Todo:%d\n" 
 	(test_case_count test) (List.length results) 
-	(List.length errors) (List.length failures);
+	(List.length errors) (List.length failures)
+        (List.length skips) (List.length todos);
 
     (* Return the results possibly for further processing *)
     results
@@ -275,14 +395,35 @@ let run_test_tt ?(verbose=false) test =
 (* Call this one from you test suites *)
 let run_test_tt_main suite = 
   let verbose = ref false in 
-  let set_verbose _ = verbose := true in 
+  let only_test = ref [] in
     
     Arg.parse
-      [("-verbose", Arg.Unit set_verbose, "Run the test in verbose mode.");]
+      (Arg.align
+         [("-verbose", Arg.Set verbose, " Run the test in verbose mode.");
+          ("-only-test", Arg.String (fun str -> only_test := str :: !only_test),
+           "path Run only the selected test");
+         ]
+      )
       (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
-      ("usage: " ^ Sys.argv.(0) ^ " [-verbose]");
+      ("usage: " ^ Sys.argv.(0) ^ " [-verbose] [-only-test path]*");
     
-    let result = run_test_tt ~verbose:!verbose suite in
+    let nsuite = 
+      if !only_test = [] then
+        (
+          suite
+        ) 
+      else
+        (
+          match test_filter !only_test suite with 
+            | Some tst ->
+                tst
+            | None ->
+                failwith ("Filtering test "^
+                          (String.concat ", " !only_test)^
+                          " lead to no test")
+        )
+    in
+    let result = run_test_tt ~verbose:!verbose nsuite in
       if not (was_successful result) then
 	exit 1
       else
