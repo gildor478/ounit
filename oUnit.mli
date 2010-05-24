@@ -5,7 +5,7 @@
 (* LICENCE for details.                                                *)
 (***********************************************************************)
 
-(* $Id: oUnit.mli,v 1.11 2003/12/06 11:05:43 maas Exp $ *)
+(* $Id: oUnit.mli,v 1.12 2004/06/29 08:26:20 maas Exp $ *)
 
 (** The OUnit library can be used to implement unittests
 
@@ -44,19 +44,27 @@ val ( @? ) : string -> bool -> unit
     @raise Failure to signal a failure *) 
 val assert_string : string -> unit
 
+
 (** Compares two values, when they are not equal a failure is signaled.
-    The optional printer can be used to convert the value to string, so
-    a nice error message can be formatted. When msg is also set it can
-    be used to identify the failure 
+    The cmp parameter can be used to pass a different compare function. 
+    This parameter defaults to ( = ). The optional printer can be used 
+    to convert the value to string, so a nice error message can be 
+    formatted. When msg is also set it can be used to identify the failure. 
 
     @raise Failure description *)
-val assert_equal : ?printer:('a -> string) -> ?msg:string -> 'a -> 'a -> unit
+val assert_equal : ?cmp:('a -> 'a -> bool) ->  ?printer:('a -> string) -> 
+                   ?msg:string -> 'a -> 'a -> unit
 
 (** Asserts if the expected exception was raised. When msg is set it can 
     be used to identify the failure
 
     @raise Failure description *)
 val assert_raises : ?msg:string -> exn -> (unit -> 'a) -> unit
+
+(** {5 Compare Functions} *)
+
+(** Compare floats up to a given relative error. *)
+val cmp_float : ?epsilon: float -> float -> float -> bool
 
 (** {5 Bracket}
 

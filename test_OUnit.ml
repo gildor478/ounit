@@ -5,7 +5,7 @@
 (* LICENCE for details.                                                *)
 (***********************************************************************)
 
-(* $Id: test_OUnit.ml,v 1.10 2003/02/27 21:49:06 maas Exp $ *)
+(* $Id: test_OUnit.ml,v 1.11 2004/06/29 08:26:20 maas Exp $ *)
 
 open OUnit
   
@@ -73,10 +73,17 @@ let test_assert_raises _ =
     (Failure "OUnit: A label\nexpected exception Failure(\"Boo\"), but no exception was not raised.") 
     (fun _ -> (assert_raises ~msg:"A label" (Failure "Boo") (fun _ -> ())))
 
+let test_cmp_float _ =
+  assert_equal ~cmp: cmp_float 0.0001 0.0001;
+  assert_equal ~cmp: (cmp_float ~epsilon: 0.001) 1.0001 1.00001;
+  assert_raises (Failure "OUnit: not equal") 
+      (fun _ -> assert_equal ~cmp: cmp_float 100.0001 101.001)
+
 (* Construct the test suite *)
 let suite = "OUnit" >::: [ "test_case_count" >:: test_case_count;
 			   "test_case_paths" >:: test_case_paths;
 			   "test_assert_raises" >:: test_assert_raises;
+			   "test_cmp_float" >:: test_cmp_float;
 			 ]
 
 (* Run the tests in test suite *)

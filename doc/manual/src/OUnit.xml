@@ -7,8 +7,8 @@
 <bookinfo>
   <authorgroup>
     <author>
-      <firstname>Maas-Maarten Zeeman</firstname>
-      <surname>Zeeman</firstname>
+      <firstname>Maas-Maarten</firstname>
+      <surname>Zeeman</surname>
       <authorblurb>
         <para>
           <address>
@@ -20,33 +20,64 @@
   </authorgroup>
 
   <copyright>
-    <year>2003</year>
+    <year>2003</year><holder>Maas-Maarten Zeeman</holder>
   </copyright>
 
   <abstract>
     <para>
-      Ounit is a unit testing framework for Ocaml, inspired by HUnit
-      for Haskell, and JUnit for Java. This guide describes how to use
-      OUnit, assuming you are familiar with Ocaml, though not
-      necessarily with JUnit.
-    </para>
 
-    <para>
-      Warning!, this is largely unfinished
-    </para>
+    <caution>
+      <para>
+      This manual is unfinished.
+      </para>
+    </caution>
+
+    Ounit is a unit testing framework for Ocaml, inspired by HUnit for
+    Haskell, and JUnit for Java. This guide describes how to use
+    OUnit, assuming you are familiar with Ocaml, though not
+    necessarily with JUnit.
+
   </abstract>
     
   <legalnotice>
     <title>License</title>
     <para>
+    Copyright &copy; 2002, 2003 by Maas-Maarten Zeeman
+    </para>
+
+    <para>
+    The package OUnit is copyright by Maas-Maarten Zeeman.
+    </para>
+
+    <para>
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this document and the OUnit software ("the Software"), to
+    deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute,
+    sublicense, and/or sell copies of the Software, and to permit persons
+    to whom the Software is furnished to do so, subject to the following
+    conditions:
+    </para>
+
+    <para>
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+    </para>
+
+    <para>
+    The Software is provided ``as is'', without warranty of any kind,
+    express or implied, including but not limited to the warranties of
+    merchantability, fitness for a particular purpose and noninfringement.
+    In no event shall Maas-Maarten Zeeman be liable for any claim, damages
+    or other liability, whether in an action of contract, tort or
+    otherwise, arising from, out of or in connection with the Software or
+    the use or other dealings in the software.
     </para>
   </legalnotice>
 </bookinfo>
 
-<!~~~~~--> 
-
 <chapter>
-<title>Introduction into test oriented programming</test>
+<title>What is test-oriented programming?</title>
 
   <para>
     A test-oriented methodology for software development is most
@@ -70,49 +101,68 @@
     ways.
   </para>
 
-Getting Started
+<chapter>
+<title>Getting Started</title>
 
+<para>
   In the Ocaml module 'tests.ml' where your tests will reside, import
-  module OUnit::
+  module OUnit
 
+  <programlisting>
     open OUnit
+  </programlisting>
 
-  Define test cases as appropriate::
+  Define test cases as appropriate
 
+  <programlisting>
     let test1 = TestCase(fun _ -> assert_equal "x" (foo "x"));; 
     let test2 = TestCase(fun _ -> assert_equal 100 (foo 100));;
+  </programlisting>
 
   Name the test cases and group them together::
 
+  <programlisting>
     let suite = TestLabel ("suite", TestList [TestLabel ("test1", test1); 
                                               TestLabel ("test2", test2)])
+  </programlisting>
 
-  And compile the module::
+  And compile the module
 
+  <screen>
     $ocamlc -c tests.ml
     File "tests.ml", line 3, characters 48-51:    Unbound value foo
+  </screen>
 
   Now it is time to program 'foo', create a new module named 'foo.ml',
-  and type::
+  and type
 
+  <programlisting>
     let foo x = x
+  </programlisting>
 
-  And compile::
+  And compile
 
+  <screen>
     $ocamlc -c foo.ml
+  </screen>
 
   The 'Foo' module must now also be opened in the 'Tests' module, so
   we need to add the following line.::
 
+  <programlisting>
     open Foo
+  </programlisting>
 
-  Now it is possible to compile 'Tests'::
+  Now it is possible to compile <filename>test.ml</filename>
 
+  <screen>
     $ocamlc -c foo.cmo tests.ml
+  </screen>
 
   With the ocamlunit toplevel it is possible to run the tests
-  interactively::
+  interactively
 
+  <screen>
     $ ./ocamlunit
     #         Objective Caml version 3.04
 
@@ -124,31 +174,40 @@ Getting Started
     - : OUnit.counts =
     {OUnit.cases = 2; OUnit.tried = 2; OUnit.errors = 0; OUnit.failures = 0}
     #
+  </screen>
 
   Isn't that easy?
 
   You can specify the tests even more succinctly using special
-  operators::
+  operators.
 
+  <programlisting>
     let suite = "suite" >::: ["test1" >:: test1;
 			      "test2" >:: test2;] 
+  </programlisting>
 
   It is also possible to add the following line to the 'Tests'
-  module.::
-  
-    let main = run_tess_tt suite
+  module.
 
-  When compiled as follows::
+  <programlisting>
+    let main = run_test suite
+  </programlisting>
 
+  When compiled as follows
+
+  <screen>
     $ocamlfind ocamlc -o tests -package oUnit -linkpkg foo.cmo tests.ml
+  </screen>
 
-  A executable name 'tests' will be created. When run it produces the
+  A executable named 'tests' will be created. When run it produces the
   following output.
 
+  <screen>
     $ ./tests
     ..
     Ran: 2 tests in: 0.00 Seconds
     OK
+  </screen>
 
     
 
@@ -159,6 +218,7 @@ Test Case
   of the failure of any other, provided the test case does not rely on
   side-effects. 
     
+</para>
 
 </book>
     

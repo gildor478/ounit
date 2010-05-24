@@ -1,11 +1,12 @@
 (***********************************************************************)
 (* The OUnit library                                                   *)
 (*                                                                     *)
-(* Copyright 2002, 2003 Maas-Maarten Zeeman. All rights reserved. See  *) 
+(* Copyright 2002, 2003, 2004 Maas-Maarten Zeeman. All rights          *)
+(* reserved. See                                                       *) 
 (* LICENCE for details.                                                *)
 (***********************************************************************)
 
-(* $Id: oUnit.ml,v 1.13 2003/12/06 11:05:43 maas Exp $ *)
+(* $Id: oUnit.ml,v 1.15 2004/07/24 09:40:58 maas Exp $ *)
 
 let bracket set_up f tear_down () =
   let fixture = set_up () in
@@ -29,8 +30,8 @@ let assert_string s =
   else
     assert_failure s
 
-let assert_equal ?printer ?msg expected actual  =
-  if expected = actual then ()
+let assert_equal ?(cmp = ( = )) ?printer ?msg expected actual  =
+  if cmp expected actual then ()
   else
     match printer, msg with 
       None, None -> 
@@ -64,6 +65,11 @@ let assert_raises ?msg exn (f: unit -> 'a) =
     | Some s ->
 	assert_failure 
 	  (Format.sprintf "@[%s@\n%s@]" s err_str)
+
+(* Compare floats up to a given relative error *)
+let cmp_float ?(epsilon = 0.00001) a b =
+  abs_float (a -. b) <= epsilon *. (abs_float a) ||
+  abs_float (a -. b) <= epsilon *. (abs_float b) 
       
 (* Now some handy shorthands *)
 let (@?) = assert_bool
@@ -204,14 +210,14 @@ let run_test_tt ?(verbose=false) test =
   let failures = ref [] in
   let report_event = function
       EStart(p, _) -> if verbose then printf "%s ... @?" (string_of_path p)
-    | ESuccess(_, _) -> if verbose then printf "ok@." else printf ".@?"
+    | ESuccess _ -> if verbose then printf "ok@." else printf ".@?"
     | EFailure(path, str, _) ->
 	failures := (path, str)::!failures;
 	if verbose then printf "FAIL@." else printf "F@?"
     | EError(path, str, _) -> 
 	errors := (path, str)::!errors;
 	if verbose then printf "ERROR@." else printf "E@?"
-    | _ -> ()
+    | EEnd _ -> ()  
   in
   let print_error_list flavour = function
       [] -> ()

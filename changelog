@@ -1,3 +1,8 @@
+ocaml-unit-1.0.1
+  
+  - Added optional compare function to assert_equal, and a float compare
+    function. Thanks go to Daniel Buenzli
+
 ocaml-unit-1.0.0
  
   - Add bracket support (Thanks go to Laurent Vaucher)

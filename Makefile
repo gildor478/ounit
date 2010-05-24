@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.14 2003/12/06 11:05:43 maas Exp $
+# $Id: Makefile,v 1.15 2004/07/24 09:40:58 maas Exp $
 #
 
 NAME=oUnit
@@ -16,6 +16,8 @@ OCAMLDEP=ocamldep
 MKLIB=ocamlmklib
 OCAMLDOC=ocamldoc
 OCAMLFIND=ocamlfind
+
+COMPFLAGS=-w A
 
 ### End of configuration section
 
