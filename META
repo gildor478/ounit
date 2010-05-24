@@ -1,5 +1,5 @@
 name = "oUnit"
-version = "0.0.3"
+version = "1.0.0"
 description = "A unittest framework for OCaml"
 requires = "unix"
 archive(byte) = "oUnit.cma"

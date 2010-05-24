@@ -30,6 +30,10 @@
       OUnit, assuming you are familiar with Ocaml, though not
       necessarily with JUnit.
     </para>
+
+    <para>
+      Warning!, this is largely unfinished
+    </para>
   </abstract>
     
   <legalnotice>

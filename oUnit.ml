@@ -5,7 +5,17 @@
 (* LICENCE for details.                                                *)
 (***********************************************************************)
 
-(* $Id: oUnit.ml,v 1.12 2003/07/29 22:04:21 maas Exp $ *)
+(* $Id: oUnit.ml,v 1.13 2003/12/06 11:05:43 maas Exp $ *)
+
+let bracket set_up f tear_down () =
+  let fixture = set_up () in
+  try
+    f fixture;
+    tear_down fixture
+  with
+    e -> 
+      tear_down fixture;
+      raise e
 
 let assert_failure msg = failwith ("OUnit: " ^ msg)
 

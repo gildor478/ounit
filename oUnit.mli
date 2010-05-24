@@ -5,7 +5,7 @@
 (* LICENCE for details.                                                *)
 (***********************************************************************)
 
-(* $Id: oUnit.mli,v 1.10 2003/02/27 21:49:06 maas Exp $ *)
+(* $Id: oUnit.mli,v 1.11 2003/12/06 11:05:43 maas Exp $ *)
 
 (** The OUnit library can be used to implement unittests
 
@@ -57,6 +57,16 @@ val assert_equal : ?printer:('a -> string) -> ?msg:string -> 'a -> 'a -> unit
 
     @raise Failure description *)
 val assert_raises : ?msg:string -> exn -> (unit -> 'a) -> unit
+
+(** {5 Bracket}
+
+    A bracket is a functional implementation of the commonly used
+    setUp and tearDown feature in unittests. It can be used like this:
+
+    "MyTestCase" >:: (bracket test_set_up test_fun test_tear_down) *)
+
+(** *)
+val bracket : (unit -> 'a) -> ('a -> 'b) -> ('a -> 'c) -> unit -> 'c
 
 (** {5 Constructing Tests} *)
 
@@ -115,10 +125,7 @@ type counts = {cases : int; tried : int; errors : int; failures : int;}
     successful. This means that the errors and failures must be 0 *)
 val was_successful : counts -> bool
 
-(** {5 Performing Tests} 
-
-    TODO
-    *)
+(** {5 Performing Tests} *)
 
 (** Events which can occur during a test *)
 type test_event =

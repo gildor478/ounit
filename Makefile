@@ -1,16 +1,13 @@
 #
-# $Id: Makefile,v 1.13 2003/09/19 21:10:22 maas Exp $
+# $Id: Makefile,v 1.14 2003/12/06 11:05:43 maas Exp $
 #
 
-OBJECTS=oUnit.cmo
-XOBJECTS=oUnit.cmx
-TEST_OBJECTS=test_OUnit.cmo
-TEST_XOBJECTS=test_OUnit.cmx
-ARCHIVE=oUnit.cma
-XARCHIVE=oUnit.cmxa
 NAME=oUnit
+OBJECTS=oUnit.cmo
+XOBJECTS=$(OBJECTS:.cmo=.cmx)
 
-### End of configuration section
+ARCHIVE=oUnit.cma
+XARCHIVE=$(ARCHIVE:.cma=.cmxa)
 
 OCAMLRUN=ocamlrun
 OCAMLC=ocamlc
@@ -19,6 +16,8 @@ OCAMLDEP=ocamldep
 MKLIB=ocamlmklib
 OCAMLDOC=ocamldoc
 OCAMLFIND=ocamlfind
+
+### End of configuration section
 
 all: $(ARCHIVE)
 allopt: $(XARCHIVE)
@@ -31,24 +30,28 @@ $(XARCHIVE): $(XOBJECTS)
 depend: *.ml *.mli
 	$(OCAMLDEP) *.mli *.ml > depend
 
+.PHONY: test
 test: unittest
 	./unittest
-
+.PHONY: testopt
 testopt: unittest.opt
 	./unittest.opt
-
+.PHONY: testall
 testall: test testopt
 
 unittest: $(OBJECTS) $(TEST_OBJECTS)
-	$(OCAMLFIND) ocamlc -o unittest -package unix -linkpkg $(OBJECTS) $(TEST_OBJECTS)
+	$(OCAMLFIND) ocamlc -o unittest -package unix -linkpkg \
+	$(OBJECTS) test_OUnit.ml
 
 unittest.opt: $(XOBJECTS) $(TEST_XOBJECTS)
-	$(OCAMLFIND) ocamlopt -o unittest.opt -package unix -linkpkg $(XOBJECTS) $(TEST_XOBJECTS)
+	$(OCAMLFIND) ocamlopt -o unittest.opt -package unix -linkpkg \
+	$(XOBJECTS) test_OUnit.ml
 
 .PHONY: install
 install: all
 	{ test ! -f $(XARCHIVE) || extra="$(XARCHIVE) $(NAME).a"; }; \
-	$(OCAMLFIND) install $(NAME) META $(NAME).mli $(NAME).cmi $(ARCHIVE) $$extra
+	$(OCAMLFIND) install $(NAME) META $(NAME).mli $(NAME).cmi $(ARCHIVE) \
+	$$extra
 
 .PHONY: uninstall
 uninstall:
