@@ -12,7 +12,7 @@ Installation
   - Edit the variable at the beginning of the Makefile. The defaults
     are ok for Linux.
 
-  - Do "make all"
+  - Do "make all" to make a bytecode archive.
 
   - If the Objective Caml native-code compiler is available on your
     platform (look for the "ocamlopt" executable), do "make allopt".
@@ -28,6 +28,8 @@ Installation
     installs the library in the standard Objective Caml library
     directory. 
 
+  - Do a "make uninstall" to remove the library.
+
 Documentation
 
   See the HTML documentation in doc/index.html
@@ -36,6 +38,3 @@ References
 
   The libary is based on the HUnit unittest framework. More
   information on HUnit can be found at: <http://hunit.sourceforge.net>
-
-
-

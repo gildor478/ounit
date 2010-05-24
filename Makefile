@@ -1,6 +1,14 @@
 #
-# $Id: Makefile,v 1.12 2003/08/19 03:57:12 maas Exp $
+# $Id: Makefile,v 1.13 2003/09/19 21:10:22 maas Exp $
 #
+
+OBJECTS=oUnit.cmo
+XOBJECTS=oUnit.cmx
+TEST_OBJECTS=test_OUnit.cmo
+TEST_XOBJECTS=test_OUnit.cmx
+ARCHIVE=oUnit.cma
+XARCHIVE=oUnit.cmxa
+NAME=oUnit
 
 ### End of configuration section
 
@@ -12,15 +20,16 @@ MKLIB=ocamlmklib
 OCAMLDOC=ocamldoc
 OCAMLFIND=ocamlfind
 
-SOURCES=oUnit.mli oUnit.ml test_OUnit.ml
+all: $(ARCHIVE)
+allopt: $(XARCHIVE)
 
-all: oUnit.cma 
-allopt: oUnit.cmxa
+$(ARCHIVE): $(OBJECTS)
+	$(OCAMLC) -a -o $(ARCHIVE) $(OBJECTS)
+$(XARCHIVE): $(XOBJECTS)
+	$(OCAMLOPT) -a -o $(XARCHIVE) $(XOBJECTS)
 
-oUnit.cma: oUnit.cmi oUnit.cmo
-	$(OCAMLC) -a -o oUnit.cma oUnit.cmo
-oUnit.cmxa: oUnit.cmi oUnit.cmx
-	$(OCAMLOPT) -a -o oUnit.cmxa oUnit.cmx
+depend: *.ml *.mli
+	$(OCAMLDEP) *.mli *.ml > depend
 
 test: unittest
 	./unittest
@@ -30,19 +39,29 @@ testopt: unittest.opt
 
 testall: test testopt
 
-unittest: oUnit.cmo test_OUnit.cmo
-	$(OCAMLFIND) ocamlc -o unittest -package unix -linkpkg ./oUnit.cmo ./test_OUnit.cmo
+unittest: $(OBJECTS) $(TEST_OBJECTS)
+	$(OCAMLFIND) ocamlc -o unittest -package unix -linkpkg $(OBJECTS) $(TEST_OBJECTS)
 
-unittest.opt: oUnit.cmx test_OUnit.cmx
-	$(OCAMLFIND) ocamlopt -o unittest.opt -package unix -linkpkg ./oUnit.cmx ./test_OUnit.cmx
+unittest.opt: $(XOBJECTS) $(TEST_XOBJECTS)
+	$(OCAMLFIND) ocamlopt -o unittest.opt -package unix -linkpkg $(XOBJECTS) $(TEST_XOBJECTS)
 
-install: oUnit.cmi oUnit.cma oUnit.cmxa
-	$(OCAMLFIND) install oUnit META oUnit.mli oUnit.cmi oUnit.cma oUnit.cmxa oUnit.a
+.PHONY: install
+install: all
+	{ test ! -f $(XARCHIVE) || extra="$(XARCHIVE) $(NAME).a"; }; \
+	$(OCAMLFIND) install $(NAME) META $(NAME).mli $(NAME).cmi $(ARCHIVE) $$extra
+
+.PHONY: uninstall
 uninstall:
-	$(OCAMLFIND) remove oUnit
+	$(OCAMLFIND) remove $(NAME)
 
+.PHONY: doc
 doc: FORCE
-	cd doc; $(OCAMLDOC) -html -I .. ../oUnit.mli
+	{ test -d doc || mkdir doc; };
+	cd doc; $(OCAMLDOC) -html -I .. ../$(NAME).mli
+
+.PHONY: clean
+clean::
+	rm -f *~ *.cm* *.o *.a *.so unittest unittest.opt doc/*.html doc/*.css
 
 FORCE:
 
@@ -56,9 +75,6 @@ FORCE:
 	$(OCAMLOPT) -c $(COMPFLAGS) $<
 .c.o:
 	$(OCAMLC) -c -ccopt "$(CFLAGS)" $<
-clean::
-	rm -f *~ *.cm* *.o *.a *.so unittest unittest.opt
-.depend: $(SOURCES)
-	$(OCAMLDEP) *.mli *.ml > .depend
-include .depend
+
+include depend
 
