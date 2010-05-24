@@ -1,0 +1,14 @@
+ocaml-unit-0.0.3
+
+  - Added findlib support
+
+ocaml-unit-0.0.2
+
+  - Added assert_raises which checkes if an exception is raised. 
+    (thanks go to Keita Yamaguchi, for the idea)
+  
+  - Fixed (hopefully) the .depend file 
+
+ocaml-unit-0.0.1
+
+  - First release of ocaml-unit
