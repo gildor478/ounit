@@ -1,11 +1,9 @@
 (***********************************************************************)
 (* The OUnit library                                                   *)
 (*                                                                     *)
-(* Copyright 2002, 2003 Maas-Maarten Zeeman. All rights reserved. See  *) 
-(* LICENCE for details.                                                *)
+(* Copyright (C) 2002, 2003, 2004, 2005 Maas-Maarten Zeeman.           *)
+(* All rights reserved. See LICENCE for details.                       *)
 (***********************************************************************)
-
-(* $Id: oUnit.mli,v 1.12 2004/06/29 08:26:20 maas Exp $ *)
 
 (** The OUnit library can be used to implement unittests
 
@@ -38,8 +36,8 @@ val assert_bool : string -> bool -> unit
     @raise Failure to signal a failure *)
 val ( @? ) : string -> bool -> unit
 
-(** Signals a failure when the string is empty. The string identifies the
-    failure 
+(** Signals a failure when the string is non-empty. The string identifies the
+    failure. 
     
     @raise Failure to signal a failure *) 
 val assert_string : string -> unit
@@ -111,12 +109,11 @@ val (>:::) : string -> test list -> test
 (** Returns the number of available test cases *)
 val test_case_count : test -> int
 
-(** Types needed to represent the path of a test *)
-
+(** Types which represent the path of a test *)
 type node = ListItem of int | Label of string
 type path = node list (** The path to the test (in reverse order). *)
 
-(** Make a string form a node *)
+(** Make a string from a node *)
 val string_of_node : node -> string
 
 (** Make a string from a path. The path will be reversed before it is 
@@ -126,33 +123,27 @@ val string_of_path : path -> string
 (** Returns a list with paths of the test *)
 val test_case_paths : test -> path list
 
-(** Counts *)
-type counts = {cases : int; tried : int; errors : int; failures : int;}
-
-(** Returns true if the counts indicate that the test run was 
-    successful. This means that the errors and failures must be 0 *)
-val was_successful : counts -> bool
-
 (** {5 Performing Tests} *)
 
-(** Events which can occur during a test *)
+(** The possible results of a test *)
+type test_result =
+    RSuccess of path
+  | RFailure of path * string
+  | RError of path * string
+
+(** Events which occur during a test run *)   
 type test_event =
-    EStart of path * counts (** Indicates the start of a test-case *)
-  | EEnd of path * counts (** Indicates the end of a test-case *)
-  | ESuccess of path * counts (** Indicates success of the test-case *)
-  | EFailure of path * string * counts (** Indicates an failure has occurred *)
-  | EError of path * string * counts (** Indicates that an error has occurred *)
+    EStart of path 
+  | EEnd of path
+  | EResult of test_result
 
 (** Perform the test, allows you to build your own test runner *)
-val perform_test : (test_event -> 'a) -> test -> counts
+val perform_test : (test_event -> 'a) -> test -> test_result list
 
 (** A simple text based test runner. It prints out information
     during the test. *)
-val run_test_tt : ?verbose:bool -> test -> counts
+val run_test_tt : ?verbose:bool -> test -> test_result list
 
 (** Main version of the text based test runner. It reads the supplied command 
     line arguments to set the verbose level *)
-val run_test_tt_main : test -> counts
-
-
-
+val run_test_tt_main : test -> test_result list

@@ -12,7 +12,7 @@
       <authorblurb>
         <para>
           <address>
-            <email>maas@wanadoo.nl</email>
+            <email>mmzeeman@xs4all.nl</email>
           </address>
         </para>
       </authorblurb>
@@ -20,64 +20,78 @@
   </authorgroup>
 
   <copyright>
-    <year>2003</year><holder>Maas-Maarten Zeeman</holder>
+    <year>2003</year>
+    <year>2004</year>
+    <year>2005</year>
+    <holder>Maas-Maarten Zeeman</holder>
   </copyright>
 
   <abstract>
     <para>
-
-    <caution>
-      <para>
-      This manual is unfinished.
-      </para>
-    </caution>
-
     Ounit is a unit testing framework for Ocaml, inspired by HUnit for
     Haskell, and JUnit for Java. This guide describes how to use
     OUnit, assuming you are familiar with Ocaml, though not
     necessarily with JUnit.
+    </para>
 
   </abstract>
+
+  <releaseinfo>
+    This manual describes how to write unit-tests for OCaml programs.
+  </releaseinfo>
     
   <legalnotice>
     <title>License</title>
-    <para>
-    Copyright &copy; 2002, 2003 by Maas-Maarten Zeeman
-    </para>
 
     <para>
-    The package OUnit is copyright by Maas-Maarten Zeeman.
-    </para>
+    
+    <orderedlist>
+      <listitem>
+        <para>
+          The package OUnit is Copyright &copy; 2002, 2003, 2004, 2005 by
+          Maas-Maarten Zeeman.
+        </para>
+      </listitem>
 
-    <para>
-    Permission is hereby granted, free of charge, to any person obtaining
-    a copy of this document and the OUnit software ("the Software"), to
-    deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute,
-    sublicense, and/or sell copies of the Software, and to permit persons
-    to whom the Software is furnished to do so, subject to the following
-    conditions:
-    </para>
+      <listitem>
+        <para>
+          Permission is hereby granted, free of charge, to any person
+          obtaining a copy of this document and the OUnit software
+          ("the Software"), to deal in the Software without
+          restriction, including without limitation the rights to use,
+          copy, modify, merge, publish, distribute, sublicense, and/or
+          sell copies of the Software, and to permit persons to whom
+          the Software is furnished to do so, subject to the following
+          conditions:
+        </para>
+      </listitem>
 
-    <para>
-    The above copyright notice and this permission notice shall be
-    included in all copies or substantial portions of the Software.
-    </para>
+      <listitem>
+        <para>
+          The above copyright notice and this permission notice shall
+          be included in all copies or substantial portions of the
+          Software.
+        </para>
+      </listitem>
 
-    <para>
-    The Software is provided ``as is'', without warranty of any kind,
-    express or implied, including but not limited to the warranties of
-    merchantability, fitness for a particular purpose and noninfringement.
-    In no event shall Maas-Maarten Zeeman be liable for any claim, damages
-    or other liability, whether in an action of contract, tort or
-    otherwise, arising from, out of or in connection with the Software or
-    the use or other dealings in the software.
-    </para>
+      <listitem>
+        <para>
+          The Software is provided ``as is'', without warranty of any
+          kind, express or implied, including but not limited to the
+          warranties of merchantability, fitness for a particular
+          purpose and noninfringement.  In no event shall Maas-Maarten
+          Zeeman be liable for any claim, damages or other liability,
+          whether in an action of contract, tort or otherwise, arising
+          from, out of or in connection with the Software or the use
+          or other dealings in the software.
+        </para>
+      </listitem>
+    </orderedlist>
   </legalnotice>
 </bookinfo>
 
 <chapter>
-<title>What is test-oriented programming?</title>
+<title>What is Unit Testing?</title>
 
   <para>
     A test-oriented methodology for software development is most
@@ -115,21 +129,27 @@
   Define test cases as appropriate
 
   <programlisting>
-    let test1 = TestCase(fun _ -> assert_equal "x" (foo "x"));; 
-    let test2 = TestCase(fun _ -> assert_equal 100 (foo 100));;
+    let test1 = 
+      TestCase (fun _ -> 
+        assert_equal "x" (unity "x"));; 
+
+    let test2 = 
+      TestCase (fun _ -> 
+        assert_equal 100 (unity 100));;
   </programlisting>
 
   Name the test cases and group them together::
 
   <programlisting>
-    let suite = TestLabel ("suite", TestList [TestLabel ("test1", test1); 
-                                              TestLabel ("test2", test2)])
+    let suite = TestLabel ("suite", 
+                  TestList [ TestLabel ("test1", test1); 
+                             TestLabel ("test2", test2)]);;
   </programlisting>
 
   And compile the module
 
   <screen>
-    $ocamlc -c tests.ml
+    $ocamlfind ocamlc -c tests.ml
     File "tests.ml", line 3, characters 48-51:    Unbound value foo
   </screen>
 
@@ -137,7 +157,7 @@
   and type
 
   <programlisting>
-    let foo x = x
+    let unity a = a
   </programlisting>
 
   And compile
@@ -176,24 +196,23 @@
     #
   </screen>
 
-  Isn't that easy?
-
   You can specify the tests even more succinctly using special
   operators.
 
   <programlisting>
-    let suite = "suite" >::: ["test1" >:: test1;
-			      "test2" >:: test2;] 
+    let suite = 
+      "suite" >::: ["test1" >:: test1; "test2" >:: test2;];;
   </programlisting>
 
   It is also possible to add the following line to the 'Tests'
   module.
 
   <programlisting>
-    let main = run_test suite
+    let _ = 
+      run_test_tt suite
   </programlisting>
 
-  When compiled as follows
+  When compiled as follows:
 
   <screen>
     $ocamlfind ocamlc -o tests -package oUnit -linkpkg foo.cmo tests.ml
@@ -208,8 +227,6 @@
     Ran: 2 tests in: 0.00 Seconds
     OK
   </screen>
-
-    
 
 Test Case
 

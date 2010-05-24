@@ -1,3 +1,8 @@
+ocaml-unit-1.0.2
+
+  - Refactored OUnit package. The test result and test event data structures
+    are now clearly separated.
+
 ocaml-unit-1.0.1
   
   - Added optional compare function to assert_equal, and a float compare

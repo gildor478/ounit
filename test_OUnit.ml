@@ -1,11 +1,9 @@
 (***********************************************************************)
 (* The OUnit library                                                   *)
 (*                                                                     *)
-(* Copyright 2002, 2003 Maas-Maarten Zeeman. All rights reserved. See  *) 
-(* LICENCE for details.                                                *)
+(* Copyright 2002, 2003, 2004, 2005 Maas-Maarten Zeeman.               *)
+(* All rights reserved. See LICENCE for details.                       *)
 (***********************************************************************)
-
-(* $Id: test_OUnit.ml,v 1.11 2004/06/29 08:26:20 maas Exp $ *)
 
 open OUnit
   
@@ -62,10 +60,12 @@ let test_case_paths _ =
 let test_assert_raises _ =
   assert_raises 
     (Failure "OUnit: expected: Failure(\"Boo\") but got: Failure(\"Foo\")") 
-    (fun _ -> (assert_raises (Failure "Boo") (fun _ -> raise (Failure "Foo"))));
+    (fun _ -> (assert_raises (Failure "Boo") 
+		 (fun _ -> raise (Failure "Foo"))));
   assert_raises 
     (Failure "OUnit: A label\nexpected: Failure(\"Boo\") but got: Failure(\"Foo\")") 
-    (fun _ -> (assert_raises ~msg:"A label" (Failure "Boo") (fun _ -> raise (Failure "Foo"))));
+    (fun _ -> (assert_raises ~msg:"A label" (Failure "Boo") 
+		 (fun _ -> raise (Failure "Foo"))));
   assert_raises 
     (Failure "OUnit: expected exception Failure(\"Boo\"), but no exception was not raised.") 
     (fun _ -> (assert_raises (Failure "Boo") (fun _ -> ())));
@@ -73,18 +73,32 @@ let test_assert_raises _ =
     (Failure "OUnit: A label\nexpected exception Failure(\"Boo\"), but no exception was not raised.") 
     (fun _ -> (assert_raises ~msg:"A label" (Failure "Boo") (fun _ -> ())))
 
+(* Test the float compare, and use the cmp label *)
 let test_cmp_float _ =
   assert_equal ~cmp: cmp_float 0.0001 0.0001;
   assert_equal ~cmp: (cmp_float ~epsilon: 0.001) 1.0001 1.00001;
   assert_raises (Failure "OUnit: not equal") 
       (fun _ -> assert_equal ~cmp: cmp_float 100.0001 101.001)
 
+let test_assert_string _ =
+  assert_string "";
+  assert_raises (Failure "OUnit: A string") 
+    (fun _ -> assert_string "A string")
+
+let test_assert_bool _ =
+  assert_bool "true" true;
+  assert_raises (Failure "OUnit: false") 
+    (fun _ -> assert_bool "false" false)
+
 (* Construct the test suite *)
-let suite = "OUnit" >::: [ "test_case_count" >:: test_case_count;
-			   "test_case_paths" >:: test_case_paths;
-			   "test_assert_raises" >:: test_assert_raises;
-			   "test_cmp_float" >:: test_cmp_float;
-			 ]
+let suite = "OUnit" >::: 
+  [ "test_case_count" >:: test_case_count;
+    "test_case_paths" >:: test_case_paths;
+    "test_assert_raises" >:: test_assert_raises;
+    "test_assert_string" >:: test_assert_string;
+    "test_assert_bool" >:: test_assert_bool;
+    "test_cmp_float" >:: test_cmp_float;
+  ]
 
 (* Run the tests in test suite *)
 let _ = run_test_tt_main suite
