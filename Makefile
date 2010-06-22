@@ -9,10 +9,14 @@ XOBJECTS=$(OBJECTS:.cmo=.cmx)
 ARCHIVE=oUnit.cma
 XARCHIVE=$(ARCHIVE:.cma=.cmxa)
 
+PRINTEXC_MLI=$(shell ocamlc -where)/printexc.mli
+
+OCAMLPP_DEFINES=$(shell grep get_backtrace $(PRINTEXC_MLI) >/dev/null && echo -DBACKTRACE)
+OCAMLPP=-pp "camlp4o pa_macro.cmo $(OCAMLPP_DEFINES)"
 OCAMLRUN=ocamlrun
-OCAMLC=ocamlc
-OCAMLOPT=ocamlopt
-OCAMLDEP=ocamldep
+OCAMLC=ocamlc $(OCAMLPP) -g
+OCAMLOPT=ocamlopt $(OCAMLPP)
+OCAMLDEP=ocamldep $(OCAMLPP)
 MKLIB=ocamlmklib
 OCAMLDOC=ocamldoc
 OCAMLFIND=ocamlfind
@@ -24,6 +28,9 @@ COMPFLAGS=-w A
 all: $(ARCHIVE)
 allopt: $(XARCHIVE)
 
+debug:
+	@echo Printexc: $(PRINTEXC_MLI)
+	@echo Macros: $(OCAMLPP_DEFINES)
 $(ARCHIVE): $(OBJECTS)
 	$(OCAMLC) -a -o $(ARCHIVE) $(OBJECTS)
 $(XARCHIVE): $(XOBJECTS)

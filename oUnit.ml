@@ -259,15 +259,15 @@ let result_flavour = function
 
 let result_path = function
     RSuccess path 
-  | RError (path, _) 
-  | RFailure (path, _) 
+  | RError (path, _)
+  | RFailure (path, _)
   | RSkip (path, _)
   | RTodo (path, _) -> path
 
 let result_msg = function
     RSuccess _ -> "Success"
-  | RError (_, msg) 
-  | RFailure (_, msg) 
+  | RError (_, msg)
+  | RFailure (_, msg)
   | RSkip (_, msg)
   | RTodo (_, msg) -> msg
 
@@ -287,6 +287,12 @@ type test_event =
   | EEnd of path
   | EResult of test_result
 
+DEFINE MAYBE_BACKTRACE = IFDEF BACKTRACE THEN
+    (if Printexc.backtrace_status () then
+       "\n" ^ Printexc.get_backtrace ()
+     else "")
+    ELSE "" ENDIF
+
 (* Run all tests, report starts, errors, failures, and return the results *)
 let perform_test report test =
   let run_test_case f path =
@@ -294,10 +300,10 @@ let perform_test report test =
       f ();
       RSuccess path
     with
-	Failure s -> RFailure (path, s)
+	Failure s -> RFailure (path, s ^ MAYBE_BACKTRACE)
       | Skip s -> RSkip (path, s)
       | Todo s -> RTodo (path, s)
-      | s -> RError (path, (Printexc.to_string s))
+      | s -> RError (path, (Printexc.to_string s) ^ MAYBE_BACKTRACE)
   in
   let rec run_test path results test = 
     match test with 
@@ -334,7 +340,7 @@ let run_test_tt ?(verbose=false) test =
 	if verbose then "ok\n" else "."
     | RFailure (_, _) ->
 	if verbose then "FAIL\n" else "F"
-    | RError (_, _) -> 
+    | RError (_, _) ->
 	if verbose then "ERROR\n" else "E"
     | RSkip (_, _) ->
 	if verbose then "SKIP\n" else "S"
