@@ -1,9 +1,10 @@
 (***********************************************************************)
 (* The OUnit library                                                   *)
 (*                                                                     *)
-(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008              *) 
-(* Maas-Maarten Zeeman.                                                *)
-(* All rights reserved. See LICENCE for details.                       *)
+(* Copyright (C) 2002-2008 Maas-Maarten Zeeman.                        *)
+(* Copyright (C) 2010 OCamlCore SARL                                   *)
+(*                                                                     *)
+(* See LICENCE for details.                                            *)
 (***********************************************************************)
 
 (** The OUnit library can be used to implement unittests
