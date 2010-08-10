@@ -7,12 +7,15 @@
 (* See LICENCE for details.                                            *)
 (***********************************************************************)
 
-(** The OUnit library can be used to implement unittests
+(** The OUnit library can be used to implement unit tests
 
-    To uses this library link with
-      [ocamlc oUnit.cmo]
+    The best way to uses this library, is to use ocamlfind
+      [ocamlfind ocamlc -package oUnit -g foo.ml]
     or 
-      [ocamlopt oUnit.cmx]
+      [ocamlfind ocamlopt -package oUnit -g foo.ml]
+
+    The use of [-g] is highly recommended to be able to get a precise
+    location for exception.
  
     @author Maas-Maarten Zeeman
 *)
@@ -71,7 +74,7 @@ val assert_raises : ?msg:string -> exn -> (unit -> 'a) -> unit
    A test skipped is counted as success. A test todo is counted as failure.  *)
 
 (** [skip cond msg] If [cond] is true, skip the test for the reason explain in [msg].
-  * For example [skip_if (Sys.os_type = "Win32") "Test a doesn't run on windows"].
+    For example [skip_if (Sys.os_type = "Win32") "Test a doesn't run on windows"].
   *)
 val skip_if : bool -> string -> unit
 
@@ -89,7 +92,9 @@ val cmp_float : ?epsilon: float -> float -> float -> bool
     A bracket is a functional implementation of the commonly used
     setUp and tearDown feature in unittests. It can be used like this:
 
-    "MyTestCase" >:: (bracket test_set_up test_fun test_tear_down) *)
+    ["MyTestCase" >:: (bracket test_set_up test_fun test_tear_down)] 
+    
+  *)
 
 (** *)
 val bracket : (unit -> 'a) -> ('a -> 'b) -> ('a -> 'c) -> unit -> 'c
