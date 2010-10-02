@@ -185,4 +185,7 @@ val run_test_tt : ?verbose:bool -> test -> test_result list
 (** Main version of the text based test runner. It reads the supplied command 
     line arguments to set the verbose level and limit the number of test to run
   *)
-val run_test_tt_main : test -> test_result list
+val run_test_tt_main : 
+    ?arg_specs:(Arg.key * Arg.spec * Arg.doc) list -> 
+    ?set_verbose:(bool -> unit) -> 
+    test -> test_result list

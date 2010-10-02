@@ -484,7 +484,7 @@ let run_test_tt ?(verbose=false) test =
     results
       
 (* Call this one from you test suites *)
-let run_test_tt_main suite = 
+let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite = 
   let verbose = ref false in 
   let only_test = ref [] in
   let () = 
@@ -508,7 +508,7 @@ let run_test_tt_main suite =
                   (test_case_paths suite);
                 exit 0),
            " List tests";
-         ]
+         ] @ arg_specs
       )
       (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
       ("usage: " ^ Sys.argv.(0) ^ " [-verbose] [-only-test path]*")
@@ -529,6 +529,7 @@ let run_test_tt_main suite =
   in
 
   let result = 
+    set_verbose !verbose;
     run_test_tt ~verbose:!verbose nsuite 
   in
     if not (was_successful result) then
