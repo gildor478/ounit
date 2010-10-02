@@ -24,8 +24,10 @@ let test_case_count _ =
   let assert_equal ?msg = assert_equal ?msg ~printer:string_of_int in
   assert_equal 0 (test_case_count (TestList []));
   assert_equal 0 (test_case_count (TestLabel("label", TestList [])));
-  assert_equal 0 (test_case_count (TestList [TestList []; 
-					     TestList [TestList []]]));
+  assert_equal 0 
+    (test_case_count 
+       (TestList [TestList []; 
+                  TestList [TestList []]]));
 
   assert_equal 1 (test_case_count test_case);
   assert_equal 1 (test_case_count labeled_test_case);
@@ -33,8 +35,10 @@ let test_case_count _ =
   assert_equal 1 (test_case_count suite_b);
   
   assert_equal 1 (test_case_count (TestList [suite_a; TestList []]));
-  assert_equal 1 (test_case_count (TestList [TestList []; 
-					     TestList [suite_b]]));
+  assert_equal 1 
+    (test_case_count 
+       (TestList [TestList []; 
+                  TestList [suite_b]]));
   assert_equal 2 (test_case_count suite_c);
   assert_equal 3 (test_case_count suite_d)
 
@@ -50,23 +54,23 @@ let test_case_paths _ =
   assert_equal [[Label "label"; ListItem 0; Label "suite_b"]] 
     (test_case_paths suite_b);
   assert_equal [[ListItem 0; Label "suite_c"]; 
-		[Label "label"; ListItem 1; Label "suite_c"]] 
+                [Label "label"; ListItem 1; Label "suite_c"]] 
     (test_case_paths suite_c);
   assert_equal [[ListItem 0; Label "suite_a"; ListItem 0; Label "suite_d"];
-		[ListItem 0; Label "suite_c"; ListItem 1; Label "suite_d"];
-		[Label "label"; ListItem 1; Label "suite_c"; ListItem 1;
-		 Label "suite_d"]] 
+                [ListItem 0; Label "suite_c"; ListItem 1; Label "suite_d"];
+                [Label "label"; ListItem 1; Label "suite_c"; ListItem 1;
+                 Label "suite_d"]] 
     (test_case_paths suite_d)
 
 let test_assert_raises _ =
   assert_raises 
     (Failure "OUnit: expected: Failure(\"Boo\") but got: Failure(\"Foo\")") 
     (fun _ -> (assert_raises (Failure "Boo") 
-		 (fun _ -> raise (Failure "Foo"))));
+                 (fun _ -> raise (Failure "Foo"))));
   assert_raises 
     (Failure "OUnit: A label\nexpected: Failure(\"Boo\") but got: Failure(\"Foo\")") 
     (fun _ -> (assert_raises ~msg:"A label" (Failure "Boo") 
-		 (fun _ -> raise (Failure "Foo"))));
+                 (fun _ -> raise (Failure "Foo"))));
   assert_raises 
     (Failure "OUnit: expected exception Failure(\"Boo\"), but no exception was raised.") 
     (fun _ -> (assert_raises (Failure "Boo") (fun _ -> ())));
@@ -97,7 +101,7 @@ let test_case_filter () =
       | Some tst ->
           assert_equal res (OUnit.test_case_count tst)
       | None ->
-          assert_failure "Unexcpected empty filter result"
+          assert_failure "Unexpected empty filter result"
   in
   assert_equal None (test_filter [] suite_a);
   assert_equal None (test_filter [] suite_b);
