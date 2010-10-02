@@ -1,6 +1,7 @@
 Copyright (c) 2002, 2003 by Maas-Maarten Zeeman
+Copyright (c) 2010 by OCamlCore SARL
 
-The package OUnit is copyright by Maas-Maarten Zeeman.
+The package OUnit is copyright by Maas-Maarten Zeeman and OCamlCore SARL.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this document and the OUnit software ("the Software"), to

@@ -1,92 +1,40 @@
-#
-# $Id: Makefile,v 1.1.1.1 2008-06-07 03:17:22 maas Exp $
-#
+default: test
 
-NAME=oUnit
-OBJECTS=oUnit.cmo
-XOBJECTS=$(OBJECTS:.cmo=.cmx)
+# OASIS_START
+# DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
 
-ARCHIVE=oUnit.cma
-XARCHIVE=$(ARCHIVE:.cma=.cmxa)
+SETUP = ocaml setup.ml
 
-PRINTEXC_MLI=$(shell ocamlc -where)/printexc.mli
+build: setup.data
+	$(SETUP) -build $(BUILDFLAGS)
 
-OCAMLPP_DEFINES=$(shell grep get_backtrace $(PRINTEXC_MLI) >/dev/null && echo -DBACKTRACE)
-OCAMLPP=-pp "camlp4o pa_macro.cmo $(OCAMLPP_DEFINES)"
-OCAMLRUN=ocamlrun
-OCAMLC=ocamlc $(OCAMLPP) -g
-OCAMLOPT=ocamlopt $(OCAMLPP)
-OCAMLDEP=ocamldep $(OCAMLPP)
-MKLIB=ocamlmklib
-OCAMLDOC=ocamldoc
-OCAMLFIND=ocamlfind
+doc: setup.data build
+	$(SETUP) -doc $(DOCFLAGS)
 
-COMPFLAGS=-w A
+test: setup.data build
+	$(SETUP) -test $(TESTFLAGS)
 
-### End of configuration section
+all: 
+	$(SETUP) -all $(ALLFLAGS)
 
-all: $(ARCHIVE)
-allopt: $(XARCHIVE)
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
 
-debug:
-	@echo Printexc: $(PRINTEXC_MLI)
-	@echo Macros: $(OCAMLPP_DEFINES)
-$(ARCHIVE): $(OBJECTS)
-	$(OCAMLC) -a -o $(ARCHIVE) $(OBJECTS)
-$(XARCHIVE): $(XOBJECTS)
-	$(OCAMLOPT) -a -o $(XARCHIVE) $(XOBJECTS)
+uninstall: setup.data
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
 
-depend: *.ml *.mli
-	$(OCAMLDEP) *.mli *.ml > depend
+reinstall: setup.data
+	$(SETUP) -reinstall $(REINSTALLFLAGS)
 
-.PHONY: test
-test: unittest
-	./unittest
-.PHONY: testopt
-testopt: unittest.opt
-	./unittest.opt
-.PHONY: testall
-testall: test testopt
+clean: 
+	$(SETUP) -clean $(CLEANFLAGS)
 
-unittest: $(OBJECTS) $(TEST_OBJECTS)
-	$(OCAMLFIND) ocamlc -o unittest -package unix -linkpkg \
-	$(OBJECTS) test_OUnit.ml
+distclean: 
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
 
-unittest.opt: $(XOBJECTS) $(TEST_XOBJECTS)
-	$(OCAMLFIND) ocamlopt -o unittest.opt -package unix -linkpkg \
-	$(XOBJECTS) test_OUnit.ml
+setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
 
-.PHONY: install
-install: all
-	{ test ! -f $(XARCHIVE) || extra="$(XARCHIVE) $(NAME).a"; }; \
-	$(OCAMLFIND) install $(NAME) META $(NAME).mli $(NAME).cmi $(ARCHIVE) \
-	$$extra
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
 
-.PHONY: uninstall
-uninstall:
-	$(OCAMLFIND) remove $(NAME)
-
-.PHONY: doc
-doc: FORCE
-	{ test -d doc || mkdir doc; };
-	cd doc; $(OCAMLDOC) -html -I .. ../$(NAME).mli
-
-.PHONY: clean
-clean::
-	rm -f *~ *.cm* *.o *.a *.so unittest unittest.opt doc/*.html doc/*.css
-
-FORCE:
-
-.SUFFIXES: .ml .mli .cmo .cmi .cmx
-
-.mli.cmi:
-	$(OCAMLC) -c $(COMPFLAGS) $<
-.ml.cmo:
-	$(OCAMLC) -c $(COMPFLAGS) $<
-.ml.cmx:
-	$(OCAMLOPT) -c $(COMPFLAGS) $<
-.c.o:
-	$(OCAMLC) -c -ccopt "$(CFLAGS)" $<
-
-include depend
-
+# OASIS_STOP

@@ -1,0 +1,6 @@
+(* OASIS_START *)
+(* DO NOT EDIT (digest: 82849e685121573360cb0d76560b2225) *)
+Authors of oUnit
+Maas-Maarten Zeeman
+Sylvain Le Gall
+(* OASIS_STOP *)

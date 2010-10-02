@@ -4,7 +4,7 @@
 (* Copyright (C) 2002-2008 Maas-Maarten Zeeman.                        *)
 (* Copyright (C) 2010 OCamlCore SARL                                   *)
 (*                                                                     *)
-(* See LICENCE for details.                                            *)
+(* See LICENSE for details.                                            *)
 (***********************************************************************)
 
 (** The OUnit library can be used to implement unit tests

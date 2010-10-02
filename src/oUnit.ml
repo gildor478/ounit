@@ -4,7 +4,7 @@
 (* Copyright (C) 2002-2008 Maas-Maarten Zeeman.                        *)
 (* Copyright (C) 2010 OCamlCore SARL                                   *)
 (*                                                                     *)
-(* See LICENCE for details.                                            *)
+(* See LICENSE for details.                                            *)
 (***********************************************************************)
 
 let bracket set_up f tear_down () =
