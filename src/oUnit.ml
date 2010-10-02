@@ -195,7 +195,7 @@ let test_case_paths test =
 (* Test filtering with their path *)
 module SetTestPath = Set.Make(String)
 
-let test_filter only test =
+let test_filter ?(skip=false) only test =
   let set_test =
     List.fold_left 
       (fun st str -> SetTestPath.add str st)
@@ -211,9 +211,16 @@ let test_filter only test =
     else
       begin
         match tst with
-          | TestCase _ ->
+          | TestCase f ->
               begin
-                None
+                if skip then
+                  Some 
+                    (TestCase 
+                       (fun () ->
+                          skip_if true "Test disabled";
+                          f ()))
+                else
+                  None
               end
 
           | TestList tst_lst ->
@@ -232,24 +239,27 @@ let test_filter only test =
                     []
                     tst_lst
                 in
-                  if ntst_lst = [] then
+                  if not skip && ntst_lst = [] then
                     None
                   else
-                    Some (TestList ntst_lst)
+                    Some (TestList (List.rev ntst_lst))
               end
 
           | TestLabel (lbl, tst) ->
               begin
-                let ntst =
+                let ntst_opt =
                   filter_test 
                     ((Label lbl) :: path)
                     tst
                 in
-                  match ntst with
-                    | Some tst ->
-                        Some (TestLabel (lbl, tst))
+                  match ntst_opt with 
+                    | Some ntst ->
+                        Some (TestLabel (lbl, ntst))
                     | None ->
-                        None
+                        if skip then
+                          Some (TestLabel (lbl, tst))
+                        else
+                          None
               end
       end
   in
@@ -495,21 +505,19 @@ let run_test_tt_main suite =
   in
   let nsuite = 
     if !only_test = [] then
-      begin
-        suite
-      end
-
+      suite
     else
       begin
-        match test_filter !only_test suite with 
-          | Some tst ->
-              tst
+        match test_filter ~skip:true !only_test suite with 
+          | Some test ->
+              test
           | None ->
               failwith ("Filtering test "^
                         (String.concat ", " !only_test)^
                         " lead to no test")
       end
   in
+
   let result = 
     run_test_tt ~verbose:!verbose nsuite 
   in

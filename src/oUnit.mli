@@ -135,8 +135,10 @@ val (>:::) : string -> test list -> test
 (** [test_decorate g tst] Apply [g] to test function contains in [tst] tree. *)
 val test_decorate : (test_fun -> test_fun) -> test -> test
 
-(** [test_filter paths tst] Filter test based on their path string representation. *)
-val test_filter : string list -> test -> test option
+(** [test_filter paths tst] Filter test based on their path string representation. 
+    If [skip] is set, just use [skip_if] for the matching tests.
+  *)
+val test_filter : ?skip:bool -> string list -> test -> test option
 
 (** {5 Retrieve Information from Tests} *)
 

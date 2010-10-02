@@ -1,3 +1,4 @@
+#TESTFLAGS=-only-test "OUnit:1"
 default: test
 
 # OASIS_START
