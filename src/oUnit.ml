@@ -498,6 +498,16 @@ let run_test_tt_main suite =
            "-only-test", 
            Arg.String (fun str -> only_test := str :: !only_test),
            "path Run only the selected test";
+
+           "-list-test",
+           Arg.Unit
+             (fun () -> 
+                List.iter
+                  (fun pth ->
+                     print_endline (string_of_path pth))
+                  (test_case_paths suite);
+                exit 0),
+           " List tests";
          ]
       )
       (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
