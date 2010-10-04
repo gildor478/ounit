@@ -492,4 +492,18 @@ let package_default =
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
 (* OASIS_STOP *)
-Ocamlbuild_plugin.dispatch dispatch_default;;
+Ocamlbuild_plugin.dispatch 
+  (function
+     | After_rules as e ->
+         dep ["doc"; "docdir"; "extension:html"; 
+              "ocaml"; "oasis_document_api_ounit"] &
+           ["doc/manual.txt"];
+         flag ["doc"; "docdir"; "extension:html"; 
+               "ocaml"; "oasis_document_api_ounit"] &
+           (S[A"-t"; A"OUnit user guide"; 
+              A"-intro"; P"doc/manual.txt"; 
+              A"-colorize-code"]);
+         dispatch_default e
+     | e -> 
+         dispatch_default e)
+;;

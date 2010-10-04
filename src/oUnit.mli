@@ -7,33 +7,26 @@
 (* See LICENSE for details.                                            *)
 (***********************************************************************)
 
-(** The OUnit library can be used to implement unit tests
-
-    The best way to uses this library, is to use ocamlfind
-      [ocamlfind ocamlc -package oUnit -g foo.ml]
-    or 
-      [ocamlfind ocamlopt -package oUnit -g foo.ml]
-
-    The use of [-g] is highly recommended to be able to get a precise
-    location for exception.
+(** Unit test building blocks
  
     @author Maas-Maarten Zeeman
-*)
+    @author Sylvain Le Gall
+  *)
 
-(** {5 Assertions} 
+(** {2 Assertions} 
 
     Assertions are the basic building blocks of unittests. *)
 
 (** Signals a failure. This will raise an exception with the specified
     string. 
 
-    @raise Failure to signal a failure *)
+    @raise Failure signal a failure *)
 val assert_failure : string -> 'a
 
 (** Signals a failure when bool is false. The string identifies the 
     failure.
     
-    @raise Failure to signal a failure *)
+    @raise Failure signal a failure *)
 val assert_bool : string -> bool -> unit
 
 (** Shorthand for assert_bool 
@@ -44,50 +37,63 @@ val ( @? ) : string -> bool -> unit
 (** Signals a failure when the string is non-empty. The string identifies the
     failure. 
     
-    @raise Failure to signal a failure *) 
+    @raise Failure signal a failure *) 
 val assert_string : string -> unit
 
 
-(** Compares two values, when they are not equal a failure is signaled.
-    The cmp parameter can be used to pass a different compare function. 
-    This parameter defaults to ( = ). The optional printer can be used 
-    to convert the value to string, so a nice error message can be 
-    formatted. When msg is also set it can be used to identify the failure. 
+(** [assert_equal expected real] Compares two values, when they are not equal a
+    failure is signaled.
 
-    @raise Failure description *)
-val assert_equal : ?cmp:('a -> 'a -> bool) ->  ?printer:('a -> string) -> 
-                   ?msg:string -> 'a -> 'a -> unit
+    @param cmp Customize function to compare, default is [=]
+    @param printer Value printer, don't print value otherwise
+    @param msg Custom message to identify the failure
 
-(** Asserts if the expected exception was raised. When msg is set it can 
-    be used to identify the failure
+    @raise Failure signal a failure 
+  *)
+val assert_equal : 
+  ?cmp:('a -> 'a -> bool) ->
+  ?printer:('a -> string) -> 
+  ?msg:string -> 'a -> 'a -> unit
+
+(** Asserts if the expected exception was raised. 
+   
+    @param msg identify the failure
 
     @raise Failure description *)
 val assert_raises : ?msg:string -> exn -> (unit -> 'a) -> unit
 
-(** {5 Skipping tests } 
+(** {2 Skipping tests } 
   
    In certain condition test can be written but there is no point running it, because they
    are not significant (missing OS features for example). In this case this is not a failure
-   nor a success. Following function allow you to escape test, just as assertion but without
+   nor a success. Following functions allow you to escape test, just as assertion but without
    the same error status.
   
-   A test skipped is counted as success. A test todo is counted as failure.  *)
+   A test skipped is counted as success. A test todo is counted as failure.
+  *)
 
 (** [skip cond msg] If [cond] is true, skip the test for the reason explain in [msg].
     For example [skip_if (Sys.os_type = "Win32") "Test a doesn't run on windows"].
+    
+    @since 1.0.3
   *)
 val skip_if : bool -> string -> unit
 
 (** The associated test is still to be done, for the reason given.
+    
+    @since 1.0.3
   *)
 val todo : string -> unit
 
-(** {5 Compare Functions} *)
+(** {2 Compare Functions} *)
 
-(** Compare floats up to a given relative error. *)
-val cmp_float : ?epsilon: float -> float -> float -> bool
+(** Compare floats up to a given relative error. 
+    
+    @param epsilon if the difference is smaller [epsilon] values are equal
+  *)
+val cmp_float : ?epsilon:float -> float -> float -> bool
 
-(** {5 Bracket}
+(** {2 Bracket}
 
     A bracket is a functional implementation of the commonly used
     setUp and tearDown feature in unittests. It can be used like this:
@@ -96,10 +102,24 @@ val cmp_float : ?epsilon: float -> float -> float -> bool
     
   *)
 
-(** *)
-val bracket : (unit -> 'a) -> ('a -> 'b) -> ('a -> 'c) -> unit -> 'c
+(** [bracket set_up test tear_down] The [set_up] function runs first, then
+    the [test] function runs and at the end [tear_down] runs. The 
+    [tear_down] function runs even if the [test] failed and help to clean
+    the environment.
+  *)
+val bracket: (unit -> 'a) -> ('a -> unit) -> ('a -> 'b) -> unit -> 'b
 
-(** {5 Constructing Tests} *)
+(*
+(** [bracket_tmpfile test] The test function takes a temporary filename
+    as argument. The temporary file is created before the test and 
+    removed after the test.
+    
+    @since 1.0.4
+  *)
+val bracket_tmpfile: (string -> unit) 
+ *)
+
+(** {2 Constructing Tests} *)
 
 (** The type of test function *)
 type test_fun = unit -> unit
@@ -127,20 +147,24 @@ val (>:::) : string -> test list -> test
    [TestLabel("test2", TestCase((fun _ -> ())))]
    - ["test2" >:: (fun _ -> ())] => 
    [TestLabel("test2", TestCase((fun _ -> ())))]
-
    - ["test-suite" >::: ["test2" >:: (fun _ -> ());]] =>
    [TestLabel("test-suite", TestSuite([TestLabel("test2", TestCase((fun _ -> ())))]))]
 *)
 
-(** [test_decorate g tst] Apply [g] to test function contains in [tst] tree. *)
+(** [test_decorate g tst] Apply [g] to test function contains in [tst] tree.
+    
+    @since 1.0.3
+  *)
 val test_decorate : (test_fun -> test_fun) -> test -> test
 
 (** [test_filter paths tst] Filter test based on their path string representation. 
-    If [skip] is set, just use [skip_if] for the matching tests.
+    
+    @param skip] if set, just use [skip_if] for the matching tests.
+    @since 1.0.3
   *)
 val test_filter : ?skip:bool -> string list -> test -> test option
 
-(** {5 Retrieve Information from Tests} *)
+(** {2 Retrieve Information from Tests} *)
 
 (** Returns the number of available test cases *)
 val test_case_count : test -> int
@@ -159,7 +183,7 @@ val string_of_path : path -> string
 (** Returns a list with paths of the test *)
 val test_case_paths : test -> path list
 
-(** {5 Performing Tests} *)
+(** {2 Performing Tests} *)
 
 (** The possible results of a test *)
 type test_result =
@@ -179,11 +203,20 @@ type test_event =
 val perform_test : (test_event -> 'a) -> test -> test_result list
 
 (** A simple text based test runner. It prints out information
-    during the test. *)
+    during the test. 
+
+    @param verbose print verbose message
+  *)
 val run_test_tt : ?verbose:bool -> test -> test_result list
 
 (** Main version of the text based test runner. It reads the supplied command 
-    line arguments to set the verbose level and limit the number of test to run
+    line arguments to set the verbose level and limit the number of test to 
+    run.
+    
+    @param arg_specs add extra command line arguments
+    @param set_verbose call a function to set verbosity
+
+    @version 1.0.4
   *)
 val run_test_tt_main : 
     ?arg_specs:(Arg.key * Arg.spec * Arg.doc) list -> 
