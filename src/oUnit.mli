@@ -109,15 +109,13 @@ val cmp_float : ?epsilon:float -> float -> float -> bool
   *)
 val bracket: (unit -> 'a) -> ('a -> unit) -> ('a -> 'b) -> unit -> 'b
 
-(*
 (** [bracket_tmpfile test] The test function takes a temporary filename
     as argument. The temporary file is created before the test and 
     removed after the test.
     
     @since 1.0.4
   *)
-val bracket_tmpfile: (string -> unit) 
- *)
+val bracket_tmpfile: (string -> unit) -> unit -> unit 
 
 (** {2 Constructing Tests} *)
 

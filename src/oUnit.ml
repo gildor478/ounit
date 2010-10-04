@@ -18,6 +18,17 @@ let bracket set_up f tear_down () =
       tear_down fixture;
       raise e
 
+let bracket_tmpfile f =
+  bracket
+    (fun () ->
+       Filename.temp_file "ounit-" ".txt")
+    f 
+    (fun fn ->
+       try
+         Sys.remove fn
+       with _ ->
+         ())
+
 exception Skip of string
 let skip_if b msg =
   if b then
