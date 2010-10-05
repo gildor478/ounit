@@ -45,6 +45,8 @@ OUnit: expected: 1, 2, 3, 4, 5 but got: 1, 2, 5, 4
 differences: element number 2 differ (3 <> 5)
 ]}
 
+  @since 1.1.0
+  @author Sylvain Le Gall
   *)
 
 (** {2 Signatures} *)

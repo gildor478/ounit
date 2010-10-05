@@ -3,6 +3,7 @@
 (*                                                                     *)
 (* Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008                  *)
 (* Maas-Maarten Zeeman.                                                *)
+(* Copyright 2010 OCamlCore SARL                                       *)
 (* All rights reserved. See LICENCE for details.                       *)
 (***********************************************************************)
 

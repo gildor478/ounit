@@ -48,7 +48,7 @@ val assert_string : string -> unit
                    [assert_equal] to check it
     @param use_stderr redirect [stderr] to [stdout]
 
-    @since 1.0.4
+    @since 1.1.0
   *)
 val assert_command : 
     ?exit_code:Unix.process_status ->
@@ -126,13 +126,13 @@ val cmp_float : ?epsilon:float -> float -> float -> bool
     [tear_down] function runs even if the [test] failed and help to clean
     the environment.
   *)
-val bracket: (unit -> 'a) -> ('a -> unit) -> ('a -> 'b) -> unit -> 'b
+val bracket: (unit -> 'a) -> ('a -> 'c) -> ('a -> 'b) -> unit -> 'b
 
 (** [bracket_tmpfile test] The test function takes a temporary filename
     as argument. The temporary file is created before the test and 
     removed after the test.
     
-    @since 1.0.4
+    @since 1.1.0
   *)
 val bracket_tmpfile: (string -> unit) -> unit -> unit 
 
@@ -233,7 +233,7 @@ val run_test_tt : ?verbose:bool -> test -> test_result list
     @param arg_specs add extra command line arguments
     @param set_verbose call a function to set verbosity
 
-    @version 1.0.4
+    @version 1.1.0
   *)
 val run_test_tt_main : 
     ?arg_specs:(Arg.key * Arg.spec * Arg.doc) list -> 
