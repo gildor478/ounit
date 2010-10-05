@@ -60,15 +60,18 @@ val assert_command :
 (** [assert_equal expected real] Compares two values, when they are not equal a
     failure is signaled.
 
-    @param cmp Customize function to compare, default is [=]
-    @param printer Value printer, don't print value otherwise
-    @param msg Custom message to identify the failure
+    @param cmp customize function to compare, default is [=]
+    @param printer value printer, don't print value otherwise
+    @param diff if not equal, ask a custom display of the difference
+                using [diff fmt exp real] where [fmt] is the formatter to use
+    @param msg custom message to identify the failure
 
     @raise Failure signal a failure 
   *)
 val assert_equal : 
   ?cmp:('a -> 'a -> bool) ->
   ?printer:('a -> string) -> 
+  ?diff:(Format.formatter -> ('a * 'a) -> unit) ->
   ?msg:string -> 'a -> 'a -> unit
 
 (** Asserts if the expected exception was raised. 

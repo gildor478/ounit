@@ -7,6 +7,8 @@
 (* See LICENSE for details.                                            *)
 (***********************************************************************)
 
+open Format 
+
 let bracket set_up f tear_down () =
   let fixture = 
     set_up () 
@@ -47,23 +49,89 @@ let assert_bool msg b =
 let assert_string str =
   if not (str = "") then assert_failure str
 
-let assert_equal ?(cmp = ( = )) ?printer ?msg expected actual =
+let assert_equal ?(cmp = ( = )) ?printer ?diff ?msg expected actual =
   let get_error_string () =
-    match printer, msg with 
-      | None, None -> 
-          "not equal"
+    let fmt = 
+      Format.str_formatter
+    in
 
-      | None, Some s -> 
-          Format.sprintf "%s\nnot equal" s
+    let max_len = pp_get_margin fmt () in
+    let ellipsis_text = "[...]" in
+    let print_ellipsis p fmt s = 
+      let res = p s in
+      let len = String.length res in
+        if diff <> None && len > max_len then
+          begin
+            let len_with_ellipsis =
+              (max_len - (String.length ellipsis_text)) / 2
+            in
+              (* TODO: we should use %a here to print values *)
+              fprintf fmt
+                "@[%s[...]%s@]"
+                (String.sub res 
+                   0 
+                   len_with_ellipsis)
+                (String.sub res 
+                   (len - len_with_ellipsis) 
+                   len_with_ellipsis)
+          end
+        else
+          begin
+            (* TODO: we should use %a here to print values *)
+            fprintf fmt "@[%s@]" res
+          end
+    in
 
-      | Some p, None -> 
-          Format.sprintf "expected: %s but got: %s" 
-            (p expected) (p actual)
+    let res =
+      pp_open_vbox fmt 0;
+      begin
+        match msg with 
+          | Some s ->
+              pp_open_box fmt 0;
+              pp_print_string fmt s;
+              pp_close_box fmt ();
+              pp_print_cut fmt ()
+          | None -> 
+              ()
+      end;
 
-      | Some p, Some s -> 
-          Format.sprintf "%s\nexpected: %s but got: %s" 
-            s (p expected) (p actual)
+      begin
+        match printer with
+          | Some p ->
+              let p_ellipsis = print_ellipsis p in
+                fprintf fmt
+                  "@[expected: %a@ but got: %a@]@,"
+                  p_ellipsis expected
+                  p_ellipsis actual
+
+          | None ->
+              fprintf fmt "@[not equal@]@,"
+      end;
+
+      begin
+        match diff with 
+          | Some d ->
+              fprintf fmt 
+                "@[differences: %a@]@,"
+                 d (expected, actual)
+
+          | None ->
+              ()
+      end;
+
+      pp_close_box fmt ();
+      flush_str_formatter ()
+    in
+    let len = 
+      String.length res
+    in
+      if len > 0 && res.[len - 1] = '\n' then
+        String.sub res 0 (len - 1)
+      else
+        res
+
   in
+
     if not (cmp expected actual) then 
       assert_failure (get_error_string ())
 
@@ -499,10 +567,10 @@ let time_fun f x y =
 let run_test_tt ?(verbose=false) test =
   let printf = Format.printf in
   let separator1 = 
-    String.make 70 '='
+    String.make (get_margin ()) '='
   in
   let separator2 = 
-    String.make 70 '-'
+    String.make (get_margin ()) '-'
   in
   let string_of_result = 
     function
