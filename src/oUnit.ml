@@ -51,13 +51,17 @@ let assert_string str =
 
 let assert_equal ?(cmp = ( = )) ?printer ?diff ?msg expected actual =
   let get_error_string () =
+    let buff = 
+      Buffer.create 13
+    in
     let fmt = 
-      Format.str_formatter
+      formatter_of_buffer buff
     in
 
-    let max_len = pp_get_margin fmt () in
-    let ellipsis_text = "[...]" in
+(*     let max_len = pp_get_margin fmt () in *)
+(*     let ellipsis_text = "[...]" in *)
     let print_ellipsis p fmt s = 
+        (* TODO: find a way to do this
       let res = p s in
       let len = String.length res in
         if diff <> None && len > max_len then
@@ -80,6 +84,8 @@ let assert_equal ?(cmp = ( = )) ?printer ?diff ?msg expected actual =
             (* TODO: we should use %a here to print values *)
             fprintf fmt "@[%s@]" res
           end
+         *)
+      pp_print_string fmt (p s)
     in
 
     let res =
@@ -100,7 +106,7 @@ let assert_equal ?(cmp = ( = )) ?printer ?diff ?msg expected actual =
           | Some p ->
               let p_ellipsis = print_ellipsis p in
                 fprintf fmt
-                  "@[expected: %a@ but got: %a@]@,"
+                  "@[expected: @[%a@]@ but got: @[%a@]@]@,"
                   p_ellipsis expected
                   p_ellipsis actual
 
@@ -120,7 +126,8 @@ let assert_equal ?(cmp = ( = )) ?printer ?diff ?msg expected actual =
       end;
 
       pp_close_box fmt ();
-      flush_str_formatter ()
+      pp_print_flush fmt ();
+      Buffer.contents buff
     in
     let len = 
       String.length res

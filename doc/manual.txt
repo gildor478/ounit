@@ -81,7 +81,7 @@ test suite was not successful.
 The topics, cover here, are only for advanced users who wish to unravel the 
 power of OUnit.
 
-{!modules: OUnit}
+{!modules: OUnit OUnitDiff}
 
 {3 Error reporting}
 
