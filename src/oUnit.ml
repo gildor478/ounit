@@ -67,6 +67,84 @@ let assert_equal ?(cmp = ( = )) ?printer ?msg expected actual =
     if not (cmp expected actual) then 
       assert_failure (get_error_string ())
 
+let assert_command 
+    ?(exit_code=Unix.WEXITED 0)
+    ?(sinput=Stream.of_list [])
+    ?(foutput=ignore)
+    ?(use_stderr=true)
+    prg args =
+
+  bracket_tmpfile 
+    (fun fn_out ->
+       let cmd_str =
+         String.concat " " (prg :: args)
+       in
+
+       (* Start the process *)
+       let in_write = 
+         Unix.openfile fn_out [Unix.O_CREAT; Unix.O_TRUNC; Unix.O_WRONLY] 0o600;
+       in
+       let (out_read, out_write) = 
+         Unix.pipe () 
+       in
+       let pid =
+         Unix.set_close_on_exec out_write;
+         Unix.create_process 
+           prg 
+           (Array.of_list (prg :: args))
+           out_read
+           in_write
+           (if use_stderr then
+             in_write
+            else
+              Unix.stderr)
+       in
+       let () =
+         Unix.close out_read; 
+         Unix.close in_write
+       in
+       let () =
+         (* Dump sinput into the process stdin *)
+         let buff = " " in
+           Stream.iter 
+             (fun c ->
+                let _i : int =
+                  buff.[0] <- c;
+                  Unix.write out_write buff 0 1
+                in
+                  ())
+             sinput;
+           Unix.close out_write
+       in
+       let _, real_exit_code =
+         Unix.waitpid [] pid
+       in
+       let exit_code_printer =
+         function
+           | Unix.WEXITED n ->
+               Printf.sprintf "exit code %d" n
+           | Unix.WSTOPPED n ->
+               Printf.sprintf "stopped by signal %d" n
+           | Unix.WSIGNALED n ->
+               Printf.sprintf "killed by signal %d" n
+       in
+       let () =
+         assert_equal 
+           ~msg:(Printf.sprintf "Exit status of command '%s'" cmd_str)
+           ~printer:exit_code_printer
+           exit_code
+           real_exit_code
+       in
+       let chn =
+         open_in fn_out
+       in
+         try 
+           foutput (Stream.of_channel chn)
+         with e ->
+           close_in chn;
+           raise e)
+    ()
+
 let raises f =
   try
     f ();

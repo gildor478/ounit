@@ -162,6 +162,9 @@ let test_case_todo () =
     [RTodo ([Label "todo"], "test")] 
     (perform_test ignore ("todo" >:: (fun () -> todo "test")))
 
+let test_assert_command () = 
+  assert_command Sys.executable_name ["-help"]
+
 (* Construct the test suite *)
 let suite = "OUnit" >::: 
   [ "test_case_count" >:: test_case_count;
@@ -174,6 +177,7 @@ let suite = "OUnit" >:::
     "test_case_decorate" >:: test_case_decorate;
     "test_case_skip" >:: test_case_skip;
     "test_case_todo" >:: test_case_todo;
+    "test_assert_command" >:: test_assert_command;
   ]
 
 (* Run the tests in test suite *)
