@@ -1,5 +1,5 @@
 OASISFormat: 0.1
-Name:        oUnit
+Name:        ounit
 Version:     1.1.0
 Synopsis:    Unit testing framework
 Authors:     Maas-Maarten Zeeman, 
