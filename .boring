@@ -115,3 +115,5 @@
 ^setup.log$
 ^setup.data$
 ^_build$
+^ounit-.*\.tar\.gz$
+^ounit-.*\.tar\.gz\.asc$
