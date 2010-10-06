@@ -156,29 +156,6 @@ let assert_equal ?(cmp = ( = )) ?printer ?pp_diff ?msg expected actual =
     if not (cmp expected actual) then 
       assert_failure (get_error_string ())
 
-(* Set for variable environment *)
-module SetEnv = 
-  Set.Make
-    (struct
-       type t = string
-
-       let compare e1 e2 =
-         let split_variable e =
-           (* Extract variable from string of the form "k=v" *)
-           try
-             let idx =
-               String.index e '='
-             in
-               String.sub e 0 idx,
-               String.sub e (idx + 1) ((String.length e) - idx - 1)
-           with Not_found ->
-             e, ""
-         in
-         let k1, _ = split_variable e1 in
-         let k2, _ = split_variable e2 in
-           String.compare k1 k2 
-     end)
-
 let assert_command 
     ?(exit_code=Unix.WEXITED 0)
     ?(sinput=Stream.of_list [])
@@ -201,23 +178,9 @@ let assert_command
              match env with
                | Some e ->
                    begin
-                     (* Compute the difference between standard environment
-                      * and current environment.
-                      *)
-                     let env_of_array =
-                       Array.fold_left
-                         (fun st e -> SetEnv.add e st) 
-                         SetEnv.empty
-                     in
-                     let env_defined = env_of_array e in
-                     let env_default = env_of_array (Unix.environment ()) in
-                     let diff = SetEnv.diff env_defined env_default in
-                       if not (SetEnv.is_empty diff) then
-                         begin
-                           pp_print_string fmt "env";
-                           SetEnv.iter (fprintf fmt "@ %s") diff;
-                           pp_print_space fmt ()
-                         end
+                     pp_print_string fmt "env";
+                     Array.iter (fprintf fmt "@ %s") e;
+                     pp_print_space fmt ()
                    end
                
                | None ->
