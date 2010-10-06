@@ -12,11 +12,11 @@ module type DIFF_ELEMENT =
 sig
   type t
 
-  val print: Format.formatter -> t -> unit
+  val pp_printer: Format.formatter -> t -> unit
 
   val compare: t -> t -> int
 
-  val print_sep: Format.formatter -> unit -> unit
+  val pp_print_sep: Format.formatter -> unit -> unit
 end
 
 module type S = 
@@ -27,25 +27,25 @@ sig
 
   val compare: t -> t -> int
 
-  val printer: Format.formatter -> t -> unit
+  val pp_printer: Format.formatter -> t -> unit
 
-  val diff: Format.formatter -> (t * t) -> unit
+  val pp_diff: Format.formatter -> (t * t) -> unit
 
   val assert_equal: ?msg:string -> t -> t -> unit
 
   val of_list: e list -> t
 end
 
-let assert_equal ?msg compare printer diff exp act =
+let assert_equal ?msg compare pp_printer pp_diff exp act =
   OUnit.assert_equal 
     ~cmp:(fun t1 t2 -> (compare t1 t2) = 0)
     ~printer:(fun t -> 
                 let buff = Buffer.create 13 in
                 let fmt = formatter_of_buffer buff in
-                  printer fmt t; 
+                  pp_printer fmt t; 
                   pp_print_flush fmt ();
                   Buffer.contents buff) 
-    ~diff 
+    ~pp_diff 
     ?msg 
     exp act
 
@@ -60,27 +60,27 @@ struct
   let compare =
     Set.compare 
 
-  let printer fmt t = 
+  let pp_printer fmt t = 
     let first = ref true in
       pp_open_box fmt 0;
       Set.iter 
         (fun e ->
            if not !first then
-             D.print_sep fmt ();
-           D.print fmt e;
+             D.pp_print_sep fmt ();
+           D.pp_printer fmt e;
            first := false)
         t;
       pp_close_box fmt ()
 
-  let diff fmt (t1, t2) = 
+  let pp_diff fmt (t1, t2) = 
     let first = ref true in
     let print_list c t = 
       Set.iter 
         (fun e ->
            if not !first then
-             D.print_sep fmt ();
+             D.pp_print_sep fmt ();
            pp_print_char fmt c;
-           D.print fmt e;
+           D.pp_printer fmt e;
            first := false)
         t
     in
@@ -90,7 +90,7 @@ struct
       pp_close_box fmt ()
 
   let assert_equal ?msg exp act =
-    assert_equal ?msg compare printer diff exp act
+    assert_equal ?msg compare pp_printer pp_diff exp act
 
   let of_list lst =
     List.fold_left
@@ -127,35 +127,35 @@ struct
       | [], _ ->
           1
   
-  let print_gen pre fmt t = 
+  let pp_print_gen pre fmt t = 
     let first = ref true in
       pp_open_box fmt 0;
       List.iter 
         (fun e ->
            if not !first then 
-             D.print_sep fmt ();
-           fprintf fmt "%s%a" pre D.print e;
+             D.pp_print_sep fmt ();
+           fprintf fmt "%s%a" pre D.pp_printer e;
            first := false)
         t;
       pp_close_box fmt ()
 
-  let printer fmt t = 
-    print_gen "" fmt t
+  let pp_printer fmt t = 
+    pp_print_gen "" fmt t
 
-  let diff fmt (t1, t2) = 
-    let rec diff' n t1 t2 =
+  let pp_diff fmt (t1, t2) = 
+    let rec pp_diff' n t1 t2 =
       match t1, t2 with
         | e1 :: tl1, e2 :: tl2 ->
             begin
               match D.compare e1 e2 with
                 | 0 ->
-                    diff' (n + 1) tl1 tl2
+                    pp_diff' (n + 1) tl1 tl2
                 | _ ->
                     fprintf fmt
                       "element number %d differ (%a <> %a)"
                       n
-                      D.print e1
-                      D.print e2
+                      D.pp_printer e1
+                      D.pp_printer e2
             end
 
         | [], [] ->
@@ -163,22 +163,22 @@ struct
 
         | [], lst ->
             fprintf fmt "at end,@ ";
-            print_gen "+" fmt lst
+            pp_print_gen "+" fmt lst
 
         | lst, [] ->
             fprintf fmt "at end,@ ";
-            print_gen "-" fmt lst
+            pp_print_gen "-" fmt lst
     in
       pp_open_box fmt 0;
-      diff' 0 t1 t2;
+      pp_diff' 0 t1 t2;
       pp_close_box fmt ()
 
   let assert_equal ?msg exp act =
-    assert_equal ?msg compare printer diff exp act
+    assert_equal ?msg compare pp_printer pp_diff exp act
 
   let of_list lst =
     lst
 end
 
-let comma_separator fmt () =
+let pp_comma_separator fmt () =
   fprintf fmt ",@ "

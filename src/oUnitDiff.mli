@@ -22,8 +22,8 @@ module EInt =
 struct 
   type t = int
   let compare = ( - )
-  let print = Format.pp_print_int
-  let print_sep = OUnitDiff.comma_separator
+  let pp_print = Format.pp_print_int
+  let pp_print_sep = OUnitDiff.comma_separator
 end
 
 module ListInt = OUnitDiff.ListSimpleMake(EInt);;
@@ -59,13 +59,13 @@ module type DIFF_ELEMENT =
     type t
 
     (** Pretty printer for an element *)
-    val print : Format.formatter -> t -> unit
+    val pp_printer : Format.formatter -> t -> unit
 
     (** Element comparison *)
     val compare : t -> t -> int
 
     (** Pretty print element separator *)
-    val print_sep : Format.formatter -> unit -> unit
+    val pp_print_sep : Format.formatter -> unit -> unit
   end
 
 (** Definition of standard operations
@@ -82,10 +82,10 @@ module type S =
     val compare : t -> t -> int
 
     (** Pretty printer a collection of element *)
-    val printer : Format.formatter -> t -> unit
+    val pp_printer : Format.formatter -> t -> unit
 
     (** Pretty printer for collection differences *)
-    val diff : Format.formatter -> t * t -> unit
+    val pp_diff : Format.formatter -> t * t -> unit
 
     (** {!assert_equal} with [~diff], [~cmp] and [~printer] predefined for
         this collection events
@@ -108,4 +108,4 @@ module SetMake : functor (D : DIFF_ELEMENT) -> S
 module ListSimpleMake : functor (D: DIFF_ELEMENT) -> S 
   with type e = D.t and type t = D.t list
 
-val comma_separator : Format.formatter -> unit -> unit
+val pp_comma_separator : Format.formatter -> unit -> unit

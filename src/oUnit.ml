@@ -9,6 +9,19 @@
 
 open Format 
 
+(* TODO: really use Format in printf call. Most of the time, not
+ * cuts/spaces/boxes are used
+ *)
+
+let global_verbose = ref false
+
+let buff_printf f = 
+  let buff = Buffer.create 13 in
+  let fmt = formatter_of_buffer buff in
+    f fmt;
+    pp_print_flush fmt ();
+    Buffer.contents buff
+
 let bracket set_up f tear_down () =
   let fixture = 
     set_up () 
@@ -20,16 +33,24 @@ let bracket set_up f tear_down () =
       tear_down fixture;
       raise e
 
-let bracket_tmpfile f =
+let bracket_tmpfile ?(prefix="ounit-") ?(suffix=".txt") ?mode f =
   bracket
     (fun () ->
-       Filename.temp_file "ounit-" ".txt")
+       Filename.open_temp_file ?mode prefix suffix)
     f 
-    (fun fn ->
-       try
-         Sys.remove fn
-       with _ ->
-         ())
+    (fun (fn, chn) ->
+       begin
+         try 
+           close_out chn
+         with _ ->
+           ()
+       end;
+       begin
+         try
+           Sys.remove fn
+         with _ ->
+           ()
+       end)
 
 exception Skip of string
 let skip_if b msg =
@@ -49,15 +70,8 @@ let assert_bool msg b =
 let assert_string str =
   if not (str = "") then assert_failure str
 
-let assert_equal ?(cmp = ( = )) ?printer ?diff ?msg expected actual =
+let assert_equal ?(cmp = ( = )) ?printer ?pp_diff ?msg expected actual =
   let get_error_string () =
-    let buff = 
-      Buffer.create 13
-    in
-    let fmt = 
-      formatter_of_buffer buff
-    in
-
 (*     let max_len = pp_get_margin fmt () in *)
 (*     let ellipsis_text = "[...]" in *)
     let print_ellipsis p fmt s = 
@@ -89,45 +103,45 @@ let assert_equal ?(cmp = ( = )) ?printer ?diff ?msg expected actual =
     in
 
     let res =
-      pp_open_vbox fmt 0;
-      begin
-        match msg with 
-          | Some s ->
-              pp_open_box fmt 0;
-              pp_print_string fmt s;
-              pp_close_box fmt ();
-              pp_print_cut fmt ()
-          | None -> 
-              ()
-      end;
+      buff_printf
+        (fun fmt ->
+           pp_open_vbox fmt 0;
+           begin
+             match msg with 
+               | Some s ->
+                   pp_open_box fmt 0;
+                   pp_print_string fmt s;
+                   pp_close_box fmt ();
+                   pp_print_cut fmt ()
+               | None -> 
+                   ()
+           end;
 
-      begin
-        match printer with
-          | Some p ->
-              let p_ellipsis = print_ellipsis p in
-                fprintf fmt
-                  "@[expected: @[%a@]@ but got: @[%a@]@]@,"
-                  p_ellipsis expected
-                  p_ellipsis actual
+           begin
+             match printer with
+               | Some p ->
+                   let p_ellipsis = print_ellipsis p in
+                     fprintf fmt
+                       "@[expected: @[%a@]@ but got: @[%a@]@]@,"
+                       p_ellipsis expected
+                       p_ellipsis actual
 
-          | None ->
-              fprintf fmt "@[not equal@]@,"
-      end;
+               | None ->
+                   fprintf fmt "@[not equal@]@,"
+           end;
 
-      begin
-        match diff with 
-          | Some d ->
-              fprintf fmt 
-                "@[differences: %a@]@,"
-                 d (expected, actual)
+           begin
+             match pp_diff with 
+               | Some d ->
+                   fprintf fmt 
+                     "@[differences: %a@]@,"
+                      d (expected, actual)
 
-          | None ->
-              ()
-      end;
+               | None ->
+                   ()
+           end;
 
-      pp_close_box fmt ();
-      pp_print_flush fmt ();
-      Buffer.contents buff
+           pp_close_box fmt ())
     in
     let len = 
       String.length res
@@ -142,83 +156,176 @@ let assert_equal ?(cmp = ( = )) ?printer ?diff ?msg expected actual =
     if not (cmp expected actual) then 
       assert_failure (get_error_string ())
 
+(* Set for variable environment *)
+module SetEnv = 
+  Set.Make
+    (struct
+       type t = string
+
+       let compare e1 e2 =
+         let split_variable e =
+           (* Extract variable from string of the form "k=v" *)
+           try
+             let idx =
+               String.index e '='
+             in
+               String.sub e 0 idx,
+               String.sub e (idx + 1) ((String.length e) - idx - 1)
+           with Not_found ->
+             e, ""
+         in
+         let k1, _ = split_variable e1 in
+         let k2, _ = split_variable e2 in
+           String.compare k1 k2 
+     end)
+
 let assert_command 
     ?(exit_code=Unix.WEXITED 0)
     ?(sinput=Stream.of_list [])
     ?(foutput=ignore)
     ?(use_stderr=true)
+    ?env
+    ?verbose
     prg args =
 
-  bracket_tmpfile 
-    (fun fn_out ->
-       let cmd_str =
-         String.concat " " (prg :: args)
-       in
+  let verbose = 
+    match verbose with 
+      | Some v -> v
+      | None -> !global_verbose
+  in
 
-       (* Start the process *)
-       let in_write = 
-         Unix.openfile fn_out [Unix.O_CREAT; Unix.O_TRUNC; Unix.O_WRONLY] 0o600;
-       in
-       let (out_read, out_write) = 
-         Unix.pipe () 
-       in
-       let pid =
-         Unix.set_close_on_exec out_write;
-         Unix.create_process 
-           prg 
-           (Array.of_list (prg :: args))
-           out_read
-           in_write
-           (if use_stderr then
+    bracket_tmpfile 
+      (fun (fn_out, chn_out) ->
+         let cmd_print fmt =
+           let () = 
+             match env with
+               | Some e ->
+                   begin
+                     (* Compute the difference between standard environment
+                      * and current environment.
+                      *)
+                     let env_of_array =
+                       Array.fold_left
+                         (fun st e -> SetEnv.add e st) 
+                         SetEnv.empty
+                     in
+                     let env_defined = env_of_array e in
+                     let env_default = env_of_array (Unix.environment ()) in
+                     let diff = SetEnv.diff env_defined env_default in
+                       if not (SetEnv.is_empty diff) then
+                         begin
+                           pp_print_string fmt "env";
+                           SetEnv.iter (fprintf fmt "@ %s") diff;
+                           pp_print_space fmt ()
+                         end
+                   end
+               
+               | None ->
+                   ()
+           in
+             pp_print_string fmt prg;
+             List.iter (fprintf fmt "@ %s") args
+         in
+
+         (* Start the process *)
+         let in_write = 
+           Unix.dup (Unix.descr_of_out_channel chn_out)
+         in
+         let (out_read, out_write) = 
+           Unix.pipe () 
+         in
+         let err = 
+           if use_stderr then
              in_write
-            else
-              Unix.stderr)
-       in
-       let () =
-         Unix.close out_read; 
-         Unix.close in_write
-       in
-       let () =
-         (* Dump sinput into the process stdin *)
-         let buff = " " in
-           Stream.iter 
-             (fun c ->
-                let _i : int =
-                  buff.[0] <- c;
-                  Unix.write out_write buff 0 1
-                in
-                  ())
-             sinput;
-           Unix.close out_write
-       in
-       let _, real_exit_code =
-         Unix.waitpid [] pid
-       in
-       let exit_code_printer =
-         function
-           | Unix.WEXITED n ->
-               Printf.sprintf "exit code %d" n
-           | Unix.WSTOPPED n ->
-               Printf.sprintf "stopped by signal %d" n
-           | Unix.WSIGNALED n ->
-               Printf.sprintf "killed by signal %d" n
-       in
-       let () =
-         assert_equal 
-           ~msg:(Printf.sprintf "Exit status of command '%s'" cmd_str)
-           ~printer:exit_code_printer
-           exit_code
-           real_exit_code
-       in
-       let chn =
-         open_in fn_out
-       in
-         try 
-           foutput (Stream.of_channel chn)
-         with e ->
-           close_in chn;
-           raise e)
-    ()
+           else
+             Unix.stderr
+         in
+         let args = 
+           Array.of_list (prg :: args)
+         in
+         let pid =
+           Unix.set_close_on_exec out_write;
+           if verbose then
+             printf "@[Starting command '%t'@]\n" cmd_print;
+           match env with 
+             | Some e -> 
+                 Unix.create_process_env prg args e out_read in_write err
+             | None -> 
+                 Unix.create_process prg args out_read in_write err
+         in
+         let () =
+           Unix.close out_read; 
+           Unix.close in_write
+         in
+         let () =
+           (* Dump sinput into the process stdin *)
+           let buff = " " in
+             Stream.iter 
+               (fun c ->
+                  let _i : int =
+                    buff.[0] <- c;
+                    Unix.write out_write buff 0 1
+                  in
+                    ())
+               sinput;
+             Unix.close out_write
+         in
+         let _, real_exit_code =
+           let rec wait_intr () = 
+             try 
+               Unix.waitpid [] pid
+             with Unix.Unix_error (Unix.EINTR, _, _) ->
+               wait_intr ()
+           in
+             wait_intr ()
+         in
+         let exit_code_printer =
+           function
+             | Unix.WEXITED n ->
+                 Printf.sprintf "exit code %d" n
+             | Unix.WSTOPPED n ->
+                 Printf.sprintf "stopped by signal %d" n
+             | Unix.WSIGNALED n ->
+                 Printf.sprintf "killed by signal %d" n
+         in
+
+           (* Dump process output to stderr *)
+           if verbose then
+             begin
+               let chn = 
+                 open_in fn_out
+               in
+               let buff = String.make 4096 'X' in
+               let len = ref (-1) in
+                 while !len <> 0 do 
+                   len := input chn buff 0 (String.length buff);
+                   printf "%s" (String.sub buff 0 !len);
+                 done;
+                 printf "@?";
+                 close_in chn
+             end;
+
+           (* Check process status *)
+           assert_equal 
+             ~msg:(buff_printf 
+                     (fun fmt ->
+                        fprintf fmt 
+                          "@[Exit status of command '%t'@]" cmd_print))
+             ~printer:exit_code_printer
+             exit_code
+             real_exit_code;
+
+           begin
+             let chn =
+               open_in fn_out
+             in
+               try 
+                 foutput (Stream.of_channel chn)
+               with e ->
+                 close_in chn;
+                 raise e
+           end)
+      ()
 
 let raises f =
   try
@@ -571,7 +678,12 @@ let time_fun f x y =
     (Unix.gettimeofday () -. begin_time, f x y)
 
 (* A simple (currently too simple) text based test runner *)
-let run_test_tt ?(verbose=false) test =
+let run_test_tt ?verbose test =
+  let verbose = 
+    match verbose with 
+      | Some v -> v
+      | None -> !global_verbose
+  in
   let printf = Format.printf in
   let separator1 = 
     String.make (get_margin ()) '='
@@ -595,7 +707,7 @@ let run_test_tt ?(verbose=false) test =
   let report_event = 
     function
       | EStart p -> 
-          if verbose then printf "%s ... " (string_of_path p)
+          if verbose then printf "%s ...\n" (string_of_path p)
       | EEnd _ -> 
           ()
       | EResult result -> 
@@ -649,14 +761,13 @@ let run_test_tt ?(verbose=false) test =
       
 (* Call this one from you test suites *)
 let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite = 
-  let verbose = ref false in 
   let only_test = ref [] in
   let () = 
     Arg.parse
       (Arg.align
          [
            "-verbose", 
-           Arg.Set verbose, 
+           Arg.Set global_verbose, 
            " Run the test in verbose mode.";
 
            "-only-test", 
@@ -693,8 +804,8 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
   in
 
   let result = 
-    set_verbose !verbose;
-    run_test_tt ~verbose:!verbose nsuite 
+    set_verbose !global_verbose;
+    run_test_tt ~verbose:!global_verbose nsuite 
   in
     if not (was_successful result) then
       exit 1

@@ -35,6 +35,7 @@ Executable test
   Path:   test
   MainIs: test.ml
   BuildDepends: oUnit
+  Install: false
   
 Test main
   Command: $test

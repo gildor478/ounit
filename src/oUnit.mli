@@ -47,6 +47,8 @@ val assert_string : string -> unit
     @param foutput run this function on output, it can contains an
                    [assert_equal] to check it
     @param use_stderr redirect [stderr] to [stdout]
+    @param env Unix environment
+    @param verbose if a failure arise, dump stdout/stderr of the process to stderr
 
     @since 1.1.0
   *)
@@ -55,6 +57,8 @@ val assert_command :
     ?sinput:char Stream.t ->
     ?foutput:(char Stream.t -> unit) ->
     ?use_stderr:bool ->
+    ?env:string array ->
+    ?verbose:bool ->
     string -> string list -> unit
 
 (** [assert_equal expected real] Compares two values, when they are not equal a
@@ -62,16 +66,18 @@ val assert_command :
 
     @param cmp customize function to compare, default is [=]
     @param printer value printer, don't print value otherwise
-    @param diff if not equal, ask a custom display of the difference
+    @param pp_diff if not equal, ask a custom display of the difference
                 using [diff fmt exp real] where [fmt] is the formatter to use
     @param msg custom message to identify the failure
 
     @raise Failure signal a failure 
+    
+    @version 1.1.0
   *)
 val assert_equal : 
   ?cmp:('a -> 'a -> bool) ->
   ?printer:('a -> string) -> 
-  ?diff:(Format.formatter -> ('a * 'a) -> unit) ->
+  ?pp_diff:(Format.formatter -> ('a * 'a) -> unit) ->
   ?msg:string -> 'a -> 'a -> unit
 
 (** Asserts if the expected exception was raised. 
@@ -128,13 +134,21 @@ val cmp_float : ?epsilon:float -> float -> float -> bool
   *)
 val bracket: (unit -> 'a) -> ('a -> 'c) -> ('a -> 'b) -> unit -> 'b
 
-(** [bracket_tmpfile test] The test function takes a temporary filename
-    as argument. The temporary file is created before the test and 
-    removed after the test.
+(** [bracket_tmpfile test] The [test] function takes a temporary filename
+    and matching output channel as arguments. The temporary file is created
+    before the test and removed after the test.
+
+    @param prefix see [Filename.open_temp_file]
+    @param suffix see [Filename.open_temp_file]
+    @param mode see [Filename.open_temp_file]
     
     @since 1.1.0
   *)
-val bracket_tmpfile: (string -> unit) -> unit -> unit 
+val bracket_tmpfile: 
+  ?prefix:string -> 
+  ?suffix:string -> 
+  ?mode:open_flag list ->
+  ((string * out_channel) -> unit) -> unit -> unit 
 
 (** {2 Constructing Tests} *)
 

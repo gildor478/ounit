@@ -170,8 +170,8 @@ module EInt =
 struct 
   type t = int
   let compare = ( - )
-  let print = Format.pp_print_int
-  let print_sep = OUnitDiff.comma_separator
+  let pp_printer = Format.pp_print_int
+  let pp_print_sep = OUnitDiff.pp_comma_separator
 end
                   
 
