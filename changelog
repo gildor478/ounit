@@ -1,7 +1,7 @@
 ounit-1.1.0
 
-	 - Add a ~diff parameter to assert_equal and some classic diff operations
-     (Closes: #635, #642)
+	 - Add a ~pp_diff parameter to assert_equal and some classic diff operations
+	   (Closes: #635, #642)
    - Add an assert_command function (Closes: #641)
    - Add a bracket_tmpfile to ease temporary file use
    - Enhance documentation, translate the docbook manual into ocamldoc and
