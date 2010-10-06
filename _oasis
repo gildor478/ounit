@@ -46,4 +46,8 @@ Document "api-ounit"
   BuildTools+: ocamldoc
   XOCamlbuildLibraries: oUnit
   XOCamlbuildPath:      src/
-  
+
+SourceRepository head
+  Type: darcs
+  Location: http://darcs.ocamlcore.org/repos/ounit
+  Browser: http://darcs.ocamlcore.org/cgi-bin/darcsweb.cgi?r=ounit;a=summary  
