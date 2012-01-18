@@ -132,7 +132,7 @@ val cmp_float : ?epsilon:float -> float -> float -> bool
     [tear_down] function runs even if the [test] failed and help to clean
     the environment.
   *)
-val bracket: (unit -> 'a) -> ('a -> 'c) -> ('a -> 'b) -> unit -> 'b
+val bracket: (unit -> 'a) -> ('a -> unit) -> ('a -> unit) -> unit -> unit
 
 (** [bracket_tmpfile test] The [test] function takes a temporary filename
     and matching output channel as arguments. The temporary file is created
