@@ -1,3 +1,9 @@
+ounit-1.1.1
+
+  - bracket now enforce returning unit
+  - update examples
+  - ListSimpleMake now use the provided comparator for all elements
+
 ounit-1.1.0
 
   - Add a ~pp_diff parameter to assert_equal and some classic diff operations
