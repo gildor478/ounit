@@ -1,4 +1,4 @@
-OASISFormat: 0.1
+OASISFormat: 0.2
 Name:        ounit
 Version:     1.1.0
 Synopsis:    Unit testing framework
@@ -9,10 +9,8 @@ Copyrights:  (C) 2002-2008 Maas-Maarten Zeeman,
 License:     MIT
 LicenseFile: LICENSE.txt 
 Homepage:    http://ounit.forge.ocamlcore.org
-Plugins:     META (0.2.0~alpha1),
-             StdFiles (0.2.0~alpha1),
-             DevFiles (0.2.0~alpha1)
-BuildTools:  ocamlbuild
+Plugins:     META (0.2), StdFiles (0.2), DevFiles (0.2)
+BuildTools:  ocamlbuild, camlp4
 
 Description:
   OUnit is a unit testing framework for OCaml, inspired by the JUnit tool for
@@ -42,7 +40,7 @@ Test main
   
 Document "api-ounit"
   Title:       API reference for OUnit
-  Type:        ocamlbuild (0.2.0~alpha1)
+  Type:        ocamlbuild (0.2)
   BuildTools+: ocamldoc
   XOCamlbuildLibraries: oUnit
   XOCamlbuildPath:      src/
