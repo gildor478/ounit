@@ -107,7 +107,7 @@ struct
 
   type t = e list
 
-  let compare t1 t2 = 
+  let rec compare t1 t2 = 
     match t1, t2 with
       | e1 :: tl1, e2 :: tl2 ->
           begin
