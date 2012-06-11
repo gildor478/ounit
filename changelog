@@ -1,3 +1,7 @@
+ounit-1.1.2
+
+  - regenerate with oasis v0.3.0~rc6
+
 ounit-1.1.1
 
   - bracket now enforce returning unit
