@@ -30,3 +30,5 @@
 "src/oUnit.odoc": oasis_document_api_ounit
 "src/oUnit.ml": oasis_document_api_ounit
 "src/api-ounit.docdir": oasis_document_api_ounit
+"build": -traverse
+"build": not_hygienic
