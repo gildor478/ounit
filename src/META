@@ -1,10 +1,12 @@
 # OASIS_START
-# DO NOT EDIT (digest: 2903d547de3d8d6b3fb5bbdf6d2a5f6b)
-version = "1.0.4~rc1"
+# DO NOT EDIT (digest: ddce83afa228f4bfb3d0e873c923997c)
+version = "1.1.1"
 description = "Unit testing framework"
 requires = "unix"
 archive(byte) = "oUnit.cma"
+archive(byte, plugin) = "oUnit.cma"
 archive(native) = "oUnit.cmxa"
+archive(native, plugin) = "oUnit.cmxs"
 exists_if = "oUnit.cma"
 # OASIS_STOP
 

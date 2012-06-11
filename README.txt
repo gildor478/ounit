@@ -1,6 +1,6 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: d552d09f550ea50ed001a1481594111e) *)
-This is the README file for the oUnit distribution.
+(* DO NOT EDIT (digest: ac260da3dc5dbc8b63343daec02e41ac) *)
+This is the README file for the ounit distribution.
 
 (C) 2002-2008 Maas-Maarten Zeeman
 
