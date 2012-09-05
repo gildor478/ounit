@@ -23,7 +23,8 @@ Flag backtrace
 
 Library "oUnit"
   Path:         src
-  Modules:      OUnit, OUnitDiff
+  Modules:      OUnit, OUnitDiff, OUnitLogger
+  InternalModules: OUnitTypes, OUnitUtils
   BuildDepends: unix
   if flag(backtrace) 
     ByteOpt: -ppopt -DBACKTRACE

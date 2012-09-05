@@ -216,6 +216,12 @@ val test_case_paths : test -> path list
 
 (** {2 Performing Tests} *)
 
+(** Severity level for log. *) 
+type log_severity = 
+  | LError
+  | LWarning
+  | LInfo
+
 (** The possible results of a test *)
 type test_result =
     RSuccess of path
@@ -224,11 +230,13 @@ type test_result =
   | RSkip of path * string
   | RTodo of path * string
 
-(** Events which occur during a test run *)   
+(** Events which occur during a test run. *)
 type test_event =
-    EStart of path 
-  | EEnd of path
-  | EResult of test_result
+    EStart of path                (** A test start. *)
+  | EEnd of path                  (** A test end. *)
+  | EResult of test_result        (** Result of a test. *)
+  | ELog of log_severity * string (** An event is logged in a test. *)
+  | ELogRaw of string             (** Print raw data in the log. *)
 
 (** Perform the test, allows you to build your own test runner *)
 val perform_test : (test_event -> 'a) -> test -> test_result list

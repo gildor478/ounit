@@ -7,20 +7,27 @@
 (* See LICENSE for details.                                            *)
 (***********************************************************************)
 
-open Format 
+open OUnitUtils
+include OUnitTypes
 
-(* TODO: really use Format in printf call. Most of the time, not
- * cuts/spaces/boxes are used
+(*
+ * Types and global states.
  *)
 
 let global_verbose = ref false
 
-let buff_printf f = 
-  let buff = Buffer.create 13 in
-  let fmt = formatter_of_buffer buff in
-    f fmt;
-    pp_print_flush fmt ();
-    Buffer.contents buff
+let global_output_file = 
+  let pwd = Sys.getcwd () in
+  let ocamlbuild_dir = Filename.concat pwd "_build" in
+  let dir = 
+    if Sys.file_exists ocamlbuild_dir && Sys.is_directory ocamlbuild_dir then
+      ocamlbuild_dir
+    else 
+      pwd
+  in
+    ref (Some (Filename.concat dir "oUnit.log"))
+
+let global_logger = ref (fst OUnitLogger.null_logger)
 
 let bracket set_up f tear_down () =
   let fixture = 
@@ -77,47 +84,17 @@ let assert_string str =
 
 let assert_equal ?(cmp = ( = )) ?printer ?pp_diff ?msg expected actual =
   let get_error_string () =
-(*     let max_len = pp_get_margin fmt () in *)
-(*     let ellipsis_text = "[...]" in *)
-    let print_ellipsis p fmt s = 
-        (* TODO: find a way to do this
-      let res = p s in
-      let len = String.length res in
-        if diff <> None && len > max_len then
-          begin
-            let len_with_ellipsis =
-              (max_len - (String.length ellipsis_text)) / 2
-            in
-              (* TODO: we should use %a here to print values *)
-              fprintf fmt
-                "@[%s[...]%s@]"
-                (String.sub res 
-                   0 
-                   len_with_ellipsis)
-                (String.sub res 
-                   (len - len_with_ellipsis) 
-                   len_with_ellipsis)
-          end
-        else
-          begin
-            (* TODO: we should use %a here to print values *)
-            fprintf fmt "@[%s@]" res
-          end
-         *)
-      pp_print_string fmt (p s)
-    in
-
     let res =
-      buff_printf
+      buff_format_printf
         (fun fmt ->
-           pp_open_vbox fmt 0;
+           Format.pp_open_vbox fmt 0;
            begin
              match msg with 
                | Some s ->
-                   pp_open_box fmt 0;
-                   pp_print_string fmt s;
-                   pp_close_box fmt ();
-                   pp_print_cut fmt ()
+                   Format.pp_open_box fmt 0;
+                   Format.pp_print_string fmt s;
+                   Format.pp_close_box fmt ();
+                   Format.pp_print_cut fmt ()
                | None -> 
                    ()
            end;
@@ -125,28 +102,26 @@ let assert_equal ?(cmp = ( = )) ?printer ?pp_diff ?msg expected actual =
            begin
              match printer with
                | Some p ->
-                   let p_ellipsis = print_ellipsis p in
-                     fprintf fmt
-                       "@[expected: @[%a@]@ but got: @[%a@]@]@,"
-                       p_ellipsis expected
-                       p_ellipsis actual
+                   Format.fprintf fmt
+                     "@[expected: @[%s@]@ but got: @[%s@]@]@,"
+                     (p expected)
+                     (p actual)
 
                | None ->
-                   fprintf fmt "@[not equal@]@,"
+                   Format.fprintf fmt "@[not equal@]@,"
            end;
 
            begin
              match pp_diff with 
                | Some d ->
-                   fprintf fmt 
+                   Format.fprintf fmt 
                      "@[differences: %a@]@,"
                       d (expected, actual)
 
                | None ->
                    ()
            end;
-
-           pp_close_box fmt ())
+           Format.pp_close_box fmt ())
     in
     let len = 
       String.length res
@@ -155,9 +130,7 @@ let assert_equal ?(cmp = ( = )) ?printer ?pp_diff ?msg expected actual =
         String.sub res 0 (len - 1)
       else
         res
-
   in
-
     if not (cmp expected actual) then 
       assert_failure (get_error_string ())
 
@@ -170,12 +143,6 @@ let assert_command
     ?verbose
     prg args =
 
-  let verbose = 
-    match verbose with 
-      | Some v -> v
-      | None -> !global_verbose
-  in
-
     bracket_tmpfile 
       (fun (fn_out, chn_out) ->
          let cmd_print fmt =
@@ -183,16 +150,16 @@ let assert_command
              match env with
                | Some e ->
                    begin
-                     pp_print_string fmt "env";
-                     Array.iter (fprintf fmt "@ %s") e;
-                     pp_print_space fmt ()
+                     Format.pp_print_string fmt "env";
+                     Array.iter (Format.fprintf fmt "@ %s") e;
+                     Format.pp_print_space fmt ()
                    end
                
                | None ->
                    ()
            in
-             pp_print_string fmt prg;
-             List.iter (fprintf fmt "@ %s") args
+             Format.pp_print_string fmt prg;
+             List.iter (Format.fprintf fmt "@ %s") args
          in
 
          (* Start the process *)
@@ -212,9 +179,11 @@ let assert_command
            Array.of_list (prg :: args)
          in
          let pid =
+           OUnitLogger.printf !global_logger "%s"
+             (buff_format_printf
+                (fun fmt ->
+                   Format.fprintf fmt "@[Starting command '%t'@]\n" cmd_print));
            Unix.set_close_on_exec out_write;
-           if verbose then
-             printf "@[Starting command '%t'@]\n" cmd_print;
            match env with 
              | Some e -> 
                  Unix.create_process_env prg args e out_read in_write err
@@ -258,35 +227,29 @@ let assert_command
          in
 
            (* Dump process output to stderr *)
-           if verbose then
-             begin
-               let chn = 
-                 open_in fn_out
-               in
-               let buff = String.make 4096 'X' in
-               let len = ref (-1) in
-                 while !len <> 0 do 
-                   len := input chn buff 0 (String.length buff);
-                   printf "%s" (String.sub buff 0 !len);
-                 done;
-                 printf "@?";
-                 close_in chn
-             end;
+           begin
+             let chn = open_in fn_out in
+             let buff = String.make 4096 'X' in
+             let len = ref (-1) in
+               while !len <> 0 do 
+                 len := input chn buff 0 (String.length buff);
+                 OUnitLogger.printf !global_logger "%s" (String.sub buff 0 !len);
+               done;
+               close_in chn
+           end;
 
            (* Check process status *)
            assert_equal 
-             ~msg:(buff_printf 
+             ~msg:(buff_format_printf 
                      (fun fmt ->
-                        fprintf fmt 
+                        Format.fprintf fmt 
                           "@[Exit status of command '%t'@]" cmd_print))
              ~printer:exit_code_printer
              exit_code
              real_exit_code;
 
            begin
-             let chn =
-               open_in fn_out
-             in
+             let chn = open_in fn_out in
                try 
                  foutput (Stream.of_channel chn)
                with e ->
@@ -317,7 +280,7 @@ let assert_raises ?msg exn (f: unit -> 'a) =
             assert_failure str
               
         | Some s -> 
-            assert_failure (Format.sprintf "%s\n%s" s str)
+            assert_failure (s^"\n"^str)
   in    
     match raises f with
       | None -> 
@@ -334,15 +297,6 @@ let cmp_float ?(epsilon = 0.00001) a b =
 (* Now some handy shorthands *)
 let (@?) = assert_bool
 
-(* The type of test function *)
-type test_fun = unit -> unit 
-
-(* The type of tests *)
-type test = 
-  | TestCase of test_fun
-  | TestList of test list
-  | TestLabel of string * test
-
 (* Some shorthands which allows easy test construction *)
 let (>:) s t = TestLabel(s, t)             (* infix *)
 let (>::) s f = TestLabel(s, TestCase(f))  (* infix *)
@@ -358,35 +312,9 @@ let rec test_decorate g =
     | TestLabel (str, tst) ->
         TestLabel (str, test_decorate g tst)
 
-(* Return the number of available tests *)
-let rec test_case_count = 
-  function
-    | TestCase _ -> 
-        1
-
-    | TestLabel (_, t) -> 
-        test_case_count t
-
-    | TestList l -> 
-        List.fold_left 
-          (fun c t -> c + test_case_count t) 
-          0 l
-
-type node = 
-  | ListItem of int 
-  | Label of string
-
-type path = node list
-
-let string_of_node = 
-  function
-    | ListItem n -> 
-        string_of_int n
-    | Label s -> 
-        s
-
-let string_of_path path =
-  String.concat ":" (List.rev_map string_of_node path)
+let test_case_count = OUnitUtils.test_case_count 
+let string_of_node = OUnitUtils.string_of_node
+let string_of_path = OUnitUtils.string_of_path
     
 (* Some helper function, they are generally applicable *)
 (* Applies function f in turn to each element in list. Function f takes
@@ -506,80 +434,13 @@ let test_filter ?(skip=false) only test =
 
 
 (* The possible test results *)
-type test_result =
-  | RSuccess of path
-  | RFailure of path * string
-  | RError of path * string
-  | RSkip of path * string
-  | RTodo of path * string
-
-let is_success = 
-  function
-    | RSuccess _  -> true 
-    | RFailure _ | RError _  | RSkip _ | RTodo _ -> false 
-
-let is_failure = 
-  function
-    | RFailure _ -> true
-    | RSuccess _ | RError _  | RSkip _ | RTodo _ -> false
-
-let is_error = 
-  function 
-    | RError _ -> true
-    | RSuccess _ | RFailure _ | RSkip _ | RTodo _ -> false
-
-let is_skip = 
-  function
-    | RSkip _ -> true
-    | RSuccess _ | RFailure _ | RError _  | RTodo _ -> false
-
-let is_todo = 
-  function
-    | RTodo _ -> true
-    | RSuccess _ | RFailure _ | RError _  | RSkip _ -> false
-
-let result_flavour = 
-  function
-    | RError _ -> "Error"
-    | RFailure _ -> "Failure"
-    | RSuccess _ -> "Success"
-    | RSkip _ -> "Skip"
-    | RTodo _ -> "Todo"
-
-let result_path = 
-  function
-    | RSuccess path 
-    | RError (path, _)
-    | RFailure (path, _)
-    | RSkip (path, _)
-    | RTodo (path, _) -> path
-
-let result_msg = 
-  function
-    | RSuccess _ -> "Success"
-    | RError (_, msg)
-    | RFailure (_, msg)
-    | RSkip (_, msg)
-    | RTodo (_, msg) -> msg
-
-(* Returns true if the result list contains successes only *)
-let rec was_successful = 
-  function
-    | [] -> true
-    | RSuccess _::t 
-    | RSkip _::t -> 
-        was_successful t
-
-    | RFailure _::_
-    | RError _::_ 
-    | RTodo _::_ -> 
-        false
+let is_success = OUnitUtils.is_success
+let is_failure = OUnitUtils.is_failure
+let is_error   = OUnitUtils.is_error  
+let is_skip    = OUnitUtils.is_skip   
+let is_todo    = OUnitUtils.is_todo   
 
 (* Events which can happen during testing *)
-type test_event =
-  | EStart of path 
-  | EEnd of path
-  | EResult of test_result
 
 DEFINE MAYBE_BACKTRACE = 
 IFDEF BACKTRACE THEN
@@ -647,82 +508,31 @@ let time_fun f x y =
 
 (* A simple (currently too simple) text based test runner *)
 let run_test_tt ?verbose test =
-  let verbose = 
-    match verbose with 
-      | Some v -> v
-      | None -> !global_verbose
+  let log, log_close = 
+    OUnitLogger.create 
+      !global_output_file 
+      !global_verbose 
+      OUnitLogger.null_logger
   in
-  let printf = Format.printf in
-  let separator1 = 
-    String.make (get_margin ()) '='
+  let () = 
+    global_logger := log
   in
-  let separator2 = 
-    String.make (get_margin ()) '-'
-  in
-  let string_of_result = 
-    function
-      | RSuccess _ ->
-          if verbose then "ok\n" else "."
-      | RFailure (_, _) ->
-          if verbose then "FAIL\n" else "F"
-      | RError (_, _) ->
-          if verbose then "ERROR\n" else "E"
-      | RSkip (_, _) ->
-          if verbose then "SKIP\n" else "S"
-      | RTodo (_, _) ->
-          if verbose then "TODO\n" else "T"
-  in
-  let report_event = 
-    function
-      | EStart p -> 
-          if verbose then printf "%s ...\n" (string_of_path p)
-      | EEnd _ -> 
-          ()
-      | EResult result -> 
-          printf "%s@?" (string_of_result result)
-  in
-  let print_result_list results = 
-    List.iter 
-      (fun result -> 
-         printf "%s\n%s: %s\n\n%s\n%s\n" 
-           separator1 
-           (result_flavour result) 
-           (string_of_path (result_path result)) 
-           (result_msg result) 
-           separator2) 
-      results
-  in
-    
+
   (* Now start the test *)
-  let running_time, results = time_fun perform_test report_event test in
-  let errors = List.filter is_error results in
-  let failures = List.filter is_failure results in
-  let skips = List.filter is_skip results in
-  let todos = List.filter is_todo results in
+  let running_time, results = 
+    time_fun 
+      perform_test 
+      (fun ev ->
+         log (OUnitLogger.TestEvent ev))
+      test 
+  in
     
-    if not verbose then printf "\n";
-
     (* Print test report *)
-    print_result_list errors;
-    print_result_list failures;    
-    printf "Ran: %d tests in: %.2f seconds.\n" 
-      (List.length results) running_time;
+    log (OUnitLogger.GlobalEvent (GResults (running_time, results, test_case_count test)));
 
-    (* Print final verdict *)
-    if was_successful results then 
-      (
-        if skips = [] then
-          printf "OK"
-        else 
-          printf "OK: Cases: %d Skip: %d\n"
-            (test_case_count test) (List.length skips)
-      )
-    else
-      printf "FAILED: Cases: %d Tried: %d Errors: %d \
-              Failures: %d Skip:%d Todo:%d\n" 
-        (test_case_count test) (List.length results) 
-        (List.length errors) (List.length failures)
-        (List.length skips) (List.length todos);
+    (* Reset logger. *)
+    log_close ();
+    global_logger := fst OUnitLogger.null_logger;
 
     (* Return the results possibly for further processing *)
     results
@@ -741,6 +551,14 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
            "-only-test", 
            Arg.String (fun str -> only_test := str :: !only_test),
            "path Run only the selected test";
+
+           "-output-file",
+           Arg.String (fun s -> global_output_file := Some s),
+           "fn Output verbose log in this file.";
+
+           "-no-output-file",
+           Arg.Unit (fun () -> global_output_file := None),
+           " Prevent to write log in a file.";
 
            "-list-test",
            Arg.Unit
