@@ -1,6 +1,6 @@
 OASISFormat: 0.2
 Name:        ounit
-Version:     1.1.2
+Version:     2.0.0
 Synopsis:    Unit testing framework
 Authors:     Maas-Maarten Zeeman, 
              Sylvain Le Gall
@@ -22,9 +22,9 @@ Flag backtrace
   Description: Enable backtrace display in exception 
 
 Library "oUnit"
-  Path:         src
-  Modules:      OUnit, OUnitDiff, OUnitLogger
-  InternalModules: OUnitTypes, OUnitUtils
+  Path:            src
+  Modules:         OUnit, OUnitDiff, OUnitLogger
+  InternalModules: OUnitTypes, OUnitUtils, OUnitChooser
   BuildDepends: unix
   if flag(backtrace) 
     ByteOpt: -ppopt -DBACKTRACE

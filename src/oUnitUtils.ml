@@ -95,3 +95,27 @@ let buff_format_printf f =
     f fmt;
     Format.pp_print_flush fmt ();
     Buffer.contents buff
+
+(* Applies function f in turn to each element in list. Function f takes
+   one element, and integer indicating its location in the list *)
+let mapi f l = 
+  let rec rmapi cnt l = 
+    match l with 
+      | [] -> 
+          [] 
+
+      | h :: t -> 
+          (f h cnt) :: (rmapi (cnt + 1) t) 
+  in
+    rmapi 0 l
+
+let fold_lefti f accu l =
+  let rec rfold_lefti cnt accup l = 
+    match l with
+      | [] -> 
+          accup
+
+      | h::t -> 
+          rfold_lefti (cnt + 1) (f accup h cnt) t
+  in
+    rfold_lefti 0 accu l

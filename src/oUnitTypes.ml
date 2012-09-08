@@ -49,3 +49,9 @@ type test =
   | TestList of test list
   | TestLabel of string * test
 
+type state = 
+    {
+      tests_planned : (path * (unit -> unit)) list;
+      results : test_result list;
+    }
+

@@ -29,6 +29,8 @@ let global_output_file =
 
 let global_logger = ref (fst OUnitLogger.null_logger)
 
+let global_chooser = ref OUnitChooser.simple
+
 let bracket set_up f tear_down () =
   let fixture = 
     set_up () 
@@ -316,31 +318,6 @@ let test_case_count = OUnitUtils.test_case_count
 let string_of_node = OUnitUtils.string_of_node
 let string_of_path = OUnitUtils.string_of_path
     
-(* Some helper function, they are generally applicable *)
-(* Applies function f in turn to each element in list. Function f takes
-   one element, and integer indicating its location in the list *)
-let mapi f l = 
-  let rec rmapi cnt l = 
-    match l with 
-      | [] -> 
-          [] 
-
-      | h :: t -> 
-          (f h cnt) :: (rmapi (cnt + 1) t) 
-  in
-    rmapi 0 l
-
-let fold_lefti f accu l =
-  let rec rfold_lefti cnt accup l = 
-    match l with
-      | [] -> 
-          accup
-
-      | h::t -> 
-          rfold_lefti (cnt + 1) (f accup h cnt) t
-  in
-    rfold_lefti 0 accu l
-
 (* Returns all possible paths in the test. The order is from test case
    to root 
  *)
@@ -470,35 +447,48 @@ let perform_test report test =
       | s -> 
           RError (path, (Printexc.to_string s) ^ MAYBE_BACKTRACE)
   in
-  let rec run_test path results = 
+  let rec flatten_test path acc = 
     function
       | TestCase(f) -> 
-          begin
-            let result = 
-              report (EStart path);
-              run_test_case f path 
-            in
-              report (EResult result);
-              report (EEnd path);
-              result::results
-          end
+          (path, f) :: acc
 
       | TestList (tests) ->
-          begin
-            fold_lefti 
-              (fun results t cnt -> 
-                 run_test 
-                   ((ListItem cnt)::path) 
-                   results t)
-              results tests
-          end
+          fold_lefti 
+            (fun acc t cnt -> 
+               flatten_test 
+                 ((ListItem cnt)::path) 
+                 acc t)
+            acc tests
       
       | TestLabel (label, t) -> 
-          begin
-            run_test ((Label label)::path) results t
-          end
+          flatten_test ((Label label)::path) acc t
   in
-    run_test [] [] test
+  let test_cases = List.rev (flatten_test [] [] test) in
+  let runner (path, f) = 
+    let result = 
+      report (EStart path);
+      run_test_case f path 
+    in
+      report (EResult result);
+      report (EEnd path);
+      result
+  in
+  let rec iter state = 
+    match state.tests_planned with 
+      | [] ->
+          state.results
+      | _ ->
+          let (path, f) = !global_chooser state in            
+          let result = runner (path, f) in
+            iter 
+              {
+                results = result :: state.results;
+                tests_planned = 
+                  List.filter 
+                    (fun (path', _) -> path <> path') state.tests_planned
+              }
+  in
+    iter {results = []; tests_planned = test_cases}
 
 (* Function which runs the given function and returns the running time
    of the function, and the original result in a tuple *)
