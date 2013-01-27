@@ -14,7 +14,12 @@ include OUnitTypes
  * Types and global states.
  *)
 
-let global_verbose = ref false
+let global_verbose = 
+  OUnitConf.make 
+    "verbose"
+    (fun r -> Arg.Set r)
+    false
+    "Run test in verbose mode."
 
 let global_output_file = 
   let pwd = Sys.getcwd () in
@@ -25,7 +30,17 @@ let global_output_file =
     else 
       pwd
   in
-    ref (Some (Filename.concat dir "oUnit.log"))
+  let fn = Filename.concat dir "oUnit.log" in
+    OUnitConf.make
+      "output_file"
+      ~arg_string:"fn"
+      ~alternates:["no_output_file",
+                   (fun r -> Arg.Unit (fun () -> r:= None)),
+                   None,
+                   "Prevent to write log in a file."]
+      (fun r -> Arg.String (fun s -> r := Some s))
+      (Some fn)
+      "Output verbose log in the given file."
 
 let global_logger = ref (fst OUnitLogger.null_logger)
 
@@ -500,8 +515,8 @@ let time_fun f x y =
 let run_test_tt ?verbose test =
   let log, log_close = 
     OUnitLogger.create 
-      !global_output_file 
-      !global_verbose 
+      (global_output_file ())
+      (global_verbose  ())
       OUnitLogger.null_logger
   in
   let () = 
@@ -529,61 +544,56 @@ let run_test_tt ?verbose test =
       
 (* Call this one from you test suites *)
 let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite = 
-  let only_test = ref [] in
-  let () = 
-    Arg.parse
-      (Arg.align
-         [
-           "-verbose", 
-           Arg.Set global_verbose, 
-           " Run the test in verbose mode.";
-
-           "-only-test", 
-           Arg.String (fun str -> only_test := str :: !only_test),
-           "path Run only the selected test";
-
-           "-output-file",
-           Arg.String (fun s -> global_output_file := Some s),
-           "fn Output verbose log in this file.";
-
-           "-no-output-file",
-           Arg.Unit (fun () -> global_output_file := None),
-           " Prevent to write log in a file.";
-
-           "-list-test",
-           Arg.Unit
-             (fun () -> 
-                List.iter
-                  (fun pth ->
-                     print_endline (string_of_path pth))
-                  (test_case_paths suite);
-                exit 0),
-           " List tests";
-         ] @ arg_specs
-      )
-      (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
-      ("usage: " ^ Sys.argv.(0) ^ " [-verbose] [-only-test path]*")
+  let only_test =
+    OUnitConf.make 
+      "only_test"
+      ~arg_string:"path"
+      (fun r -> Arg.String (fun str -> r := str :: !r))
+      []
+      "Run only the selected tests."
   in
-  let nsuite = 
-    if !only_test = [] then
-      suite
+  let list_test =
+    OUnitConf.make
+      "list_test"
+      (fun r -> Arg.Set r)
+      false
+      "List tests"
+  in
+  let () = 
+    OUnitConf.load arg_specs
+  in
+    if list_test () then
+      begin
+        List.map
+          (fun pth ->
+             print_endline (string_of_path pth);
+             RSkip (pth, "only listing tests."))
+          (test_case_paths suite)
+      end
     else
       begin
-        match test_filter ~skip:true !only_test suite with 
-          | Some test ->
-              test
-          | None ->
-              failwith ("Filtering test "^
-                        (String.concat ", " !only_test)^
-                        " lead to no test")
-      end
-  in
+        let nsuite = 
+          if only_test () = [] then
+            suite
+          else
+            begin
+              match test_filter ~skip:true (only_test ()) suite with 
+                | Some test ->
+                    test
+                | None ->
+                    failwith 
+                      (Printf.sprintf
+                         "Filtering test %s lead to no tests."
+                         (String.concat ", " (only_test ())))
+            end
+        in
 
-  let result = 
-    set_verbose !global_verbose;
-    run_test_tt ~verbose:!global_verbose nsuite 
-  in
-    if not (was_successful result) then
-      exit 1
-    else
-      result
+        let result = 
+          set_verbose (global_verbose ());
+          run_test_tt ~verbose:(global_verbose ()) nsuite 
+        in
+          if not (was_successful result) then
+            exit 1
+          else
+            result
+      end

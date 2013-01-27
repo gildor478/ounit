@@ -22,9 +22,16 @@ Flag backtrace
   Description: Enable backtrace display in exception 
 
 Library "oUnit"
-  Path:            src
-  Modules:         OUnit, OUnitDiff, OUnitLogger
-  InternalModules: OUnitTypes, OUnitUtils, OUnitChooser
+  Path: src
+  Modules: OUnit,
+           OUnitDiff,
+           OUnitLogger,
+           OUnitConf
+  InternalModules: OUnitTypes,
+                   OUnitUtils,
+                   OUnitChooser,
+                   OUnitConf_parser,
+                   OUnitConf_lexer
   BuildDepends: unix
   if flag(backtrace) 
     ByteOpt: -ppopt -DBACKTRACE

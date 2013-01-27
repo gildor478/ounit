@@ -215,7 +215,9 @@ let suite = "OUnit" >:::
     "test_case_todo" >:: test_case_todo;
     "test_assert_command" >:: test_assert_command;
     "test_diff" >:: test_diff;
+    TestConf.tests;
   ]
 
 (* Run the tests in test suite *)
-let _ = run_test_tt_main suite
+let _ = 
+  run_test_tt_main suite
