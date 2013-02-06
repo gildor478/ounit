@@ -59,8 +59,7 @@ let format_event verbose event_type =
                                | None ->
                                    ()
                            end;
-                           bprintf "%s: %s\n\n" 
-                             (result_flavour test_result) 
+                           bprintf "Error: %s\n\n" 
                              (string_of_path (result_path test_result));
                            bprintf "%s\n" (result_msg test_result);
                            bprintf "%s\n" separator2;
