@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 64347d495511489b4fb4215dcbdb536e)
+# DO NOT EDIT (digest: 0636749848eec75f459075ba8f7d742f)
 OUnit
 OUnitDiff
 OUnitLogger
@@ -9,4 +9,6 @@ OUnitUtils
 OUnitChooser
 OUnitConf_parser
 OUnitConf_lexer
+OUnitConf_data
+OUnitConf_types
 # OASIS_STOP

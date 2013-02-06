@@ -31,7 +31,9 @@ Library "oUnit"
                    OUnitUtils,
                    OUnitChooser,
                    OUnitConf_parser,
-                   OUnitConf_lexer
+                   OUnitConf_lexer,
+                   OUnitConf_data,
+                   OUnitConf_types
   BuildDepends: unix
   if flag(backtrace) 
     ByteOpt: -ppopt -DBACKTRACE

@@ -124,3 +124,29 @@ let ocaml_position pos =
   Printf.sprintf 
     "File \"%s\", line %d, characters 1-1:"
     pos.filename pos.line
+
+let try_parse f lexbuf g =
+  try 
+    let res = f lexbuf in
+      g ();
+      res
+  with e ->
+    begin
+      let () = g () in
+      let curr = lexbuf.Lexing.lex_curr_p in
+      let line = curr.Lexing.pos_lnum in
+      let cnum = curr.Lexing.pos_cnum - curr.Lexing.pos_bol in
+      let tok = Lexing.lexeme lexbuf in
+      let fn = lexbuf.Lexing.lex_curr_p.Lexing.pos_fname in
+        (* TODO: ocaml error formatting. *)
+        Printf.eprintf 
+          "Parsing error at token %S, file '%s' l%d c%d\n%!"
+          tok fn line cnum;
+        raise e
+    end
+
+let set_pos_fname lexbuf fn =
+  {lexbuf with 
+    Lexing.lex_curr_p = 
+      {lexbuf.Lexing.lex_curr_p with  
+           Lexing.pos_fname = fn}}

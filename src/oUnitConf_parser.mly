@@ -10,6 +10,8 @@
 %token SEMICOLON EQUAL EOF
 %start main
 %type <(Lexing.position * string * OUnitConf_types.data) list> main
+%start data
+%type <OUnitConf_types.data> data
 
 %%
 
