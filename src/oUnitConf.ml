@@ -65,7 +65,7 @@ let make name ?(t=global) ?arg_string ?(alternates=[]) fspec default help =
         | Arg.Int _ -> "i"
         | Arg.Set_string _
         | Arg.String _ -> "s"
-        | Arg.Bool _ -> "b"
+        | Arg.Bool _ -> "{true,false}"
         | Arg.Symbol (lst, _) -> 
             "{"^(String.concat "|" lst)^"}"
         | Arg.Tuple lst ->
