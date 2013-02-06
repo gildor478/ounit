@@ -1,3 +1,8 @@
+ounit-2.0.0
+
+  - implements a quickfix compatible way of outputing failures, it jumps to
+   	the a position in the logfile to help you debug the problem.
+
 ounit-1.1.2
 
   - regenerate with oasis v0.3.0~rc6

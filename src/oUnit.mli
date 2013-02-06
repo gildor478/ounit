@@ -238,15 +238,24 @@ type test_event =
   | ELog of log_severity * string (** An event is logged in a test. *)
   | ELogRaw of string             (** Print raw data in the log. *)
 
-(** Perform the test, allows you to build your own test runner *)
-val perform_test : (test_event -> 'a) -> test -> test_result list
+(** Position in a file. *)
+type position =
+    {
+      filename: string;
+      line: int;
+    }
 
-(** A simple text based test runner. It prints out information
-    during the test. 
+(** Results of a test run. *)
+type test_results = (test_result * position option) list
+
+(** Perform the test, allows you to build your own test runner *)
+val perform_test : OUnitLogger.logger -> test -> test_results
+
+(** A simple text based test runner.
 
     @param verbose print verbose message
   *)
-val run_test_tt : ?verbose:bool -> test -> test_result list
+val run_test_tt : ?verbose:bool -> test -> test_results
 
 (** Main version of the text based test runner. It reads the supplied command 
     line arguments to set the verbose level and limit the number of test to 
@@ -254,10 +263,12 @@ val run_test_tt : ?verbose:bool -> test -> test_result list
     
     @param arg_specs add extra command line arguments
     @param set_verbose call a function to set verbosity
+    @param fexit call a final function after test, by default exit 1. 
 
     @version 1.1.0
   *)
 val run_test_tt_main : 
     ?arg_specs:(Arg.key * Arg.spec * Arg.doc) list -> 
     ?set_verbose:(bool -> unit) -> 
-    test -> test_result list
+    ?fexit:(test_results -> unit) ->
+    test -> unit

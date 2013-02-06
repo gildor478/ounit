@@ -18,7 +18,7 @@ let is_failure =
     | RSuccess _ | RError _  | RSkip _ | RTodo _ -> false
 
 let is_error = 
-  function 
+  function
     | RError _ -> true
     | RSuccess _ | RFailure _ | RSkip _ | RTodo _ -> false
 
@@ -119,3 +119,8 @@ let fold_lefti f accu l =
           rfold_lefti (cnt + 1) (f accup h cnt) t
   in
     rfold_lefti 0 accu l
+
+let ocaml_position pos =
+  Printf.sprintf 
+    "File \"%s\", line %d, characters 1-1:"
+    pos.filename pos.line

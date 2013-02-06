@@ -5,7 +5,23 @@
 open OUnitTypes
 open OUnitUtils
 
-type event_type = GlobalEvent of global_event | TestEvent of test_event
+type event_type = 
+  | GlobalEvent of global_event
+  | TestEvent of test_event
+
+type logger = 
+    {
+      fwrite: event_type -> unit;
+      fpos:   unit -> position option;
+      fclose: unit -> unit;
+    }
+
+let results_style_1_X =
+  OUnitConf.make
+    "results_style_1_X"
+    (fun r -> Arg.Set r)
+    false
+    "Use OUnit 1.X results printer."
 
 let format_event verbose event_type =
   match event_type with
@@ -23,18 +39,40 @@ let format_event verbose event_type =
                 let bprintf fmt = Printf.bprintf buf fmt in
                 let print_results = 
                   List.iter 
-                    (fun result -> 
-                       bprintf "%s\n%s: %s\n\n%s\n%s\n" 
-                         separator1 
-                         (result_flavour result) 
-                         (string_of_path (result_path result)) 
-                         (result_msg result) 
-                         separator2)
+                    (fun (test_result, pos_opt) -> 
+                       if results_style_1_X () then
+                         begin
+                           bprintf "%s\n%s: %s\n\n%s\n%s\n" 
+                             separator1 
+                             (result_flavour test_result) 
+                             (string_of_path (result_path test_result)) 
+                             (result_msg test_result) 
+                             separator2
+                         end
+                       else
+                         begin
+                           bprintf "%s\n" separator1;
+                           begin
+                             match pos_opt with 
+                               | Some pos ->
+                                   bprintf "%s\n" (ocaml_position pos)
+                               | None ->
+                                   ()
+                           end;
+                           bprintf "%s: %s\n\n" 
+                             (result_flavour test_result) 
+                             (string_of_path (result_path test_result));
+                           bprintf "%s\n" (result_msg test_result);
+                           bprintf "%s\n" separator2;
+                         end)
                 in
-                let errors   = List.filter is_error results in
-                let failures = List.filter is_failure results in
-                let skips    = List.filter is_skip results in
-                let todos    = List.filter is_todo results in
+                let filter f = 
+                  List.filter (fun (test_result, _) -> f test_result)
+                in
+                let errors   = filter is_error results in
+                let failures = filter is_failure results in
+                let skips    = filter is_skip results in
+                let todos    = filter is_todo results in
 
                   if not verbose then
                     bprintf "\n";
@@ -45,7 +83,7 @@ let format_event verbose event_type =
                     (List.length results) running_time;
 
                   (* Print final verdict *)
-                  if was_successful results then 
+                  if was_successful (List.rev_map fst results) then 
                     begin
                       if skips = [] then
                         bprintf "OK"
@@ -110,36 +148,94 @@ let format_event verbose event_type =
 
 let file_logger fn =
   let chn = open_out fn in
-    (fun ev ->
-       output_string chn (format_event true ev);
-       flush chn),
-    (fun () -> close_out chn)
+  let line = ref 1 in
+  let fwrite ev =
+    let str =  format_event true ev in
+    String.iter (function '\n' -> incr line | _ -> ()) str;
+    output_string chn str;
+    flush chn
+  in
+  let fpos () =
+    Some { filename = fn; line = !line }
+  in
+  let fclose ()= 
+    close_out chn
+  in
+    {
+      fwrite = fwrite;
+      fpos   = fpos;
+      fclose = fclose;
+    }
+
 
 let std_logger verbose =
-  (fun ev -> 
-     print_string (format_event verbose ev);
-     flush stdout),
-  (fun () -> ())
+  let fwrite ev = 
+    print_string (format_event verbose ev);
+    flush stdout
+  in
+    {
+      fwrite = fwrite;
+      fpos   = (fun () -> None);
+      fclose = ignore;
+    }
+
+let fun_logger fwrite fclose =
+  {
+    fwrite = (fun ev -> fwrite ev);
+    fpos   = (fun () -> None);
+    fclose = fclose;
+  }
 
 let null_logger =
-  ignore, ignore
+  {
+    fwrite = ignore;
+    fpos   = (fun () -> None);
+    fclose = ignore;
+  }
 
-let create output_file_opt verbose (log,close) =
-  let std_log, std_close = std_logger verbose in
-  let file_log, file_close = 
+let create output_file_opt verbose logger =
+  let std_logger= 
+    std_logger verbose 
+  in
+  let file_logger = 
     match output_file_opt with 
       | Some fn ->
           file_logger fn
       | None ->
           null_logger
   in
-    (fun ev ->
-       std_log ev; file_log ev; log ev),
-    (fun () ->
-       std_close (); file_close (); close ())
+  let fwrite ev = 
+    std_logger.fwrite ev;
+    file_logger.fwrite ev;
+    logger.fwrite ev
+  in
+  let fpos () = 
+    match file_logger.fpos () with 
+      | Some pos -> Some pos
+      | None -> logger.fpos ()
+  in
+  let fclose () =
+    std_logger.fclose ();
+    file_logger.fclose ();
+    logger.fclose ()
+  in
+    {
+      fwrite = fwrite;
+      fpos   = fpos;
+      fclose = fclose;
+    }
 
-let printf log fmt =
+let raw_printf logger fmt =
   Printf.ksprintf
     (fun s ->
-       log (TestEvent (ELogRaw s)))
+       logger.fwrite (TestEvent (ELogRaw s)))
     fmt
+
+let report logger ev =
+  logger.fwrite ev
+
+let position logger =
+  logger.fpos ()
+
+let close logger =
+  logger.fclose ()

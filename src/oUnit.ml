@@ -42,7 +42,7 @@ let global_output_file =
       (Some fn)
       "Output verbose log in the given file."
 
-let global_logger = ref (fst OUnitLogger.null_logger)
+let global_logger = ref OUnitLogger.null_logger
 
 let global_chooser = ref OUnitChooser.simple
 
@@ -196,7 +196,7 @@ let assert_command
            Array.of_list (prg :: args)
          in
          let pid =
-           OUnitLogger.printf !global_logger "%s"
+           OUnitLogger.raw_printf !global_logger "%s"
              (buff_format_printf
                 (fun fmt ->
                    Format.fprintf fmt "@[Starting command '%t'@]\n" cmd_print));
@@ -250,7 +250,7 @@ let assert_command
              let len = ref (-1) in
                while !len <> 0 do 
                  len := input chn buff 0 (String.length buff);
-                 OUnitLogger.printf !global_logger "%s" (String.sub buff 0 !len);
+                 OUnitLogger.raw_printf !global_logger "%s" (String.sub buff 0 !len);
                done;
                close_in chn
            end;
@@ -444,23 +444,32 @@ ELSE
 ENDIF
 
 (* Run all tests, report starts, errors, failures, and return the results *)
-let perform_test report test =
+let perform_test logger test =
+  let report e =
+    OUnitLogger.report logger (OUnitLogger.TestEvent e)
+  in
   let run_test_case f path =
-    try 
-      f ();
-      RSuccess path
-    with
-      | Failure s -> 
-          RFailure (path, s ^ MAYBE_BACKTRACE)
+    let result =
+      try 
+        f ();
+        RSuccess path
+      with
+        | Failure s -> 
+            RFailure (path, s ^ MAYBE_BACKTRACE)
 
-      | Skip s -> 
-          RSkip (path, s)
+        | Skip s -> 
+            RSkip (path, s)
 
-      | Todo s -> 
-          RTodo (path, s)
+        | Todo s -> 
+            RTodo (path, s)
 
-      | s -> 
-          RError (path, (Printexc.to_string s) ^ MAYBE_BACKTRACE)
+        | s -> 
+            RError (path, (Printexc.to_string s) ^ MAYBE_BACKTRACE)
+    in
+    let position =
+      OUnitLogger.position logger
+    in
+      result, position
   in
   let rec flatten_test path acc = 
     function
@@ -478,15 +487,17 @@ let perform_test report test =
       | TestLabel (label, t) -> 
           flatten_test ((Label label)::path) acc t
   in
-  let test_cases = List.rev (flatten_test [] [] test) in
+  let test_cases = 
+    List.rev (flatten_test [] [] test) 
+  in
   let runner (path, f) = 
-    let result = 
-      report (EStart path);
+    let result, position = 
+      report (EStart path);      
       run_test_case f path 
     in
       report (EResult result);
       report (EEnd path);
-      result
+      result, position
   in
   let rec iter state = 
     match state.tests_planned with 
@@ -500,7 +511,8 @@ let perform_test report test =
                 results = result :: state.results;
                 tests_planned = 
                   List.filter 
-                    (fun (path', _) -> path <> path') state.tests_planned
+                    (fun (path', _) -> path <> path')
+                    state.tests_planned
               }
   in
     iter {results = []; tests_planned = test_cases}
@@ -513,37 +525,47 @@ let time_fun f x y =
 
 (* A simple (currently too simple) text based test runner *)
 let run_test_tt ?verbose test =
-  let log, log_close = 
+  let logger = 
     OUnitLogger.create 
       (global_output_file ())
-      (global_verbose  ())
+      (global_verbose ())
       OUnitLogger.null_logger
   in
   let () = 
-    global_logger := log
+    (* TODO: is it really useful to override this ? *)
+    global_logger := logger
   in
 
   (* Now start the test *)
-  let running_time, results = 
+  let running_time, test_results = 
     time_fun 
       perform_test 
-      (fun ev ->
-         log (OUnitLogger.TestEvent ev))
+      logger
       test 
   in
     
     (* Print test report *)
-    log (OUnitLogger.GlobalEvent (GResults (running_time, results, test_case_count test)));
+    OUnitLogger.report logger 
+      (OUnitLogger.GlobalEvent 
+         (GResults (running_time, test_results, test_case_count test)));
 
     (* Reset logger. *)
-    log_close ();
-    global_logger := fst OUnitLogger.null_logger;
+    OUnitLogger.close logger;
+    global_logger := OUnitLogger.null_logger;
 
     (* Return the results possibly for further processing *)
-    results
+    test_results
       
 (* Call this one from you test suites *)
-let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite = 
+let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) ?fexit suite = 
+  let fexit = 
+    match fexit with 
+      | Some f -> f 
+      | None ->
+          (fun test_results ->
+             if not (was_successful (List.rev_map fst test_results)) then
+               exit 1)
+  in
   let only_test =
     OUnitConf.make 
       "only_test"
@@ -564,10 +586,8 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
   in
     if list_test () then
       begin
-        List.map
-          (fun pth ->
-             print_endline (string_of_path pth);
-             RSkip (pth, "only listing tests."))
+        List.iter
+          (fun pth -> print_endline (string_of_path pth))
           (test_case_paths suite)
       end
     else
@@ -588,12 +608,9 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
             end
         in
 
-        let result = 
+        let test_results = 
           set_verbose (global_verbose ());
           run_test_tt ~verbose:(global_verbose ()) nsuite 
         in
-          if not (was_successful result) then
-            exit 1
-          else
-            result
+          fexit test_results
       end

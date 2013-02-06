@@ -13,18 +13,28 @@ type node = ListItem of int | Label of string
 type path = node list 
 
 (** See OUnit.mli. *) 
-type log_severity = 
-  | LError
-  | LWarning
-  | LInfo
-
-(** See OUnit.mli. *) 
 type test_result =
   | RSuccess of path
   | RFailure of path * string
   | RError of path * string
   | RSkip of path * string
   | RTodo of path * string
+
+(* See OUnit.mli. *)
+type position =
+    {
+      filename: string;
+      line: int;
+    }
+
+(* See OUnit.mli. *)
+type test_results = (test_result * position option) list
+
+(** See OUnit.mli. *) 
+type log_severity = 
+  | LError
+  | LWarning
+  | LInfo
 
 (** See OUnit.mli. *) 
 type test_event =
@@ -38,7 +48,7 @@ type test_event =
 type global_event =
   | GStart  (** Start running the tests. *)
   | GEnd    (** Finish running the tests. *)
-  | GResults of (float * test_result list * int)
+  | GResults of (float * test_results * int)
 
 (* The type of test function *)
 type test_fun = unit -> unit 
@@ -51,7 +61,6 @@ type test =
 
 type state = 
     {
-      tests_planned : (path * (unit -> unit)) list;
-      results : test_result list;
+      tests_planned: (path * (unit -> unit)) list;
+      results: test_results;
     }
-
