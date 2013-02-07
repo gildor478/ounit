@@ -177,10 +177,18 @@ let env_parse env_specs =
                failwith str) fmt
       in
         try 
-          OUnitConf_data.data_set spec 
-            (OUnitConf_data.data_of_string 
-               ~origin:(Printf.sprintf "env %s=%S" var value)
-               value)
+          begin
+            try 
+              (* It is hard to know for an environment variable if we are
+               * refering as "value" or value, try both.
+               *)
+              OUnitConf_data.data_set spec (String value)
+            with _ ->
+              OUnitConf_data.data_set spec 
+                (OUnitConf_data.data_of_string 
+                   ~origin:(Printf.sprintf "env %s=%S" var value)
+                   value)
+          end
         with 
           | OUnitConf_data.ExpectNoValue ->
               failwithf "Variable %S doesn't expect a value." var
