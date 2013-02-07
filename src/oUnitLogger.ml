@@ -5,10 +5,6 @@
 open OUnitTypes
 open OUnitUtils
 
-type event_type = 
-  | GlobalEvent of global_event
-  | TestEvent of test_event
-
 type logger = 
     {
       fwrite: event_type -> unit;
@@ -20,6 +16,7 @@ let results_style_1_X =
   OUnitConf.make
     "results_style_1_X"
     (fun r -> Arg.Set r)
+    ~printer:string_of_bool
     false
     "Use OUnit 1.X results printer."
 
@@ -28,10 +25,21 @@ let format_event verbose event_type =
     | GlobalEvent e ->
         begin
           match e with 
+            | GConf str ->
+                if verbose then
+                  str^"\n"
+                else
+                  ""
             | GStart ->
-                ""
+                if verbose then
+                  "Start testing.\n"
+                else
+                  ""
             | GEnd ->
-                ""
+                if verbose then
+                  "End testing.\n"
+                else
+                  ""
             | GResults (running_time, results, test_case_count) -> 
                 let separator1 = String.make (Format.get_margin ()) '=' in
                 let separator2 = String.make (Format.get_margin ()) '-' in

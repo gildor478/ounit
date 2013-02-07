@@ -16,9 +16,9 @@ let bracket_ounitconf f =
        let t = default () in
          {
            global = t;
-           vfloat = make ~t "float" (fun v -> Arg.Set_float v) 0.0 "";
-           vint = make ~t "int" (fun v -> Arg.Set_int v) 0 "";
-           vstring = make ~t "string" (fun v -> Arg.Set_string v) "" "";
+           vfloat = make ~t ~printer:string_of_float "float" (fun v -> Arg.Set_float v) 0.0 "";
+           vint = make ~t ~printer:string_of_int "int" (fun v -> Arg.Set_int v) 0 "";
+           vstring = make ~t ~printer:(Printf.sprintf "%S") "string" (fun v -> Arg.Set_string v) "" "";
          })
     f
     ignore 

@@ -18,6 +18,7 @@ let global_verbose =
   OUnitConf.make 
     "verbose"
     (fun r -> Arg.Set r)
+    ~printer:string_of_bool
     false
     "Run test in verbose mode."
 
@@ -38,6 +39,9 @@ let global_output_file =
                    (fun r -> Arg.Unit (fun () -> r:= None)),
                    None,
                    "Prevent to write log in a file."]
+      ~printer:(function 
+                  | None -> "<none>"
+                  | Some fn -> Printf.sprintf "%S" fn)
       (fun r -> Arg.String (fun s -> r := Some s))
       (Some fn)
       "Output verbose log in the given file."
@@ -446,7 +450,7 @@ ENDIF
 (* Run all tests, report starts, errors, failures, and return the results *)
 let perform_test logger test =
   let report e =
-    OUnitLogger.report logger (OUnitLogger.TestEvent e)
+    OUnitLogger.report logger (TestEvent e)
   in
   let run_test_case f path =
     let result =
@@ -536,6 +540,10 @@ let run_test_tt ?verbose test =
     global_logger := logger
   in
 
+  let () =
+    OUnitConf.dump (OUnitLogger.report logger)
+  in
+
   (* Now start the test *)
   let running_time, test_results = 
     time_fun 
@@ -546,7 +554,7 @@ let run_test_tt ?verbose test =
     
     (* Print test report *)
     OUnitLogger.report logger 
-      (OUnitLogger.GlobalEvent 
+      (GlobalEvent 
          (GResults (running_time, test_results, test_case_count test)));
 
     (* Reset logger. *)
@@ -570,6 +578,7 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) ?fexit suite =
     OUnitConf.make 
       "only_test"
       ~arg_string:"path"
+      ~printer:(fun lst -> String.concat "," (List.map (Printf.sprintf "%S") lst))
       (fun r -> Arg.String (fun str -> r := str :: !r))
       []
       "Run only the selected tests."
@@ -578,6 +587,7 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) ?fexit suite =
     OUnitConf.make
       "list_test"
       (fun r -> Arg.Set r)
+      ~printer:string_of_bool 
       false
       "List tests"
   in
