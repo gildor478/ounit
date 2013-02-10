@@ -1,5 +1,5 @@
 (*
- * Logger for information and various OUnit events.
+   Logger for information and various OUnit events.
  *)
 
 open OUnitTypes
@@ -19,6 +19,46 @@ let results_style_1_X =
     ~printer:string_of_bool
     false
     "Use OUnit 1.X results printer."
+
+let string_of_event ev =
+  let spf fmt = Printf.sprintf fmt in
+  let string_of_result = 
+    function
+      | RSuccess _      -> "RSuccess _"
+      | RFailure (_, _) -> "RFailure _"
+      | RError (_, _)   -> "RError _"
+      | RSkip (_, _)    -> "RSkip _"
+      | RTodo (_, _)    -> "RTodo _"
+  in
+  let string_of_log_severity =
+    function
+      | LError   -> "LError"
+      | LWarning -> "LWarning"
+      | LInfo    -> "LInfo"
+  in
+    match ev with 
+      | GlobalEvent e ->
+          begin
+            match e with 
+              | GConf str  -> spf "GConf %S" str
+              | GStart     -> "GStart"
+              | GEnd       -> "GEnd"
+              | GResults _ -> "GResults"
+          end
+      | TestEvent e ->
+          begin
+            match e with 
+              | EStart _ ->
+                  "EStart _"
+              | EEnd _ ->
+                  "EEnd _"
+              | EResult result ->
+                  spf "EResult (%s)" (string_of_result result)
+              | ELog (lvl, str) ->
+                  spf "ELog (%s, %S)" (string_of_log_severity lvl) str
+              | ELogRaw str ->
+                  spf "ELogRaw %S" str
+          end
 
 let format_event verbose event_type =
   match event_type with
@@ -200,6 +240,39 @@ let null_logger =
     fclose = ignore;
   }
 
+let report logger ev =
+  logger.fwrite ev
+
+let position logger =
+  logger.fpos ()
+
+let close logger =
+  logger.fclose ()
+
+let combine lst = 
+  let rec fpos =
+    function
+      | logger :: tl ->
+          begin
+            match position logger with 
+              | Some _ as pos ->
+                  pos
+              | None ->
+                  fpos tl
+          end
+      | [] -> 
+          None
+  in
+    {
+      fwrite = 
+        (fun ev -> 
+           List.iter (fun logger -> report logger ev) lst);
+      fpos   = (fun () -> fpos lst);
+      fclose = 
+        (fun () -> 
+           List.iter (fun logger -> close logger) (List.rev lst));
+    }
+
 let create output_file_opt verbose logger =
   let std_logger= 
     std_logger verbose 
@@ -211,26 +284,7 @@ let create output_file_opt verbose logger =
       | None ->
           null_logger
   in
-  let fwrite ev = 
-    std_logger.fwrite ev;
-    file_logger.fwrite ev;
-    logger.fwrite ev
-  in
-  let fpos () = 
-    match file_logger.fpos () with 
-      | Some pos -> Some pos
-      | None -> logger.fpos ()
-  in
-  let fclose () =
-    std_logger.fclose ();
-    file_logger.fclose ();
-    logger.fclose ()
-  in
-    {
-      fwrite = fwrite;
-      fpos   = fpos;
-      fclose = fclose;
-    }
+    combine [std_logger; file_logger; logger]
 
 let raw_printf logger fmt =
   Printf.ksprintf
@@ -238,11 +292,3 @@ let raw_printf logger fmt =
        logger.fwrite (TestEvent (ELogRaw s)))
     fmt
 
-let report logger ev =
-  logger.fwrite ev
-
-let position logger =
-  logger.fpos ()
-
-let close logger =
-  logger.fclose ()

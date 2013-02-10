@@ -1,5 +1,7 @@
 #TESTFLAGS=-only-test "OUnit:1"
 
+export OUNIT_OUTPUT_HTML_DIR=$(CURDIR)/log-html
+
 default: test
 
 # OASIS_START

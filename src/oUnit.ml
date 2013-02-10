@@ -529,11 +529,18 @@ let time_fun f x y =
 
 (* A simple (currently too simple) text based test runner *)
 let run_test_tt ?verbose test =
-  let logger = 
+  let base_logger = 
     OUnitLogger.create 
       (global_output_file ())
       (global_verbose ())
       OUnitLogger.null_logger
+  in
+  let html_logger =
+    OUnitLoggerHTML.create ()
+  in
+  let logger =
+    OUnitLogger.combine
+      [base_logger; html_logger]
   in
   let () = 
     (* TODO: is it really useful to override this ? *)

@@ -33,7 +33,8 @@ Library "oUnit"
                    OUnitConf_parser,
                    OUnitConf_lexer,
                    OUnitConf_data,
-                   OUnitConf_types
+                   OUnitConf_types,
+                   OUnitLoggerHTML
   BuildDepends: unix
   if flag(backtrace) 
     ByteOpt: -ppopt -DBACKTRACE
