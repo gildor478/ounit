@@ -207,7 +207,7 @@ let render dn rev_events =
 
       (* Print final verdict *)
       if was_successful (List.rev_map fst global_results) then 
-        printf "<div class='ounit-results-verdict ounit-success'>Success</div>"
+        printf "<div class='ounit-results-verdict'>Success</div>"
       else
         printf "<div class='ounit-results-verdict ounit-failure'>Failure</div>"
   end;
