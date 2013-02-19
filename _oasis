@@ -34,7 +34,8 @@ Library "oUnit"
                    OUnitConf_lexer,
                    OUnitConf_data,
                    OUnitConf_types,
-                   OUnitLoggerHTML
+                   OUnitLoggerHTML,
+                   OUnitLoggerHTMLData
   BuildDepends: unix
   if flag(backtrace) 
     ByteOpt: -ppopt -DBACKTRACE
@@ -46,6 +47,12 @@ Executable test
   BuildDepends: oUnit
   Install: false
   
+Executable testFakeHTML
+  Path:   test
+  MainIs: testFakeHTML.ml
+  BuildDepends: oUnit
+  Install: false
+
 Test main
   Command: $test
   

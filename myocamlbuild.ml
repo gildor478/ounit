@@ -1,3 +1,23 @@
+
+open Ocamlbuild_plugin;;
+open Command;;
+
+rule "src/oUnitLoggerHTMLData.ml"
+  ~prod:"src/oUnitLoggerHTMLData.ml"
+  ~deps:["src/oUnit.css"; "src/oUnit.js"]
+  begin
+    fun env build ->
+      let ounit_css = Printf.sprintf "%S" (read_file "src/oUnit.css") in
+      let ounit_js = Printf.sprintf "%S" (read_file "src/oUnit.js") in
+        Echo(
+          [
+            "let oUnit_css = " ^ ounit_css ^ ";;";
+            "let oUnit_js = " ^ ounit_js ^ ";;";
+          ],
+          "src/oUnitLoggerHTMLData.ml")
+  end
+;;
+
 (* OASIS_START *)
 (* DO NOT EDIT (digest: 3e171a1ae84bd26d63526c8ae8be1f1b) *)
 module OASISGettext = struct

@@ -1,8 +1,6 @@
 #TESTFLAGS=-only-test "OUnit:1"
 
-export OUNIT_OUTPUT_HTML_DIR=$(CURDIR)/log-html
-
-default: test
+default: test html-test
 
 # OASIS_START
 # DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
@@ -47,3 +45,10 @@ doc-test: doc
 	 ocamldoc -g ../ocaml-tmp/odoc-extract-code/odoc_extract_code.cmo \
 		 -load _build/src/oUnit.odoc -intro doc/manual.txt > _build/src/tmp.ml;
 	 ocamlc -c -I _build/src/ _build/src/tmp.ml
+
+html-test:
+	-_build/test/testFakeHTML.byte -output-html-dir $(CURDIR)/log-html
+	$(RM) $(CURDIR)/log-html/oUnit.js
+	ln -s $(CURDIR)/src/oUnit.js $(CURDIR)/log-html/oUnit.js
+	$(RM) $(CURDIR)/log-html/oUnit.css
+	ln -s $(CURDIR)/src/oUnit.css $(CURDIR)/log-html/oUnit.css

@@ -47,6 +47,18 @@ let render dn rev_events =
       []
       rev_events
   in
+  let running_time, global_results, test_case_count =
+    let rec find_results =
+      function
+        | GlobalEvent (GResults (running_time, results, test_case_count)) :: _ ->
+            running_time, results, test_case_count
+        | _ :: tl ->
+            find_results tl
+        | [] ->
+            failwith "Cannot find results in OUnitLoggerHTML"
+    in
+      find_results rev_events
+  in
   let tests = 
     let rec split_raw tmstp str lst =
       try
@@ -127,6 +139,19 @@ let render dn rev_events =
   in
   let suite_name = "OUnit" in
   let charset = "utf-8" in
+
+  let chn = open_out (Filename.concat dn "oUnit.css") in
+  let () = 
+    output_string chn OUnitLoggerHTMLData.oUnit_css;
+    close_out chn
+  in
+
+  let chn = open_out (Filename.concat dn "oUnit.js") in
+  let () = 
+    output_string chn OUnitLoggerHTMLData.oUnit_js;
+    close_out chn
+  in
+
   let chn = open_out (Filename.concat dn "index.html") in
   let printf fmt = Printf.fprintf chn fmt in
   printf "\
@@ -134,14 +159,68 @@ let render dn rev_events =
   <head>
     <title>Test suite %s</title>
     <meta http-equiv='Content-Type' content='text/html;charset=%s'/>
-    <link href='oUnit.css' rel='stylesheet' type='text/css'>
+    <link href='oUnit.css' rel='stylesheet' type='text/css'/>
+    <script language='javascript' src='oUnit.js'></script>
   </head>
-  <body>
+  <body onload=\"displaySuccess('none');\">
+    <div id='navigation'>
+        <button id='toggleVisibiltySuccess' onclick='toggleSuccess();'>Show success</button>
+        <button id='nextTest' onclick='nextTest();'>Next test</button>
+        <button id='gotoTop' onclick='gotoTop();'>Goto top</button>
+    </div>
+    <div class='ounit-results'>
+      <h1>Results</h1>
+      <div class='ounit-results-content'>\n"
+  suite_name charset; 
+  begin
+    let count f = 
+      List.length 
+        (List.filter (fun (test_result, _) -> f test_result)
+           global_results)
+    in
+    let errors   = count is_error in
+    let failures = count is_failure in
+    let skips    = count is_skip in
+    let todos    = count is_todo in
+    let successes = count is_success in
+    let printf_result clss label num =
+      printf 
+        "<div class='ounit-results-%s'>\
+           %s: <span class='number'>%d</span>\
+         </div>"
+        clss label num
+    in
+    let printf_non0_result clss label num =
+      if num > 0 then
+        printf_result clss label num
+    in
+      printf 
+        "<div class='ounit-results-duration'>\
+           Total duration: <span class='number'>%.3fs</span>\
+         </div>" running_time;
+      printf_result "test-count" "Tests count" test_case_count;
+      printf_non0_result "errors" "Errors" errors;
+      printf_non0_result "failures" "Failures" failures;
+      printf_non0_result "skips" "Skipped" skips;
+      printf_non0_result "todos" "TODO" todos;
+      printf_result "successes" "Successes" successes;
+
+      (* Print final verdict *)
+      if was_successful (List.rev_map fst global_results) then 
+        printf "<div class='ounit-results-verdict ounit-success'>Success</div>"
+      else
+        printf "<div class='ounit-results-verdict ounit-failure'>Failure</div>"
+  end;
+
+  printf "\
+      </div>
+    </div>
     <div class='ounit-conf'>
-      <h1>Configuration</h1>\n"
-  suite_name charset;
+      <h1>Configuration</h1>
+      <div class='ounit-conf-content'>\n";
   List.iter (printf "%s<br/>\n") conf;
   printf ("\
+      </div>
     </div>
 ");
   List.iter
@@ -152,7 +231,7 @@ let render dn rev_events =
            | RFailure (_, _) -> "ounit-failure", "failed"
            | RError (_, _)   -> "ounit-error", "error"
            | RSkip (_, _)    -> "ounit-skip", "skipped"
-           | RTodo (_, _)    -> "ounit-todo", "todo"
+           | RTodo (_, _)    -> "ounit-todo", "TODO"
        in
        let class_severity_opt = 
          function
@@ -164,7 +243,7 @@ let render dn rev_events =
        printf "
     <div class='ounit-test %s'>
       <h1>%s (%s)</h1>
-      <div class='ounit-duration'>Test duration: %0.3f</div>
+      <div class='ounit-duration'>Test duration: %0.3fs</div>
       <div class='ounit-log'>\n" 
          class_result
          test_data.test_name 

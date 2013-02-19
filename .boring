@@ -117,3 +117,6 @@
 ^_build$
 ^ounit-.*\.tar\.gz$
 ^ounit-.*\.tar\.gz\.asc$
+^log-html($|/)
+^build($|/)
+^dist($|/)
