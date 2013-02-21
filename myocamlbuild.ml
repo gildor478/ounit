@@ -19,7 +19,7 @@ rule "src/oUnitLoggerHTMLData.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 3e171a1ae84bd26d63526c8ae8be1f1b) *)
+(* DO NOT EDIT (digest: b64d26463ff69457edcc4791e21b1bc6) *)
 module OASISGettext = struct
 # 21 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
 
@@ -501,46 +501,14 @@ let package_default =
   {
      MyOCamlbuildBase.lib_ocaml = [("oUnit", ["src"])];
      lib_c = [];
-     flags =
-       [
-          (["oasis_library_ounit_byte"; "ocaml"; "link"; "byte"],
-            [
-               (OASISExpr.EBool true, S []);
-               (OASISExpr.EFlag "backtrace", S [A "-ppopt"; A "-DBACKTRACE"])
-            ]);
-          (["oasis_library_ounit_native"; "ocaml"; "link"; "native"],
-            [
-               (OASISExpr.EBool true, S []);
-               (OASISExpr.EFlag "backtrace", S [A "-ppopt"; A "-DBACKTRACE"])
-            ]);
-          (["oasis_library_ounit_byte"; "ocaml"; "ocamldep"; "byte"],
-            [
-               (OASISExpr.EBool true, S []);
-               (OASISExpr.EFlag "backtrace", S [A "-ppopt"; A "-DBACKTRACE"])
-            ]);
-          (["oasis_library_ounit_native"; "ocaml"; "ocamldep"; "native"],
-            [
-               (OASISExpr.EBool true, S []);
-               (OASISExpr.EFlag "backtrace", S [A "-ppopt"; A "-DBACKTRACE"])
-            ]);
-          (["oasis_library_ounit_byte"; "ocaml"; "compile"; "byte"],
-            [
-               (OASISExpr.EBool true, S []);
-               (OASISExpr.EFlag "backtrace", S [A "-ppopt"; A "-DBACKTRACE"])
-            ]);
-          (["oasis_library_ounit_native"; "ocaml"; "compile"; "native"],
-            [
-               (OASISExpr.EBool true, S []);
-               (OASISExpr.EFlag "backtrace", S [A "-ppopt"; A "-DBACKTRACE"])
-            ])
-       ];
+     flags = [];
      includes = [("test", ["src"])];
      }
   ;;
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-# 524 "myocamlbuild.ml"
+# 492 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch 
   (function

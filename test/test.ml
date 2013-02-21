@@ -148,25 +148,22 @@ let test_case_decorate () =
     assert_equal_test_result 
       [RSuccess [Label "label"; ListItem 1; Label "suite_c"]; 
        RSuccess [ListItem 0; Label "suite_c"]]
-      (List.map fst (perform_test null_logger suite_c));
+      (perform_test ignore suite_c);
     assert_equal_test_result
       [RFailure([Label "label"; ListItem 1; Label "suite_c"], "OUnit: fail"); 
        RFailure([ListItem 0; Label "suite_c"], "OUnit: fail")]
-      (List.map fst
-         (perform_test null_logger 
-            (test_decorate (fun _ -> (fun () -> assert_failure "fail")) suite_c)))
+       (perform_test ignore 
+          (test_decorate (fun _ -> (fun () -> assert_failure "fail")) suite_c))
 
 let test_case_skip () = 
   assert_equal_test_result
     [RSkip ([Label "skip"], "test")] 
-    (List.map fst
-       (perform_test null_logger ("skip" >:: (fun () -> skip_if true "test"))))
+     (perform_test ignore ("skip" >:: (fun () -> skip_if true "test")))
 
 let test_case_todo () = 
   assert_equal_test_result
     [RTodo ([Label "todo"], "test")] 
-    (List.map fst
-       (perform_test null_logger ("todo" >:: (fun () -> todo "test"))))
+     (perform_test ignore ("todo" >:: (fun () -> todo "test")))
 
 let test_assert_command () = 
   assert_command Sys.executable_name ["-help"]

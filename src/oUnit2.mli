@@ -1,15 +1,13 @@
 (***********************************************************************)
 (* The OUnit library                                                   *)
 (*                                                                     *)
-(* Copyright (C) 2002-2008 Maas-Maarten Zeeman.                        *)
-(* Copyright (C) 2010 OCamlCore SARL                                   *)
+(* Copyright (C) 2013 Sylvain Le Gall                                  *)
 (*                                                                     *)
 (* See LICENSE for details.                                            *)
 (***********************************************************************)
 
-(** Unit test building blocks
+(** Unit test building blocks (v2).
  
-    @author Maas-Maarten Zeeman
     @author Sylvain Le Gall
   *)
 
@@ -216,26 +214,43 @@ val test_case_paths : test -> path list
 
 (** {2 Performing Tests} *)
 
+(** Severity level for log. *) 
+type log_severity = 
+  | LError
+  | LWarning
+  | LInfo
+
+(** Backtrace, if available. *)
+type backtrace = string option
+
 (** The possible results of a test *)
 type test_result =
-    RSuccess of path
-  | RFailure of path * string
-  | RError of path * string
-  | RSkip of path * string
-  | RTodo of path * string
+    RSuccess 
+  | RFailure of string * backtrace
+  | RError of string * backtrace
+  | RSkip of string
+  | RTodo of string
 
 (** Events which occur during a test run. *)
 type test_event =
-    EStart of path                (** A test start. *)
-  | EEnd of path                  (** A test end. *)
+    EStart                        (** A test start. *)
+  | EEnd                          (** A test end. *)
   | EResult of test_result        (** Result of a test. *)
+  | ELog of log_severity * string (** An event is logged in a test. *)
+  | ELogRaw of string             (** Print raw data in the wg. *)
+
+(** Position in a file. *)
+type position =
+    {
+      filename: string;
+      line: int;
+    }
 
 (** Results of a test run. *)
-type test_results = test_result list
+type test_results = (path * test_result * position option) list
 
 (** Perform the test, allows you to build your own test runner *)
-val perform_test : (test_event -> unit) -> test -> test_results
-
+val perform_test : OUnitLogger.logger -> test -> test_results
 (** A simple text based test runner.
 
     @param verbose print verbose message
@@ -254,5 +269,6 @@ val run_test_tt : ?verbose:bool -> test -> test_results
   *)
 val run_test_tt_main : 
     ?arg_specs:(Arg.key * Arg.spec * Arg.doc) list -> 
-    ?set_verbose:(bool -> unit) ->
-    test -> test_results
+    ?set_verbose:(bool -> unit) -> 
+    ?fexit:(test_results -> unit) ->
+    test -> unit

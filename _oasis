@@ -1,4 +1,5 @@
 OASISFormat: 0.2
+OCamlVersion: >= 3.11.0
 Name:        ounit
 Version:     2.0.0
 Synopsis:    Unit testing framework
@@ -10,7 +11,7 @@ License:     MIT
 LicenseFile: LICENSE.txt 
 Homepage:    http://ounit.forge.ocamlcore.org
 Plugins:     META (0.2), StdFiles (0.2), DevFiles (0.2)
-BuildTools:  ocamlbuild, camlp4
+BuildTools:  ocamlbuild
 
 Description:
   OUnit is a unit testing framework for OCaml, inspired by the JUnit tool for
@@ -19,14 +20,15 @@ Description:
   More information on [HUnit](http://hunit.sourceforge.net)
 
 Flag backtrace 
-  Description: Enable backtrace display in exception 
+  Description: Enable backtrace display in exception (deprecated).
 
 Library "oUnit"
   Path: src
   Modules: OUnit,
-           OUnitDiff,
-           OUnitLogger,
-           OUnitConf
+           OUnitDiff, # TODO: hide in OUnit2
+           OUnitLogger, # TODO: hide in OUnit2
+           OUnitConf, # TODO: hide in OUnit2
+           OUnit2
   InternalModules: OUnitTypes,
                    OUnitUtils,
                    OUnitChooser,
@@ -35,11 +37,12 @@ Library "oUnit"
                    OUnitConf_data,
                    OUnitConf_types,
                    OUnitLoggerHTML,
-                   OUnitLoggerHTMLData
+                   OUnitLoggerHTMLData,
+                   OUnitAssert,
+                   OUnitBracket,
+                   OUnitTest,
+                   OUnitCore
   BuildDepends: unix
-  if flag(backtrace) 
-    ByteOpt: -ppopt -DBACKTRACE
-    NativeOpt: -ppopt -DBACKTRACE
   
 Executable test
   Path:   test

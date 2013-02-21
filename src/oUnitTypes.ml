@@ -6,19 +6,26 @@
   *
   *)
 
+exception Skip of string
+
+exception Todo of string
+
 (** See OUnit.mli. *) 
 type node = ListItem of int | Label of string
 
 (** See OUnit.mli. *) 
 type path = node list 
 
+(** See OUnit2.mli. *)
+type backtrace = string option
+
 (** See OUnit.mli. *) 
 type test_result =
-  | RSuccess of path
-  | RFailure of path * string
-  | RError of path * string
-  | RSkip of path * string
-  | RTodo of path * string
+  | RSuccess
+  | RFailure of string * backtrace
+  | RError of string * backtrace 
+  | RSkip of string
+  | RTodo of string
 
 (* See OUnit.mli. *)
 type position =
@@ -28,7 +35,7 @@ type position =
     }
 
 (* See OUnit.mli. *)
-type test_results = (test_result * position option) list
+type test_results = (path * test_result * position option) list
 
 (** See OUnit.mli. *) 
 type log_severity = 
@@ -38,8 +45,8 @@ type log_severity =
 
 (** See OUnit.mli. *) 
 type test_event =
-  | EStart of path
-  | EEnd of path
+  | EStart
+  | EEnd
   | EResult of test_result
   | ELog of log_severity * string
   | ELogRaw of string
@@ -51,9 +58,15 @@ type global_event =
   | GEnd    (** Finish running the tests. *)
   | GResults of (float * test_results * int)
 
-type event_type = 
+type log_event_t = 
   | GlobalEvent of global_event
-  | TestEvent of test_event
+  | TestEvent of path * test_event
+
+type log_event = 
+    {
+      timestamp: float;
+      event: log_event_t;
+    }
 
 (* The type of test function *)
 type test_fun = unit -> unit 

@@ -40,8 +40,8 @@ let render dn rev_events =
   in
   let conf = 
     List.fold_left
-      (fun acc ev ->
-         match ev with 
+      (fun acc log_ev ->
+         match log_ev.event with 
            | GlobalEvent (GConf str) -> str :: acc
            | _ -> acc)
       []
@@ -50,7 +50,9 @@ let render dn rev_events =
   let running_time, global_results, test_case_count =
     let rec find_results =
       function
-        | GlobalEvent (GResults (running_time, results, test_case_count)) :: _ ->
+        | {event = 
+             GlobalEvent 
+               (GResults (running_time, results, test_case_count))} :: _ ->
             running_time, results, test_case_count
         | _ :: tl ->
             find_results tl
@@ -70,72 +72,78 @@ let render dn rev_events =
         (tmstp, None, str) :: lst
     in
 
-    let finalize t tests =
-      {t with log_entries = List.rev t.log_entries} :: tests
+    let finalize t =
+      let log_entries = 
+        List.sort 
+          (fun (f1, _, _) (f2, _, _) -> Pervasives.compare f2 f1)
+          t.log_entries
+      in
+      let log_entries =
+        List.rev_map 
+          (fun (f, a, b) -> f -. t.timestamp_start, a, b)
+          log_entries
+      in
+        {t with log_entries = log_entries}
     in
       
-    let rec parse_test tests t = 
-      function 
-        | GlobalEvent _ :: tl ->
-            parse_test tests t tl
-        | TestEvent ev :: tl  ->
-            begin 
-              match ev with 
-                | EStart _ ->
-                    group_test
-                      (t :: tests)
-                      (TestEvent ev :: tl)
-                | EEnd _ ->
-                    group_test
-                      (finalize t tests)
-                      tl
-                | EResult rslt ->
-                    parse_test
-                      tests
-                      {t with test_result = rslt}
-                      tl
-                | ELog (svrt, str) ->
-                    parse_test
-                      tests
-                      {t with log_entries = (0.0, Some svrt, str) :: t.log_entries}
-                      tl
-                | ELogRaw str ->
-                    parse_test 
-                      tests
-                      {t with log_entries = split_raw 0.0 str t.log_entries}
-                      tl
-            end
-        | [] ->
-            group_test (finalize t tests) []
-
+    let default_timestamp = 0.0 in
+    let rec process_log_event tests log_event = 
+      let timestamp = log_event.timestamp in
+        match log_event.event with 
+          | GlobalEvent _ ->
+              tests
+          | TestEvent (path, ev)  ->
+              begin 
+                let t = 
+                  try
+                    MapPath.find path tests 
+                  with Not_found ->
+                    {
+                      test_name = string_of_path path;
+                      timestamp_start = default_timestamp;
+                      timestamp_end = default_timestamp;
+                      log_entries = [];
+                      test_result = RFailure ("Not finished", None);
+                    }
+                in
+                let alt0 t1 t2 = 
+                  if t1 = default_timestamp then
+                    t2
+                  else 
+                    t1
+                in
+                let t' = 
+                  match ev with 
+                    | EStart ->
+                        {t with 
+                             timestamp_start = timestamp;
+                             timestamp_end = alt0 t.timestamp_end timestamp}
+                    | EEnd ->
+                        {t with 
+                             timestamp_end = timestamp;
+                             timestamp_start = alt0 t.timestamp_start timestamp}
+                    | EResult rslt ->
+                        {t with test_result = rslt}
+                    | ELog (svrt, str) ->
+                        {t with log_entries = (timestamp, Some svrt, str) :: t.log_entries}
+                    | ELogRaw str ->
+                        {t with log_entries = split_raw timestamp str t.log_entries}
+                in
+                  MapPath.add path t' tests
+              end
     and group_test tests = 
-      function 
-        | GlobalEvent _ :: tl ->
-            group_test tests tl
-        | TestEvent ev :: tl->
-            begin
-              match ev with 
-                | EStart path ->
-                    parse_test
-                      tests
-                      {
-                        test_name = string_of_path path;
-                        timestamp_start = 0.0;
-                        timestamp_end = 0.0;
-                        log_entries = [];
-                        test_result = RFailure (path, "Not finished");
-                      }
-                      tl
-                | _ ->
-                    failwith 
-                      (Printf.sprintf
-                         "Expected EStart _ got %s"
-                         (string_of_event (TestEvent ev)))
-            end
+      function
+        | hd :: tl ->
+            group_test
+              (process_log_event tests hd)
+              tl
         | [] ->
-            List.rev tests
+            MapPath.fold
+              (fun _ test lst ->
+                 finalize test :: lst)
+              tests []
     in
-      group_test [] (List.rev rev_events)
+      group_test MapPath.empty rev_events
   in
   let suite_name = "OUnit" in
   let charset = "utf-8" in
@@ -175,7 +183,7 @@ let render dn rev_events =
   begin
     let count f = 
       List.length 
-        (List.filter (fun (test_result, _) -> f test_result)
+        (List.filter (fun (_, test_result, _) -> f test_result)
            global_results)
     in
     let errors   = count is_error in
@@ -206,7 +214,7 @@ let render dn rev_events =
       printf_result "successes" "Successes" successes;
 
       (* Print final verdict *)
-      if was_successful (List.rev_map fst global_results) then 
+      if was_successful global_results then 
         printf "<div class='ounit-results-verdict'>Success</div>"
       else
         printf "<div class='ounit-results-verdict ounit-failure'>Failure</div>"
@@ -227,11 +235,11 @@ let render dn rev_events =
     (fun test_data ->
        let class_result, text_result = 
          match test_data.test_result with 
-           | RSuccess _      -> "ounit-success", "succeed"
+           | RSuccess        -> "ounit-success", "succeed"
            | RFailure (_, _) -> "ounit-failure", "failed"
            | RError (_, _)   -> "ounit-error", "error"
-           | RSkip (_, _)    -> "ounit-skip", "skipped"
-           | RTodo (_, _)    -> "ounit-todo", "TODO"
+           | RSkip _         -> "ounit-skip", "skipped"
+           | RTodo _         -> "ounit-todo", "TODO"
        in
        let class_severity_opt = 
          function
@@ -260,12 +268,13 @@ let render dn rev_events =
          test_data.timestamp_start;
        printf "<div class='ounit-result'>";
        begin
+         (* TODO: use backtrace *)
          match test_data.test_result with 
-           | RSuccess _ -> printf "Success."
-           | RFailure (_, str) -> printf "Failure:<br/>%s" str
-           | RError (_, str) -> printf "Error:<br/>%s" str
-           | RSkip (_, str) -> printf "Skipped:<br/>%s" str
-           | RTodo (_, str) -> printf "Todo:<br/>%s" str
+           | RSuccess -> printf "Success."
+           | RFailure (str, backtrace) -> printf "Failure:<br/>%s" str
+           | RError (str, backtrace) -> printf "Error:<br/>%s" str
+           | RSkip str -> printf "Skipped:<br/>%s" str
+           | RTodo str -> printf "Todo:<br/>%s" str
        end;
        printf "</div>";
        printf "\
