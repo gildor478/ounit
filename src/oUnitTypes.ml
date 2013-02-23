@@ -53,7 +53,7 @@ type test_event =
 
 (** Events which occur at the global level. *)
 type global_event =
-  | GConf of string (** Dump a configuration options. *)
+  | GConf of string * string (** Dump a configuration options. *)
   | GStart  (** Start running the tests. *)
   | GEnd    (** Finish running the tests. *)
   | GResults of (float * test_results * int)

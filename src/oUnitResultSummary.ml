@@ -25,7 +25,7 @@ type t =
       suite_name: string;
       start_at: float;
       charset: string;
-      conf: string list;
+      conf: (string * string) list;
       running_time: float;
       global_results: test_results;
       test_case_count: int;
@@ -50,7 +50,7 @@ let of_log_events events =
     List.fold_left
       (fun acc log_ev ->
          match log_ev.event with 
-           | GlobalEvent (GConf str) -> str :: acc
+           | GlobalEvent (GConf (k, v)) -> (k, v) :: acc
            | _ -> acc)
       []
       (List.rev events)

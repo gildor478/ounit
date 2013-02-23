@@ -46,19 +46,14 @@ let test_result1_of_test_result path rslt =
   let path1 =
     path1_of_path path
   in
-  let join_opt s1 =
-    function
-      | Some s2 -> s1^"\n"^s2
-      | None -> s1
-  in
   let rslt1 = 
     match rslt with 
      | OUnitTypes.RSuccess ->
          RSuccess path1
-     | OUnitTypes.RFailure (str1, opt_str2) ->
-         RFailure (path1, join_opt str1 opt_str2)
-     | OUnitTypes.RError (str1, opt_str2) ->
-         RError (path1, join_opt str1 opt_str2)
+     | OUnitTypes.RFailure (str, _) ->
+         RFailure (path1, str)
+     | OUnitTypes.RError (str, _) ->
+         RError (path1, str)
      | OUnitTypes.RSkip str ->
          RSkip (path1, str)
      | OUnitTypes.RTodo str ->

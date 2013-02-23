@@ -132,6 +132,10 @@ let perform_test logger test =
 
 (* A simple (currently too simple) text based test runner *)
 let run_test_tt ?verbose test =
+  let () =
+    Printexc.record_backtrace true
+  in
+
   let base_logger = 
     OUnitLogger.create 
       (global_output_file ())

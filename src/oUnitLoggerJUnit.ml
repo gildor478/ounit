@@ -27,6 +27,13 @@ let render fn events =
     OUnitResultSummary.of_log_events events
   in
   let chn = open_out fn in
+  let string_of_failure = 
+    function
+      | msg, None ->
+          msg^"\nNo backtrace."
+      | msg, Some backtrace ->
+          msg^"\n"^backtrace
+  in
   let printf fmt = Printf.fprintf chn fmt in
     printf "\
 <?xml version='1.0' encoding='%s'?>
@@ -50,14 +57,22 @@ let render fn events =
     (smr.failures + smr.todos)
     smr.errors
     smr.running_time;
-    (* TODO: properties. *)
-    printf "<properties />";
+    printf "\
+\    <properties>\n";
+    List.iter
+      (fun (k, v) ->
+         printf "\
+\      <property name='%s' value='%s' />\n"
+           k v)
+      smr.conf;
+    printf "\
+\    </properties>\n";
     List.iter
       (fun test_data ->
          printf "\
 \    <testcase name='%s' classname='%s' time='%f'>\n"
            test_data.test_name
-           test_data.test_name (* TODO: use basename and full path of the test. *)
+           test_data.test_name
            (test_data.timestamp_end -. test_data.timestamp_start);
          begin
            match test_data.test_result with 
@@ -65,12 +80,12 @@ let render fn events =
                  ()
              | RError (msg, backtrace) ->
                  printf "\
-\      <error type='OUnit.Error' message='%s'></error>\n" msg
-                   (* TODO: content. *)
+\      <error type='OUnit.Error' message='%s'>%s</error>\n" 
+                   msg (string_of_failure (msg, backtrace))
              | RFailure (msg, backtrace) ->
                  printf "\
-\      <failure type='OUnit.Failure' message='%s'></failure>\n" msg
-                   (* TODO: content. *)
+\      <failure type='OUnit.Failure' message='%s'>%s</failure>\n" 
+                   msg (string_of_failure (msg, backtrace))
              | RTodo msg ->
                  printf "\
 \      <failure type='OUnit.Failure' message='%s'></failure>\n" msg
@@ -79,8 +94,14 @@ let render fn events =
 \    </testcase>\n")
       smr.tests;
     printf "\
-\    <system-out />
-    <system-err />
+\    <system-out>\n";
+    List.iter
+      (fun log_event ->
+         printf "%s" (OUnitLogger.format_event true log_event))
+      events;
+    printf "\
+\    </system-out>
+    <system-err /> 
   </testsuite>
 </testsuites>
 ";

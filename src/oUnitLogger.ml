@@ -40,10 +40,10 @@ let string_of_event ev =
       | GlobalEvent e ->
           begin
             match e with 
-              | GConf str  -> spf "GConf %S" str
-              | GStart     -> "GStart"
-              | GEnd       -> "GEnd"
-              | GResults _ -> "GResults"
+              | GConf (k, v) -> spf "GConf (%S, %S)" k v
+              | GStart       -> "GStart"
+              | GEnd         -> "GEnd"
+              | GResults _   -> "GResults"
           end
       | TestEvent (path,  e) ->
           begin
@@ -65,9 +65,9 @@ let format_event verbose log_event =
     | GlobalEvent e ->
         begin
           match e with 
-            | GConf str ->
+            | GConf (k, v) ->
                 if verbose then
-                  str^"\n"
+                  Printf.sprintf "%s=%S\n" k v
                 else
                   ""
             | GStart ->
@@ -107,9 +107,16 @@ let format_event verbose log_event =
                                | None ->
                                    ()
                            end;
-                           (* TODO: use backtrace *)
                            bprintf "Error: %s\n\n" 
                              (string_of_path path);
+                           begin
+                             match test_result with 
+                               | RFailure (_, Some backtrace) 
+                               | RError (_, Some backtrace) ->
+                                   bprintf "%s\n" backtrace
+                               | _ ->
+                                   ()
+                           end;
                            bprintf "%s\n" (result_msg test_result);
                            bprintf "%s\n" separator2;
                          end)

@@ -9,7 +9,7 @@ type t =
       mutable cli_options:  (Arg.key * Arg.spec * Arg.doc) list;
       mutable file_options: Arg.spec MapString.t;
       mutable env_options:  (string * Arg.spec) list;
-      mutable dump: (unit -> string) list;
+      mutable dump: (unit -> string * string) list;
     }
 
 let default () = 
@@ -25,7 +25,7 @@ let global = default ()
 let make name ?(t=global) ?arg_string ?(alternates=[]) ~printer fspec default help =
   let data = ref default in
   let dump () = 
-    Printf.sprintf "%s=%s" name (printer !data)
+    name, (printer !data)
   in
   let make_one (name, fspec, arg_string, help) = 
     let env_name = "OUNIT_" ^ (String.uppercase name) in
@@ -231,4 +231,10 @@ let load ?(t=global) ?argv extra_specs =
           Arg.parse cli_specs anon_fun usage
 
 let dump ?(t=global) output =
-  List.iter (fun f -> output (OUnitTypes.GlobalEvent (OUnitTypes.GConf (f ())))) t.dump
+  List.iter 
+    (fun f -> 
+       output 
+         (OUnitTypes.GlobalEvent 
+            (let k, v = f () in
+               OUnitTypes.GConf (k, v)))) 
+    t.dump

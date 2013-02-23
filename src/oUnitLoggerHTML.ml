@@ -103,7 +103,7 @@ let render dn events =
     <div class='ounit-conf'>
       <h2>Configuration</h2>
       <div class='ounit-conf-content'>\n";
-  List.iter (printf "%s<br/>\n") smr.conf;
+  List.iter (fun (k, v) ->printf "%s=%S<br/>\n" k v) smr.conf;
   printf ("\
       </div>
     </div>
