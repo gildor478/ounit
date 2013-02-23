@@ -249,6 +249,16 @@ let null_logger =
     fclose = ignore;
   }
 
+let post_logger fpost = 
+  let data = ref [] in
+  let fwrite ev = data := ev :: !data in
+  let fclose () = fpost (List.rev !data) in
+    {
+      fwrite = fwrite;
+      fpos   = (fun () -> None);
+      fclose = fclose;
+    }
+
 let report logger ev =
   logger.fwrite 
     {

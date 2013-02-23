@@ -5,19 +5,7 @@
 open OUnitTypes
 open OUnitLogger
 open OUnitUtils
-
-type log_entry = 
-    float (* time since start of the test *) * 
-    log_severity option *
-    string (* log entry without \n *)
-type test_data =
-    {
-      test_name: string;
-      timestamp_start: float; (* UNIX timestamp *)
-      timestamp_end: float; (* UNIX timestamp *)
-      log_entries: log_entry list; (* time sorted log entry *)
-      test_result: test_result;
-    }
+open OUnitResultSummary
 
 let global_output_html_dir = 
   let value =
@@ -33,120 +21,14 @@ let global_output_html_dir =
         | "" -> None
         | fn -> Some fn
 
-let render dn rev_events = 
+let render dn events = 
+  let smr =
+    OUnitResultSummary.of_log_events events 
+  in
   let () =
     if not (Sys.file_exists dn) then
       Unix.handle_unix_error (fun () -> Unix.mkdir dn 0o755) ()
   in
-  let conf = 
-    List.fold_left
-      (fun acc log_ev ->
-         match log_ev.event with 
-           | GlobalEvent (GConf str) -> str :: acc
-           | _ -> acc)
-      []
-      rev_events
-  in
-  let running_time, global_results, test_case_count =
-    let rec find_results =
-      function
-        | {event = 
-             GlobalEvent 
-               (GResults (running_time, results, test_case_count))} :: _ ->
-            running_time, results, test_case_count
-        | _ :: tl ->
-            find_results tl
-        | [] ->
-            failwith "Cannot find results in OUnitLoggerHTML"
-    in
-      find_results rev_events
-  in
-  let tests = 
-    let rec split_raw tmstp str lst =
-      try
-        let idx = String.index str '\n' in
-          split_raw tmstp 
-            (String.sub str (idx + 1) (String.length str - idx - 1))
-            ((tmstp, None, String.sub str 0 idx) :: lst)
-      with Not_found ->
-        (tmstp, None, str) :: lst
-    in
-
-    let finalize t =
-      let log_entries = 
-        List.sort 
-          (fun (f1, _, _) (f2, _, _) -> Pervasives.compare f2 f1)
-          t.log_entries
-      in
-      let log_entries =
-        List.rev_map 
-          (fun (f, a, b) -> f -. t.timestamp_start, a, b)
-          log_entries
-      in
-        {t with log_entries = log_entries}
-    in
-      
-    let default_timestamp = 0.0 in
-    let rec process_log_event tests log_event = 
-      let timestamp = log_event.timestamp in
-        match log_event.event with 
-          | GlobalEvent _ ->
-              tests
-          | TestEvent (path, ev)  ->
-              begin 
-                let t = 
-                  try
-                    MapPath.find path tests 
-                  with Not_found ->
-                    {
-                      test_name = string_of_path path;
-                      timestamp_start = default_timestamp;
-                      timestamp_end = default_timestamp;
-                      log_entries = [];
-                      test_result = RFailure ("Not finished", None);
-                    }
-                in
-                let alt0 t1 t2 = 
-                  if t1 = default_timestamp then
-                    t2
-                  else 
-                    t1
-                in
-                let t' = 
-                  match ev with 
-                    | EStart ->
-                        {t with 
-                             timestamp_start = timestamp;
-                             timestamp_end = alt0 t.timestamp_end timestamp}
-                    | EEnd ->
-                        {t with 
-                             timestamp_end = timestamp;
-                             timestamp_start = alt0 t.timestamp_start timestamp}
-                    | EResult rslt ->
-                        {t with test_result = rslt}
-                    | ELog (svrt, str) ->
-                        {t with log_entries = (timestamp, Some svrt, str) :: t.log_entries}
-                    | ELogRaw str ->
-                        {t with log_entries = split_raw timestamp str t.log_entries}
-                in
-                  MapPath.add path t' tests
-              end
-    and group_test tests = 
-      function
-        | hd :: tl ->
-            group_test
-              (process_log_event tests hd)
-              tl
-        | [] ->
-            MapPath.fold
-              (fun _ test lst ->
-                 finalize test :: lst)
-              tests []
-    in
-      group_test MapPath.empty rev_events
-  in
-  let suite_name = "OUnit" in
-  let charset = "utf-8" in
 
   let chn = open_out (Filename.concat dn "oUnit.css") in
   let () = 
@@ -176,21 +58,12 @@ let render dn rev_events =
         <button id='nextTest' onclick='nextTest();'>Next test</button>
         <button id='gotoTop' onclick='gotoTop();'>Goto top</button>
     </div>
+    <h1>Test suite %s</h1>
     <div class='ounit-results'>
-      <h1>Results</h1>
+      <h2>Results</h2>
       <div class='ounit-results-content'>\n"
-  suite_name charset; 
+  smr.suite_name smr.charset smr.suite_name; 
   begin
-    let count f = 
-      List.length 
-        (List.filter (fun (_, test_result, _) -> f test_result)
-           global_results)
-    in
-    let errors   = count is_error in
-    let failures = count is_failure in
-    let skips    = count is_skip in
-    let todos    = count is_todo in
-    let successes = count is_success in
     let printf_result clss label num =
       printf 
         "<div class='ounit-results-%s'>\
@@ -202,19 +75,23 @@ let render dn rev_events =
       if num > 0 then
         printf_result clss label num
     in
+      printf
+        "<div id='ounit-results-started-at'>\
+           Started at: %s
+         </div>" (date_iso8601 smr.start_at);
       printf 
         "<div class='ounit-results-duration'>\
            Total duration: <span class='number'>%.3fs</span>\
-         </div>" running_time;
-      printf_result "test-count" "Tests count" test_case_count;
-      printf_non0_result "errors" "Errors" errors;
-      printf_non0_result "failures" "Failures" failures;
-      printf_non0_result "skips" "Skipped" skips;
-      printf_non0_result "todos" "TODO" todos;
-      printf_result "successes" "Successes" successes;
+         </div>" smr.running_time;
+      printf_result "test-count" "Tests count" smr.test_case_count;
+      printf_non0_result "errors" "Errors" smr.errors;
+      printf_non0_result "failures" "Failures" smr.failures;
+      printf_non0_result "skips" "Skipped" smr.skips;
+      printf_non0_result "todos" "TODO" smr.todos;
+      printf_result "successes" "Successes" smr.successes;
 
       (* Print final verdict *)
-      if was_successful global_results then 
+      if was_successful smr.global_results then 
         printf "<div class='ounit-results-verdict'>Success</div>"
       else
         printf "<div class='ounit-results-verdict ounit-failure'>Failure</div>"
@@ -224,9 +101,9 @@ let render dn rev_events =
       </div>
     </div>
     <div class='ounit-conf'>
-      <h1>Configuration</h1>
+      <h2>Configuration</h2>
       <div class='ounit-conf-content'>\n";
-  List.iter (printf "%s<br/>\n") conf;
+  List.iter (printf "%s<br/>\n") smr.conf;
   printf ("\
       </div>
     </div>
@@ -250,22 +127,24 @@ let render dn rev_events =
        in
        printf "
     <div class='ounit-test %s'>
-      <h1>%s (%s)</h1>
+      <h2>%s (%s)</h2>
+      <div class='ounit-started-at'>Started at: %s</div>
       <div class='ounit-duration'>Test duration: %0.3fs</div>
       <div class='ounit-log'>\n" 
          class_result
          test_data.test_name 
          text_result
+         (date_iso8601 test_data.timestamp_start)
          (test_data.timestamp_end -. test_data.timestamp_start);
        printf "<span class='ounit-timestamp'>%0.3fs</span>Start<br/>\n" 
-         test_data.timestamp_start;
+         0.0;
        List.iter (fun (tmstp, svrt, str) ->
                     printf "\
         <span class='%s'><span class='ounit-timestamp'>%0.3fs</span>%s</span><br/>\n" 
                       (class_severity_opt svrt) tmstp str)
          test_data.log_entries;
        printf "<span class='ounit-timestamp'>%0.3fs</span>End<br/>\n" 
-         test_data.timestamp_start;
+         (test_data.timestamp_end -. test_data.timestamp_start);
        printf "<div class='ounit-result'>";
        begin
          (* TODO: use backtrace *)
@@ -280,7 +159,7 @@ let render dn rev_events =
        printf "\
       </div>
     </div>\n"; (* TODO: results, end timestamp *))
-    tests;
+    smr.tests;
   printf "\
   </body>
 </html>";
@@ -289,13 +168,6 @@ let render dn rev_events =
 let create () =
   match global_output_html_dir () with 
     | Some dn ->
-        let data = ref [] in
-        let fwrite ev = data := ev :: !data in
-        let fclose () = render dn !data in
-          {
-            fwrite = fwrite;
-            fpos   = (fun () -> None);
-            fclose = fclose;
-          }
+        post_logger (render dn)
     | None ->
         null_logger

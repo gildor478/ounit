@@ -120,3 +120,4 @@
 ^log-html($|/)
 ^build($|/)
 ^dist($|/)
+^junit.xml$

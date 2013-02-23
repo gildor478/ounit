@@ -158,6 +158,23 @@ let time_fun f x y =
   let res = f x y in
     (now () -. begin_time, res)
 
+let date_iso8601 ?(tz=true) timestamp =
+  let tm = Unix.gmtime timestamp in
+  let res =
+    Printf.sprintf
+      "%04d-%02d-%02dT%02d:%02d:%02d"
+      (1900 + tm.Unix.tm_year)
+      (1 + tm.Unix.tm_mon)
+      tm.Unix.tm_mday
+      tm.Unix.tm_hour
+      tm.Unix.tm_min
+      tm.Unix.tm_sec
+  in
+    if tz then
+      res ^ "+00:00"
+    else 
+      res
+
 let was_successful lst = 
   List.for_all
     (fun (_, rslt, _) ->

@@ -141,9 +141,12 @@ let run_test_tt ?verbose test =
   let html_logger =
     OUnitLoggerHTML.create ()
   in
+  let junit_logger =
+    OUnitLoggerJUnit.create ()
+  in
   let logger =
     OUnitLogger.combine
-      [base_logger; html_logger]
+      [base_logger; html_logger; junit_logger]
   in
   let () = 
     (* TODO: is it really useful to override this ? *)
