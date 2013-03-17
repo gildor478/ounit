@@ -1,14 +1,14 @@
-OASISFormat: 0.2
+OASISFormat: 0.3
 OCamlVersion: >= 3.11.0
 Name:        ounit
 Version:     2.0.0
 Synopsis:    Unit testing framework
-Authors:     Maas-Maarten Zeeman, 
+Authors:     Maas-Maarten Zeeman,
              Sylvain Le Gall
 Copyrights:  (C) 2002-2008 Maas-Maarten Zeeman,
              (C) 2010 OCamlCore SARL
 License:     MIT
-LicenseFile: LICENSE.txt 
+LicenseFile: LICENSE.txt
 Homepage:    http://ounit.forge.ocamlcore.org
 Plugins:     META (0.2), StdFiles (0.2), DevFiles (0.2)
 BuildTools:  ocamlbuild
@@ -19,7 +19,7 @@ Description:
   .
   More information on [HUnit](http://hunit.sourceforge.net)
 
-Flag backtrace 
+Flag backtrace
   Description: Enable backtrace display in exception (deprecated).
 
 Library "oUnit"
@@ -45,13 +45,13 @@ Library "oUnit"
                    OUnitTest,
                    OUnitCore
   BuildDepends: unix
-  
+
 Executable test
   Path:   test
   MainIs: test.ml
   BuildDepends: oUnit
   Install: false
-  
+
 Executable testFakeHTML
   Path:   test
   MainIs: testFakeHTML.ml
@@ -60,7 +60,7 @@ Executable testFakeHTML
 
 Test main
   Command: $test
-  
+
 Document "api-ounit"
   Title:       API reference for OUnit
   Type:        ocamlbuild (0.2)
