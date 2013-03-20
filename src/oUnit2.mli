@@ -148,6 +148,20 @@ val bracket_tmpfile:
   ?mode:open_flag list ->
   ((string * out_channel) -> unit) -> unit -> unit 
 
+(** [bracket_tmpdir test] The [test] function takes a temporary dirname as
+    argument. The temporary directory is created before the test and remove
+    after the test.
+
+    @param prefix see [Filename.open_temp_file]
+    @param suffix see [Filename.open_temp_file]
+
+    @since 2.0.0
+  *)
+val bracket_tmpdir:
+  ?prefix:string -> 
+  ?suffix:string -> 
+  (string -> unit) -> unit -> unit 
+
 (** {2 Constructing Tests} *)
 
 (** The type of test function *)

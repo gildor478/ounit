@@ -23,6 +23,7 @@ let todo = OUnitAssert.todo
 let cmp_float = OUnitUtils.cmp_float
 let bracket = OUnitBracket.bracket
 let bracket_tmpfile = OUnitBracket.bracket_tmpfile
+let bracket_tmpdir = OUnitBracket.bracket_tmpdir
 let test_decorate = OUnitTest.test_decorate
 let test_filter = OUnitTest.test_filter
 let test_case_count = OUnitTest.test_case_count
