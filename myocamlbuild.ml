@@ -19,7 +19,7 @@ rule "src/oUnitLoggerHTMLData.ml"
 ;;
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: b64d26463ff69457edcc4791e21b1bc6) *)
+(* DO NOT EDIT (digest: 8074f7c7d8b3464a5734d28fe1c4c63d) *)
 module OASISGettext = struct
 # 21 "/home/gildor/programmation/oasis/src/oasis/OASISGettext.ml"
 
@@ -309,11 +309,20 @@ module MyOCamlbuildFindlib = struct
            * linking. *)
           List.iter 
             begin fun pkg ->
-              flag ["ocaml"; "compile";  "pkg_"^pkg] & S[A"-package"; A pkg];
-              flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S[A"-package"; A pkg];
-              flag ["ocaml"; "doc";      "pkg_"^pkg] & S[A"-package"; A pkg];
-              flag ["ocaml"; "link";     "pkg_"^pkg] & S[A"-package"; A pkg];
-              flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S[A"-package"; A pkg];
+              let base_args = [A"-package"; A pkg] in
+              let syn_args = [A"-syntax"; A "camlp4o"] in
+              let args =
+  			  (* heuristic to identify syntax extensions: 
+  				 whether they end in ".syntax"; some might not *)
+                if Filename.check_suffix pkg "syntax"
+                then syn_args @ base_args
+                else base_args
+              in
+              flag ["ocaml"; "compile";  "pkg_"^pkg] & S args;
+              flag ["ocaml"; "ocamldep"; "pkg_"^pkg] & S args;
+              flag ["ocaml"; "doc";      "pkg_"^pkg] & S args;
+              flag ["ocaml"; "link";     "pkg_"^pkg] & S base_args;
+              flag ["ocaml"; "infer_interface"; "pkg_"^pkg] & S args;
             end 
             (find_packages ());
 
@@ -495,11 +504,12 @@ module MyOCamlbuildBase = struct
 end
 
 
-# 478 "myocamlbuild.ml"
+# 487 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
   {
-     MyOCamlbuildBase.lib_ocaml = [("oUnit", ["src"])];
+     MyOCamlbuildBase.lib_ocaml =
+       [("oUnit", ["src"]); ("oUnitThreads", ["src"])];
      lib_c = [];
      flags = [];
      includes = [("test", ["src"])];
@@ -508,7 +518,7 @@ let package_default =
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-# 492 "myocamlbuild.ml"
+# 502 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch 
   (function

@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 1882a633a1d1806180342d45a4619353)
+# DO NOT EDIT (digest: 12cf65e9d576f6f18b0210c6d01f4752)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -15,6 +15,10 @@
 "_darcs": not_hygienic
 # Library oUnit
 "src/oUnit.cmxs": use_oUnit
+# Library oUnitThreads
+"src/oUnitThreads.cmxs": use_oUnitThreads
+<src/*.ml{,i}>: use_oUnit
+<src/*.ml{,i}>: pkg_threads
 <src/*.ml{,i}>: pkg_unix
 # Executable test
 "test/test.byte": use_oUnit

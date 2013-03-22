@@ -8,12 +8,13 @@
 (***********************************************************************)
 
 open OUnitUtils
-include OUnitTypes
+open OUnitTypes
 
 (*
  * Types and global states.
  *)
 
+(* TODO: move into run_test_tt_main. *)
 let global_verbose = 
   OUnitConf.make 
     "verbose"
@@ -47,43 +48,13 @@ let global_output_file =
       "Output verbose log in the given file."
 
 (* TODO: remove *)
-let global_logger = ref OUnitLogger.null_logger
-
 let global_chooser = ref OUnitChooser.simple
 
-(* Events which can happen during testing *)
-
+(* TODO: remove *)
+let global_runner = ref OUnitRunnerSeq.run_all_tests
 
 (* Run all tests, report starts, errors, failures, and return the results *)
 let perform_test logger test =
-
-  let report path e =
-    OUnitLogger.report logger (TestEvent (path, e))
-  in
-
-  let run_test_case f path =
-    let result =
-      try 
-        f ();
-        RSuccess
-      with e ->
-        let backtrace = 
-          if Printexc.backtrace_status () then
-            Some (Printexc.get_backtrace ())
-          else
-            None
-        in
-          match e with 
-            | Failure s -> RFailure (s, backtrace)
-            | Skip s -> RSkip s
-            | Todo s -> RTodo s 
-            | s -> RError (Printexc.to_string s, backtrace)
-    in
-    let position =
-      OUnitLogger.position logger
-    in
-      result, position
-  in
   let rec flatten_test path acc = 
     function
       | TestCase(f) -> 
@@ -96,39 +67,13 @@ let perform_test logger test =
                  ((ListItem cnt)::path) 
                  acc t)
             acc tests
-      
       | TestLabel (label, t) -> 
           flatten_test ((Label label)::path) acc t
   in
   let test_cases = 
     List.rev (flatten_test [] [] test) 
   in
-  let runner (path, f) = 
-    let result, position = 
-      report path EStart;      
-      run_test_case f path 
-    in
-      report path (EResult result);
-      report path EEnd;
-      path, result, position
-  in
-  let rec iter state = 
-    match state.tests_planned with 
-      | [] ->
-          state.results
-      | _ ->
-          let (path, f) = !global_chooser state in            
-          let result = runner (path, f) in
-            iter 
-              {
-                results = result :: state.results;
-                tests_planned = 
-                  List.filter 
-                    (fun (path', _) -> path <> path')
-                    state.tests_planned
-              }
-  in
-    iter {results = []; tests_planned = test_cases}
+    !global_runner logger !global_chooser test_cases
 
 (* A simple (currently too simple) text based test runner *)
 let run_test_tt ?verbose test =
@@ -152,10 +97,6 @@ let run_test_tt ?verbose test =
     OUnitLogger.combine
       [base_logger; html_logger; junit_logger]
   in
-  let () = 
-    (* TODO: is it really useful to override this ? *)
-    global_logger := logger
-  in
 
   let () =
     OUnitConf.dump (OUnitLogger.report logger)
@@ -164,7 +105,7 @@ let run_test_tt ?verbose test =
   (* Now start the test *)
   let running_time, test_results = 
     time_fun 
-      perform_test 
+      perform_test
       logger
       test 
   in
@@ -176,7 +117,6 @@ let run_test_tt ?verbose test =
 
     (* Reset logger. *)
     OUnitLogger.close logger;
-    global_logger := OUnitLogger.null_logger;
 
     (* Return the results possibly for further processing *)
     test_results

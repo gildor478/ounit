@@ -43,8 +43,18 @@ Library "oUnit"
                    OUnitAssert,
                    OUnitBracket,
                    OUnitTest,
+                   OUnitRunnerSeq,
+                   OUnitRunnerProcesses,
                    OUnitCore
   BuildDepends: unix
+
+Library "oUnitThreads"
+  Path: src
+  Modules: OUnitThreads
+  InternalModules: OUnitRunnerThreads
+  BuildDepends: threads, oUnit
+  FindlibParent: oUnit
+  FindlibName: threads
 
 Executable test
   Path:   test
