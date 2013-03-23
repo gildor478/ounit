@@ -320,35 +320,23 @@ let create output_file_opt verbose logger =
 
 module Test = 
 struct 
-  type t = 
-      {
-        driver: logger;
-        test:   path;
-      }
+  type t = test_event -> unit 
 
   let create driver path =
-    {
-      driver = driver;
-      test   = path;
-    }
+    fun ev ->
+      driver.fwrite  
+        {
+          timestamp = now ();
+          event = TestEvent (path, ev)
+        }
 
   let raw_printf t fmt =
     Printf.ksprintf
-      (fun s ->
-         t.driver.fwrite 
-           {
-             timestamp = now ();
-             event = TestEvent (t.test, (ELogRaw s))
-           })
+      (fun s -> t (ELogRaw s))
       fmt
 
   let logf t lvl fmt = 
     Printf.ksprintf
-      (fun s ->
-         t.driver.fwrite 
-           {
-             timestamp = now ();
-             event = TestEvent (t.test, (ELog (lvl, s)))
-           })
+      (fun s -> t (ELog (lvl, s)))
       fmt
 end

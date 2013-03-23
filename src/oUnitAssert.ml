@@ -77,8 +77,8 @@ let assert_command
     ?(foutput=ignore)
     ?(use_stderr=true)
     ?env
-    ?verbose
-    logger prg args =
+    ~ctxt
+    prg args =
 
     bracket_tmpfile 
       (fun (fn_out, chn_out) ->
@@ -116,7 +116,7 @@ let assert_command
            Array.of_list (prg :: args)
          in
          let pid =
-           OUnitLogger.Test.raw_printf logger "%s"
+           OUnitLogger.Test.raw_printf ctxt.logger "%s"
              (buff_format_printf 
                 (fun fmt ->
                    Format.fprintf fmt "@[Starting command '%t'@]\n" cmd_print));
@@ -170,7 +170,7 @@ let assert_command
              let len = ref (-1) in
                while !len <> 0 do 
                  len := input chn buff 0 (String.length buff);
-                 OUnitLogger.Test.raw_printf logger "%s" (String.sub buff 0 !len);
+                 OUnitLogger.Test.raw_printf ctxt.logger "%s" (String.sub buff 0 !len);
                done;
                close_in chn
            end;

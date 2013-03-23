@@ -11,10 +11,9 @@ let assert_string = OUnitAssert.assert_string
 (* Upgrade to OUnit v2, using logger. *)
 (* let assert_command = OUnitAssert.assert_command *)
 let assert_command
-      ?exit_code ?sinput ?foutput ?use_stderr ?env ?verbose prg args =
+      ?exit_code ?sinput ?foutput ?use_stderr ?env ~ctxt prg args =
   OUnitAssert.assert_command 
-      ?exit_code ?sinput ?foutput ?use_stderr ?env ?verbose 
-      (OUnitLogger.Test.create OUnitLogger.null_logger [])
+      ?exit_code ?sinput ?foutput ?use_stderr ?env ~ctxt
       prg args
 let assert_equal = OUnitAssert.assert_equal
 let assert_raises = OUnitAssert.assert_raises

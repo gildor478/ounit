@@ -68,8 +68,12 @@ type log_event =
       event: log_event_t;
     }
 
-(* The type of test function *)
-type test_fun = unit -> unit 
+type test_ctxt = 
+    {
+      logger: test_event -> unit
+    }
+
+type test_fun = test_ctxt -> unit
 
 (* The type of tests *)
 type test = 
@@ -79,6 +83,6 @@ type test =
 
 type state = 
     {
-      tests_planned: (path * (unit -> unit)) list;
+      tests_planned: (path * test_fun) list;
       results: test_results;
     }

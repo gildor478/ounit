@@ -63,9 +63,9 @@ let test_filter ?(skip=false) only test =
                 if skip then
                   Some 
                     (TestCase 
-                       (fun () ->
+                       (fun ctxt ->
                           OUnitAssert.skip_if true "Test disabled";
-                          f ()))
+                          f ctxt))
                 else
                   None
               end

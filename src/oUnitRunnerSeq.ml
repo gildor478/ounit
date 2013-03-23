@@ -6,7 +6,12 @@ let run_all_tests logger chooser test_cases =
   let run_test_case f path =
     let result =
       try
-        f ();
+        let ctxt = 
+          {
+            logger = OUnitLogger.Test.create logger path
+          }
+        in
+          f ctxt;
         RSuccess
       with e ->
         let backtrace = 

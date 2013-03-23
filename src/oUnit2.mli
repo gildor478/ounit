@@ -11,6 +11,20 @@
     @author Sylvain Le Gall
   *)
 
+(** {2 Types} *)
+
+(** Context of a test. *)
+type test_ctxt
+
+(** The type of test function *)
+type test_fun = test_ctxt -> unit
+
+(** The type of tests *)
+type test =
+    TestCase of test_fun
+  | TestList of test list
+  | TestLabel of string * test
+
 (** {2 Assertions} 
 
     Assertions are the basic building blocks of unittests. *)
@@ -56,7 +70,7 @@ val assert_command :
     ?foutput:(char Stream.t -> unit) ->
     ?use_stderr:bool ->
     ?env:string array ->
-    ?verbose:bool ->
+    ctxt:test_ctxt ->
     string -> string list -> unit
 
 (** [assert_equal expected real] Compares two values, when they are not equal a
@@ -163,15 +177,6 @@ val bracket_tmpdir:
   (string -> unit) -> unit -> unit 
 
 (** {2 Constructing Tests} *)
-
-(** The type of test function *)
-type test_fun = unit -> unit
-
-(** The type of tests *)
-type test =
-    TestCase of test_fun
-  | TestList of test list
-  | TestLabel of string * test
 
 (** Create a TestLabel for a test *)
 val (>:) : string -> test -> test

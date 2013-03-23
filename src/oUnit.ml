@@ -23,15 +23,20 @@ type test =
   | TestList of test list
   | TestLabel of string * test
 
+let default_context =
+  {
+    OUnitTypes.logger = OUnitLogger.Test.create OUnitLogger.null_logger [];
+  }
+
 let rec test1_of_test =
   function
-    | OUnitTypes.TestCase f -> TestCase f
+    | OUnitTypes.TestCase f -> TestCase (fun () -> f default_context)
     | OUnitTypes.TestList lst -> TestList (List.map test1_of_test lst)
     | OUnitTypes.TestLabel (str, tst) -> TestLabel (str, test1_of_test tst)
 
 let rec test_of_test1 =
   function
-    | TestCase f -> OUnitTypes.TestCase f
+    | TestCase f -> OUnitTypes.TestCase (fun ctxt -> f ())
     | TestList lst -> OUnitTypes.TestList (List.map test_of_test1 lst)
     | TestLabel (str, tst) ->  OUnitTypes.TestLabel (str, test_of_test1 tst)
 
@@ -95,10 +100,19 @@ let assert_string =
   OUnitAssert.assert_string
 
 let assert_command
-      ?exit_code ?sinput ?foutput ?use_stderr ?env ?verbose prg args =
-  OUnitAssert.assert_command 
-      ?exit_code ?sinput ?foutput ?use_stderr ?env ?verbose 
-      (OUnitLogger.Test.create OUnitLogger.null_logger [])
+      ?exit_code ?sinput ?foutput ?use_stderr ?env ?(verbose=false) prg args =
+  let ctxt = 
+    if verbose then
+      {
+        OUnitTypes.logger = OUnitLogger.Test.create 
+                              (OUnitLogger.std_logger verbose)
+                              []
+      }
+    else 
+      default_context
+  in
+    OUnitAssert.assert_command 
+      ?exit_code ?sinput ?foutput ?use_stderr ?env ~ctxt
       prg args
 
 let assert_equal ?cmp ?printer ?pp_diff ?msg a b =
@@ -126,13 +140,19 @@ let (>:) a b =
   test1_of_test (OUnitTest.(>:) a (test_of_test1 b))
 
 let (>::) a b =
-  test1_of_test (OUnitTest.(>::) a b)
+  test1_of_test (OUnitTest.(>::) a (fun _ -> b ()))
 
 let (>:::) a b =
   test1_of_test (OUnitTest.(>:::) a (List.map test_of_test1 b))
 
 let test_decorate g tst =
-  test1_of_test (OUnitTest.test_decorate g (test_of_test1 tst))
+  test1_of_test 
+    (OUnitTest.test_decorate 
+       (fun f -> 
+          let f1 = (fun () -> f default_context) in
+          let f1' = g f1 in
+            (fun _ -> f1' ()))
+       (test_of_test1 tst))
 let test_filter ?skip lst test =
   let res = 
     OUnitTest.test_filter ?skip lst (test_of_test1 test)
