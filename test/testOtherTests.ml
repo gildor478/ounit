@@ -39,6 +39,8 @@ let tests =
            (Filename.concat (Sys.getcwd ()) (Filename.concat "src" bn)) 
            (Filename.concat html_dir bn)
        in
+         if not (Sys.file_exists html_dir) then
+           Unix.mkdir html_dir 0o750;
          assert_command 
            ~ctxt
            (testFakeHTML ())
