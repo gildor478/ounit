@@ -56,20 +56,23 @@ Library "oUnitThreads"
   FindlibParent: oUnit
   FindlibName: threads
 
-Executable test
-  Path:   test
-  MainIs: test.ml
-  BuildDepends: oUnit
-  Install: false
-
+# A fake test that generate an HTML output.
 Executable testFakeHTML
   Path:   test
   MainIs: testFakeHTML.ml
   BuildDepends: oUnit
   Install: false
 
+# The main test.
+Executable test
+  Path:   test
+  MainIs: test.ml
+  BuildDepends: oUnit
+  Install: false
+
 Test main
-  Command: $test
+  Command: $test -xmllint $xmllint -testFakeHTML $testfakehtml
+  TestTools: test, testFakeHTML, xmllint
 
 Document "api-ounit"
   Title:       API reference for OUnit
@@ -81,4 +84,4 @@ Document "api-ounit"
 SourceRepository head
   Type: darcs
   Location: http://darcs.ocamlcore.org/repos/ounit
-  Browser: http://darcs.ocamlcore.org/cgi-bin/darcsweb.cgi?r=ounit;a=summary  
+  Browser: http://darcs.ocamlcore.org/cgi-bin/darcsweb.cgi?r=ounit;a=summary

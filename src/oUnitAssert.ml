@@ -81,7 +81,7 @@ let assert_command
     prg args =
 
     bracket_tmpfile 
-      (fun (fn_out, chn_out) ->
+      (fun (ctxt, (fn_out, chn_out)) ->
          let cmd_print fmt =
            let () = 
              match env with
@@ -193,7 +193,7 @@ let assert_command
                  close_in chn;
                  raise e
            end)
-      ()
+      ctxt
 
 let raises f =
   try

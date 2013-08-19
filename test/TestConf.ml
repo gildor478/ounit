@@ -1,5 +1,5 @@
 
-open OUnit
+open OUnit2
 open OUnitConf
 
 type t = 
@@ -12,7 +12,7 @@ type t =
 
 let bracket_ounitconf f = 
   bracket
-    (fun () ->
+    (fun ctxt ->
        let t = default () in
          {
            global = t;
@@ -29,18 +29,17 @@ let tests =
   [
     "CLI" >::
     (bracket_ounitconf
-       (fun t ->
+       (fun (test_ctxt, t) ->
          load ~t:t.global 
            ~argv:[|"foo"; "-float"; "2.0"; "-int"; "2"; "-string"; "foo bar"|]
            [];
          assert_equal ~printer:string_of_float 2.0 (t.vfloat ());
          assert_equal ~printer:string_of_int 2 (t.vint ());
-         assert_equal ~printer:(fun s -> s) "foo bar" (t.vstring ()))
-       );
+         assert_equal ~printer:(fun s -> s) "foo bar" (t.vstring ())));
 
     "File" >::
     (bracket_tmpfile
-       (fun (fn, chn) -> 
+       (fun (test_ctxt, (fn, chn)) -> 
           let () = 
             output_string chn
               "float = 1.0;\n\
@@ -49,12 +48,12 @@ let tests =
             close_out chn
           in
             bracket_ounitconf 
-              (fun t ->
+              (fun (test_ctxt, t) ->
                  load ~t:t.global
                    ~argv:[|"foo"; "-conf"; fn|]
                    [];
                    assert_equal ~printer:string_of_float 1.0 (t.vfloat ());
                    assert_equal ~printer:string_of_int 1 (t.vint ());
                    assert_equal ~printer:(fun s -> s) "abcd ef" (t.vstring ()))
-              ()))
+              test_ctxt))
   ]

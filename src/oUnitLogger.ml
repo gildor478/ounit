@@ -200,7 +200,7 @@ let format_event verbose log_event =
                         | LWarning -> "W"
                         | LInfo -> "I"
                     in
-                      prefix^": "^str
+                      prefix^": "^str^"\n"
                 | ELogRaw str ->
                     str
             else 

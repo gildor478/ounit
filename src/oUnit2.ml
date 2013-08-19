@@ -32,3 +32,5 @@ let test_case_paths = OUnitTest.test_case_paths
 let perform_test = OUnitCore.perform_test
 let run_test_tt = OUnitCore.run_test_tt
 let run_test_tt_main = OUnitCore.run_test_tt_main
+let logf ctxt log_severity fmt =
+   OUnitLogger.Test.logf ctxt.logger log_severity fmt

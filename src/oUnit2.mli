@@ -144,7 +144,11 @@ val cmp_float : ?epsilon:float -> float -> float -> bool
     [tear_down] function runs even if the [test] failed and help to clean
     the environment.
   *)
-val bracket: (unit -> 'a) -> ('a -> unit) -> ('a -> unit) -> unit -> unit
+val bracket: 
+    (test_ctxt -> 'a) -> 
+    ((test_ctxt * 'a) -> unit) ->
+    ((test_ctxt * 'a) -> unit) ->
+    test_ctxt -> unit
 
 (** [bracket_tmpfile test] The [test] function takes a temporary filename
     and matching output channel as arguments. The temporary file is created
@@ -160,7 +164,8 @@ val bracket_tmpfile:
   ?prefix:string -> 
   ?suffix:string -> 
   ?mode:open_flag list ->
-  ((string * out_channel) -> unit) -> unit -> unit 
+  ((test_ctxt * (string * out_channel)) -> unit) ->
+  test_ctxt -> unit 
 
 (** [bracket_tmpdir test] The [test] function takes a temporary dirname as
     argument. The temporary directory is created before the test and remove
@@ -174,7 +179,8 @@ val bracket_tmpfile:
 val bracket_tmpdir:
   ?prefix:string -> 
   ?suffix:string -> 
-  (string -> unit) -> unit -> unit 
+  ((test_ctxt * string) -> unit) ->
+  test_ctxt -> unit 
 
 (** {2 Constructing Tests} *)
 
@@ -238,6 +244,10 @@ type log_severity =
   | LError
   | LWarning
   | LInfo
+
+(** Log into OUnit logging system.
+  *)
+val logf: test_ctxt -> log_severity -> ('a, unit, string, unit) format4 -> 'a
 
 (** Backtrace, if available. *)
 type backtrace = string option

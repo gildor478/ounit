@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: e56a4260a76db6c35e3699eb7dba3065) *)
+(* DO NOT EDIT (digest: 6437cd9729746ca802a297a2cbec36cf) *)
 This is the INSTALL file for the ounit distribution.
 
 This package uses OASIS to generate its build system. See section OASIS for
@@ -11,6 +11,7 @@ Dependencies
 In order to compile this package, you will need:
 * ocaml (>= 3.11.0) for all, test main, doc api-ounit
 * findlib
+* xmllint for test main
 
 Installing
 ==========

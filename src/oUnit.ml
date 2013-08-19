@@ -130,11 +130,17 @@ let todo =
 let cmp_float ?epsilon f1 f2 = 
   OUnitUtils.cmp_float ?epsilon f1 f2
 
-let bracket pre f post =
-  OUnitBracket.bracket pre f post
+let bracket pre f post () =
+  OUnitBracket.bracket 
+    (fun _ -> pre ())
+    (fun (_, fixture) -> f fixture) 
+    (fun (_, fixture) -> post fixture)
+    default_context
 
 let bracket_tmpfile ?prefix  ?suffix ?mode gen () =
-  OUnitBracket.bracket_tmpfile ?prefix  ?suffix ?mode gen ()
+  OUnitBracket.bracket_tmpfile ?prefix  ?suffix ?mode 
+    (fun (_, fixture) -> gen fixture)
+    default_context
 
 let (>:) a b = 
   test1_of_test (OUnitTest.(>:) a (test_of_test1 b))

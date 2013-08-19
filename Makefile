@@ -45,12 +45,3 @@ doc-test: doc
 	 ocamldoc -g ../ocaml-tmp/odoc-extract-code/odoc_extract_code.cmo \
 		 -load _build/src/oUnit.odoc -intro doc/manual.txt > _build/src/tmp.ml;
 	 ocamlc -c -I _build/src/ _build/src/tmp.ml
-
-html-test:
-	-_build/test/testFakeHTML.byte -output-html-dir $(CURDIR)/log-html -output-junit-file $(CURDIR)/junit.xml
-	$(RM) $(CURDIR)/log-html/oUnit.js
-	ln -s $(CURDIR)/src/oUnit.js $(CURDIR)/log-html/oUnit.js
-	$(RM) $(CURDIR)/log-html/oUnit.css
-	ln -s $(CURDIR)/src/oUnit.css $(CURDIR)/log-html/oUnit.css
-	# TODO: xhtml validation && CSS validation.
-	xmllint --noout --nonet --schema test/JUnit.xsd junit.xml
