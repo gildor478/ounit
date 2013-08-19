@@ -22,6 +22,8 @@ let global_output_junit_file =
         | "" -> None
         | fn -> Some fn
 
+let xml_escaper = OUnitLoggerHTML.html_escaper
+
 let render fn events = 
   let smr = 
     OUnitResultSummary.of_log_events events
@@ -49,10 +51,10 @@ let render fn events =
       errors='%d'
       time='%f'>\n"
     smr.charset
-    smr.suite_name 
-    smr.suite_name
-    (date_iso8601 ~tz:false smr.start_at)
-    (Unix.gethostbyname (Unix.gethostname ())).Unix.h_name
+    (xml_escaper smr.suite_name)
+    (xml_escaper smr.suite_name)
+    (xml_escaper (date_iso8601 ~tz:false smr.start_at))
+    (xml_escaper (Unix.gethostbyname (Unix.gethostname ())).Unix.h_name)
     smr.test_case_count 
     (smr.failures + smr.todos)
     smr.errors
@@ -63,7 +65,7 @@ let render fn events =
       (fun (k, v) ->
          printf "\
 \      <property name='%s' value='%s' />\n"
-           k v)
+           (xml_escaper k) (xml_escaper v))
       smr.conf;
     printf "\
 \    </properties>\n";
@@ -71,8 +73,8 @@ let render fn events =
       (fun test_data ->
          printf "\
 \    <testcase name='%s' classname='%s' time='%f'>\n"
-           test_data.test_name
-           test_data.test_name
+           (xml_escaper test_data.test_name)
+           (xml_escaper test_data.test_name)
            (test_data.timestamp_end -. test_data.timestamp_start);
          begin
            match test_data.test_result with 
@@ -81,14 +83,17 @@ let render fn events =
              | RError (msg, backtrace) ->
                  printf "\
 \      <error type='OUnit.Error' message='%s'>%s</error>\n" 
-                   msg (string_of_failure (msg, backtrace))
+                   (xml_escaper msg) 
+                   (xml_escaper (string_of_failure (msg, backtrace)))
              | RFailure (msg, backtrace) ->
                  printf "\
 \      <failure type='OUnit.Failure' message='%s'>%s</failure>\n" 
-                   msg (string_of_failure (msg, backtrace))
+                   (xml_escaper msg) 
+                   (xml_escaper (string_of_failure (msg, backtrace)))
              | RTodo msg ->
                  printf "\
-\      <failure type='OUnit.Failure' message='%s'></failure>\n" msg
+\      <failure type='OUnit.Failure' message='%s'></failure>\n" 
+                   (xml_escaper msg)
          end;
          printf "\
 \    </testcase>\n")
@@ -97,7 +102,7 @@ let render fn events =
 \    <system-out>\n";
     List.iter
       (fun log_event ->
-         printf "%s" (OUnitLogger.format_event true log_event))
+         printf "%s" (xml_escaper (OUnitLogger.format_event true log_event)))
       events;
     printf "\
 \    </system-out>

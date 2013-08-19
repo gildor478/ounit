@@ -1,6 +1,6 @@
 #TESTFLAGS=-only-test "OUnit:1"
 
-default: test html-test
+default: test
 
 # OASIS_START
 # DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)

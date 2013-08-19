@@ -21,6 +21,51 @@ let global_output_html_dir =
         | "" -> None
         | fn -> Some fn
 
+let html_escaper str =
+  let buffer = Buffer.create (String.length str) in
+  let addc = Buffer.add_char buffer in
+  let addse se = 
+    addc '&';
+    Buffer.add_string buffer se;
+    addc ';'
+  in
+    String.iter 
+      (function
+         | '"' -> addse "quot"
+         | '&' -> addse "amp"  
+         | '<' -> addse "lt"
+         | '>' -> addse "gt"     
+(*
+         | 'Œ' -> addse "OElig"  
+         | 'œ' -> addse "oelig"  
+         | 'Š' -> addse "Scaron" 
+         | 'š' -> addse "scaron" 
+         | 'Ÿ' -> addse "Yuml"   
+         | 'ˆ' -> addse "circ"   
+         | '˜' -> addse "tilde"  
+         | ' ' -> addse "ensp"   
+         | ' ' -> addse "emsp"   
+         | ' ' -> addse "thinsp" 
+         | '–' -> addse "ndash"  
+         | '—' -> addse "mdash"  
+         | '‘' -> addse "lsquo"  
+         | '’' -> addse "rsquo"  
+         | '‚' -> addse "sbquo"  
+         | '“' -> addse "ldquo"  
+         | '”' -> addse "rdquo"  
+         | '„' -> addse "bdquo"  
+         | '†' -> addse "dagger" 
+         | '‡' -> addse "Dagger" 
+         | '‰' -> addse "permil" 
+         | '‹' -> addse "lsaquo" 
+         | '›' -> addse "rsaquo" 
+         | '€' -> addse "euro"
+ *)
+         | '\'' -> addse "#39"
+         | c -> addc c)
+      str;
+    Buffer.contents buffer
+
 let render dn events = 
   let smr =
     OUnitResultSummary.of_log_events events 
@@ -62,7 +107,7 @@ let render dn events =
     <div class='ounit-results'>
       <h2>Results</h2>
       <div class='ounit-results-content'>\n"
-  smr.suite_name smr.charset smr.suite_name; 
+  (html_escaper smr.suite_name) smr.charset (html_escaper smr.suite_name);
   begin
     let printf_result clss label num =
       printf 
@@ -103,7 +148,10 @@ let render dn events =
     <div class='ounit-conf'>
       <h2>Configuration</h2>
       <div class='ounit-conf-content'>\n";
-  List.iter (fun (k, v) ->printf "%s=%S<br/>\n" k v) smr.conf;
+  List.iter 
+    (fun (k, v) -> printf "%s=%S<br/>\n" 
+                     (html_escaper k) (html_escaper v)) 
+    smr.conf;
   printf ("\
       </div>
     </div>
@@ -132,8 +180,8 @@ let render dn events =
       <div class='ounit-duration'>Test duration: %0.3fs</div>
       <div class='ounit-log'>\n" 
          class_result
-         test_data.test_name 
-         text_result
+         (html_escaper test_data.test_name)
+         (html_escaper text_result)
          (date_iso8601 test_data.timestamp_start)
          (test_data.timestamp_end -. test_data.timestamp_start);
        printf "<span class='ounit-timestamp'>%0.3fs</span>Start<br/>\n" 
@@ -141,7 +189,7 @@ let render dn events =
        List.iter (fun (tmstp, svrt, str) ->
                     printf "\
         <span class='%s'><span class='ounit-timestamp'>%0.3fs</span>%s</span><br/>\n" 
-                      (class_severity_opt svrt) tmstp str)
+                      (class_severity_opt svrt) tmstp (html_escaper str))
          test_data.log_entries;
        printf "<span class='ounit-timestamp'>%0.3fs</span>End<br/>\n" 
          (test_data.timestamp_end -. test_data.timestamp_start);
@@ -150,10 +198,10 @@ let render dn events =
          (* TODO: use backtrace *)
          match test_data.test_result with 
            | RSuccess -> printf "Success."
-           | RFailure (str, backtrace) -> printf "Failure:<br/>%s" str
-           | RError (str, backtrace) -> printf "Error:<br/>%s" str
-           | RSkip str -> printf "Skipped:<br/>%s" str
-           | RTodo str -> printf "Todo:<br/>%s" str
+           | RFailure (str, backtrace) -> printf "Failure:<br/>%s" (html_escaper str)
+           | RError (str, backtrace) -> printf "Error:<br/>%s" (html_escaper str)
+           | RSkip str -> printf "Skipped:<br/>%s" (html_escaper str)
+           | RTodo str -> printf "Todo:<br/>%s" (html_escaper str)
        end;
        printf "</div>";
        printf "\

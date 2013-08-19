@@ -43,6 +43,7 @@ let tests =
            Unix.mkdir html_dir 0o750;
          assert_command 
            ~ctxt
+           ~exit_code:(Unix.WEXITED 1)
            (testFakeHTML ())
            ["-output-file"; Filename.concat html_dir "fake-html.log";
             "-output-html-dir"; html_dir;
