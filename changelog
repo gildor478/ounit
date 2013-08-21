@@ -21,19 +21,19 @@ ounit-1.1.0
   - Add a bracket_tmpfile to ease temporary file use
   - Enhance documentation, translate the docbook manual into ocamldoc and
     add content
-  - Allow to add extra command line arguments to run_test_tt_main 
+  - Allow to add extra command line arguments to run_test_tt_main
     (Closes: #640)
   - Add a -list-test options to run_test_tt_main, to list available tests
-  - Skip tests when using "-only-test", rather than removing it. This way 
+  - Skip tests when using "-only-test", rather than removing it. This way
     the path is the same even if some tests don't pass (Closes: #637)
   - Add backtrace support (Closes: #639), thanks to Michael Ekstrand
-  - Use OASIS 
+  - Use OASIS
   - Move to OCaml Forge: http://ounit.forge.ocamlcore.org
   - Maintainance is now done by Sylvain Le Gall (OCamlCore SARL), thanks to
     Maas-Maarten Zeeman for all his work
 
 ounit-1.0.3
-  
+
   - Add the possibility to skip test and mark tests as todo
 
 ounit-1.0.2
@@ -42,12 +42,12 @@ ounit-1.0.2
     are now clearly separated.
 
 ounit-1.0.1
-  
+
   - Added optional compare function to assert_equal, and a float compare
     function. Thanks go to Daniel Buenzli
 
 ounit-1.0.0
- 
+
   - Add bracket support (Thanks go to Laurent Vaucher)
 
   - Add an example for bracket usage
@@ -62,10 +62,10 @@ ounit-0.0.3
 
 ounit-0.0.2
 
-  - Added assert_raises which checkes if an exception is raised. 
+  - Added assert_raises which checkes if an exception is raised.
     (thanks go to Keita Yamaguchi, for the idea)
-  
-  - Fixed (hopefully) the .depend file 
+
+  - Fixed (hopefully) the .depend file
 
 ounit-0.0.1
 

@@ -7,9 +7,9 @@
 (***********************************************************************)
 
 (** Unit tests for collection of elements
-  
+
     This module allows to define a more precise way to display differences
-    between collection of elements. When collection differ, the tester is 
+    between collection of elements. When collection differ, the tester is
     interested by what are the missing/extra elements. This module provides
     a [diff] operation to spot the difference quickly between two sets of
     elements.
@@ -18,8 +18,8 @@
 {[
 open OUnit;;
 
-module EInt = 
-struct 
+module EInt =
+struct
   type t = int
   let compare = ( - )
   let pp_printer = Format.pp_print_int
@@ -28,13 +28,13 @@ end
 
 module ListInt = OUnitDiff.ListSimpleMake(EInt);;
 
-let test_diff () = 
+let test_diff () =
   ListInt.assert_equal
     [1; 2; 3; 4; 5]
     [1; 2; 5; 4]
 ;;
 
-let _ = 
+let _ =
   run_test_tt_main ("test_diff" >:: test_diff)
 ;;
 ]}
@@ -51,7 +51,7 @@ differences: element number 2 differ (3 <> 5)
 
 (** {2 Signatures} *)
 
-(** Definition of an element 
+(** Definition of an element
   *)
 module type DIFF_ELEMENT =
   sig
@@ -73,7 +73,7 @@ module type DIFF_ELEMENT =
 module type S =
   sig
     (** Type of an element *)
-    type e 
+    type e
 
     (** Type of a collection of element *)
     type t
@@ -99,13 +99,13 @@ module type S =
 (** {2 Implementations} *)
 
 (** Collection of elements based on a Set, elements order doesn't matter *)
-module SetMake : functor (D : DIFF_ELEMENT) -> S 
+module SetMake : functor (D : DIFF_ELEMENT) -> S
   with type e = D.t
 
 (** Collection of elements based on a List, order matters but difference display
     is very simple. It stops at the first element which differs.
   *)
-module ListSimpleMake : functor (D: DIFF_ELEMENT) -> S 
+module ListSimpleMake : functor (D: DIFF_ELEMENT) -> S
   with type e = D.t and type t = D.t list
 
 val pp_comma_separator : Format.formatter -> unit -> unit

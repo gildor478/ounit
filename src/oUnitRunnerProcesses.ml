@@ -36,7 +36,7 @@ let run_all_tests logger chooser test_cases =
 
   (* send a test in one socket *)
   and _send_test (path, test) sock =
-    let () = 
+    let () =
       OUnitLogger.report logger (TestEvent (path, EStart))
     in
     let data =
@@ -57,7 +57,7 @@ let run_all_tests logger chooser test_cases =
       str := String.make 4096 (Char.chr 0)
     done;
     let (path, res) =
-      Marshal.from_string (Buffer.contents buff) 0 
+      Marshal.from_string (Buffer.contents buff) 0
     in
       OUnitLogger.report logger (TestEvent (path, EResult res));
       OUnitLogger.report logger (TestEvent (path, EEnd));

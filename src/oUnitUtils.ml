@@ -9,34 +9,34 @@ open OUnitTypes
 
 let cmp_float ?(epsilon = 0.00001) a b =
   abs_float (a -. b) <= epsilon *. (abs_float a) ||
-    abs_float (a -. b) <= epsilon *. (abs_float b) 
-      
-let is_success = 
-  function
-    | RSuccess -> true 
-    | RFailure _ | RError _  | RSkip _ | RTodo _ -> false 
+    abs_float (a -. b) <= epsilon *. (abs_float b)
 
-let is_failure = 
+let is_success =
+  function
+    | RSuccess -> true
+    | RFailure _ | RError _  | RSkip _ | RTodo _ -> false
+
+let is_failure =
   function
     | RFailure _ -> true
     | RSuccess | RError _  | RSkip _ | RTodo _ -> false
 
-let is_error = 
+let is_error =
   function
     | RError _ -> true
     | RSuccess | RFailure _ | RSkip _ | RTodo _ -> false
 
-let is_skip = 
+let is_skip =
   function
     | RSkip _ -> true
     | RSuccess | RFailure _ | RError _  | RTodo _ -> false
 
-let is_todo = 
+let is_todo =
   function
     | RTodo _ -> true
     | RSuccess | RFailure _ | RError _  | RSkip _ -> false
 
-let result_flavour = 
+let result_flavour =
   function
     | RError _ -> "Error"
     | RFailure _ -> "Failure"
@@ -45,7 +45,7 @@ let result_flavour =
     | RTodo _ -> "Todo"
 
 
-let result_msg = 
+let result_msg =
   function
     | RSuccess -> "Success"
     | RError (msg, _)
@@ -53,31 +53,31 @@ let result_msg =
     | RSkip msg
     | RTodo msg -> msg
 
-let string_of_node = 
+let string_of_node =
   function
-    | ListItem n -> 
+    | ListItem n ->
         string_of_int n
-    | Label s -> 
+    | Label s ->
         s
 
 (* Return the number of available tests *)
-let rec test_case_count = 
+let rec test_case_count =
   function
-    | TestCase _ -> 1 
+    | TestCase _ -> 1
     | TestLabel (_, t) -> test_case_count t
-    | TestList l -> 
-        List.fold_left 
-          (fun c t -> c + test_case_count t) 
+    | TestList l ->
+        List.fold_left
+          (fun c t -> c + test_case_count t)
           0 l
 
-module Path = 
+module Path =
 struct
-  type t = path 
+  type t = path
 
-  let compare p1 p2 = 
+  let compare p1 p2 =
     Pervasives.compare p1 p2
 
-  let to_string p = 
+  let to_string p =
     String.concat ":" (List.rev_map string_of_node p)
 end
 
@@ -86,7 +86,7 @@ module MapPath = Map.Make(Path)
 let string_of_path =
   Path.to_string
 
-let buff_format_printf f = 
+let buff_format_printf f =
   let buff = Buffer.create 13 in
   let fmt = Format.formatter_of_buffer buff in
     f fmt;
@@ -95,35 +95,35 @@ let buff_format_printf f =
 
 (* Applies function f in turn to each element in list. Function f takes
    one element, and integer indicating its location in the list *)
-let mapi f l = 
-  let rec rmapi cnt l = 
-    match l with 
-      | [] -> 
-          [] 
+let mapi f l =
+  let rec rmapi cnt l =
+    match l with
+      | [] ->
+          []
 
-      | h :: t -> 
-          (f h cnt) :: (rmapi (cnt + 1) t) 
+      | h :: t ->
+          (f h cnt) :: (rmapi (cnt + 1) t)
   in
     rmapi 0 l
 
 let fold_lefti f accu l =
-  let rec rfold_lefti cnt accup l = 
+  let rec rfold_lefti cnt accup l =
     match l with
-      | [] -> 
+      | [] ->
           accup
 
-      | h::t -> 
+      | h::t ->
           rfold_lefti (cnt + 1) (f accup h cnt) t
   in
     rfold_lefti 0 accu l
 
 let ocaml_position pos =
-  Printf.sprintf 
+  Printf.sprintf
     "File \"%s\", line %d, characters 1-1:"
     pos.filename pos.line
 
 let try_parse f lexbuf g =
-  try 
+  try
     let res = f lexbuf in
       g ();
       res
@@ -136,16 +136,16 @@ let try_parse f lexbuf g =
       let tok = Lexing.lexeme lexbuf in
       let fn = lexbuf.Lexing.lex_curr_p.Lexing.pos_fname in
         (* TODO: ocaml error formatting. *)
-        Printf.eprintf 
+        Printf.eprintf
           "Parsing error at token %S, file '%s' l%d c%d\n%!"
           tok fn line cnum;
         raise e
     end
 
 let set_pos_fname lexbuf fn =
-  {lexbuf with 
-    Lexing.lex_curr_p = 
-      {lexbuf.Lexing.lex_curr_p with  
+  {lexbuf with
+    Lexing.lex_curr_p =
+      {lexbuf.Lexing.lex_curr_p with
            Lexing.pos_fname = fn}}
 
 let now () =
@@ -172,13 +172,13 @@ let date_iso8601 ?(tz=true) timestamp =
   in
     if tz then
       res ^ "+00:00"
-    else 
+    else
       res
 
-let was_successful lst = 
+let was_successful lst =
   List.for_all
     (fun (_, rslt, _) ->
-       match rslt with 
+       match rslt with
          | RSuccess | RSkip _ -> true
          | _ -> false)
     lst

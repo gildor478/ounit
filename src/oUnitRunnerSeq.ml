@@ -6,7 +6,7 @@ let run_all_tests logger chooser test_cases =
   let run_test_case f path =
     let result =
       try
-        let ctxt = 
+        let ctxt =
           {
             logger = OUnitLogger.Test.create logger path
           }
@@ -14,7 +14,7 @@ let run_all_tests logger chooser test_cases =
           f ctxt;
         RSuccess
       with e ->
-        let backtrace = 
+        let backtrace =
           if Printexc.backtrace_status () then
             Some (Printexc.get_backtrace ())
           else
@@ -23,7 +23,7 @@ let run_all_tests logger chooser test_cases =
           match e with
             | Failure s -> RFailure (s, backtrace)
             | Skip s -> RSkip s
-            | Todo s -> RTodo s 
+            | Todo s -> RTodo s
             | s -> RError (Printexc.to_string s, backtrace)
     in
     let position = OUnitLogger.position logger in
@@ -39,7 +39,7 @@ let run_all_tests logger chooser test_cases =
       path, result, position
   in
   let rec iter state =
-    match state.tests_planned with 
+    match state.tests_planned with
       | [] ->
           state.results
       | _ ->

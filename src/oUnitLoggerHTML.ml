@@ -7,7 +7,7 @@ open OUnitLogger
 open OUnitUtils
 open OUnitResultSummary
 
-let global_output_html_dir = 
+let global_output_html_dir =
   let value =
     OUnitConf.make
       "output_html_dir"
@@ -17,48 +17,48 @@ let global_output_html_dir =
       "Output directory of the HTML files."
   in
     fun () ->
-      match value () with 
+      match value () with
         | "" -> None
         | fn -> Some fn
 
 let html_escaper str =
   let buffer = Buffer.create (String.length str) in
   let addc = Buffer.add_char buffer in
-  let addse se = 
+  let addse se =
     addc '&';
     Buffer.add_string buffer se;
     addc ';'
   in
-    String.iter 
+    String.iter
       (function
          | '"' -> addse "quot"
-         | '&' -> addse "amp"  
+         | '&' -> addse "amp"
          | '<' -> addse "lt"
-         | '>' -> addse "gt"     
+         | '>' -> addse "gt"
 (*
-         | 'Œ' -> addse "OElig"  
-         | 'œ' -> addse "oelig"  
-         | 'Š' -> addse "Scaron" 
-         | 'š' -> addse "scaron" 
-         | 'Ÿ' -> addse "Yuml"   
-         | 'ˆ' -> addse "circ"   
-         | '˜' -> addse "tilde"  
-         | ' ' -> addse "ensp"   
-         | ' ' -> addse "emsp"   
-         | ' ' -> addse "thinsp" 
-         | '–' -> addse "ndash"  
-         | '—' -> addse "mdash"  
-         | '‘' -> addse "lsquo"  
-         | '’' -> addse "rsquo"  
-         | '‚' -> addse "sbquo"  
-         | '“' -> addse "ldquo"  
-         | '”' -> addse "rdquo"  
-         | '„' -> addse "bdquo"  
-         | '†' -> addse "dagger" 
-         | '‡' -> addse "Dagger" 
-         | '‰' -> addse "permil" 
-         | '‹' -> addse "lsaquo" 
-         | '›' -> addse "rsaquo" 
+         | 'Œ' -> addse "OElig"
+         | 'œ' -> addse "oelig"
+         | 'Š' -> addse "Scaron"
+         | 'š' -> addse "scaron"
+         | 'Ÿ' -> addse "Yuml"
+         | 'ˆ' -> addse "circ"
+         | '˜' -> addse "tilde"
+         | ' ' -> addse "ensp"
+         | ' ' -> addse "emsp"
+         | ' ' -> addse "thinsp"
+         | '–' -> addse "ndash"
+         | '—' -> addse "mdash"
+         | '‘' -> addse "lsquo"
+         | '’' -> addse "rsquo"
+         | '‚' -> addse "sbquo"
+         | '“' -> addse "ldquo"
+         | '”' -> addse "rdquo"
+         | '„' -> addse "bdquo"
+         | '†' -> addse "dagger"
+         | '‡' -> addse "Dagger"
+         | '‰' -> addse "permil"
+         | '‹' -> addse "lsaquo"
+         | '›' -> addse "rsaquo"
          | '€' -> addse "euro"
  *)
          | '\'' -> addse "#39"
@@ -66,9 +66,9 @@ let html_escaper str =
       str;
     Buffer.contents buffer
 
-let render dn events = 
+let render dn events =
   let smr =
-    OUnitResultSummary.of_log_events events 
+    OUnitResultSummary.of_log_events events
   in
   let () =
     if not (Sys.file_exists dn) then
@@ -76,13 +76,13 @@ let render dn events =
   in
 
   let chn = open_out (Filename.concat dn "oUnit.css") in
-  let () = 
+  let () =
     output_string chn OUnitLoggerHTMLData.oUnit_css;
     close_out chn
   in
 
   let chn = open_out (Filename.concat dn "oUnit.js") in
-  let () = 
+  let () =
     output_string chn OUnitLoggerHTMLData.oUnit_js;
     close_out chn
   in
@@ -99,7 +99,8 @@ let render dn events =
   </head>
   <body onload=\"displaySuccess('none');\">
     <div id='navigation'>
-        <button id='toggleVisibiltySuccess' onclick='toggleSuccess();'>Show success</button>
+        <button id='toggleVisibiltySuccess'
+                onclick='toggleSuccess();'>Show success</button>
         <button id='nextTest' onclick='nextTest();'>Next test</button>
         <button id='gotoTop' onclick='gotoTop();'>Goto top</button>
     </div>
@@ -110,7 +111,7 @@ let render dn events =
   (html_escaper smr.suite_name) smr.charset (html_escaper smr.suite_name);
   begin
     let printf_result clss label num =
-      printf 
+      printf
         "<div class='ounit-results-%s'>\
            %s: <span class='number'>%d</span>\
          </div>"
@@ -124,7 +125,7 @@ let render dn events =
         "<div id='ounit-results-started-at'>\
            Started at: %s
          </div>" (date_iso8601 smr.start_at);
-      printf 
+      printf
         "<div class='ounit-results-duration'>\
            Total duration: <span class='number'>%.3fs</span>\
          </div>" smr.running_time;
@@ -136,7 +137,7 @@ let render dn events =
       printf_result "successes" "Successes" smr.successes;
 
       (* Print final verdict *)
-      if was_successful smr.global_results then 
+      if was_successful smr.global_results then
         printf "<div class='ounit-results-verdict'>Success</div>"
       else
         printf "<div class='ounit-results-verdict ounit-failure'>Failure</div>"
@@ -148,9 +149,9 @@ let render dn events =
     <div class='ounit-conf'>
       <h2>Configuration</h2>
       <div class='ounit-conf-content'>\n";
-  List.iter 
-    (fun (k, v) -> printf "%s=%S<br/>\n" 
-                     (html_escaper k) (html_escaper v)) 
+  List.iter
+    (fun (k, v) -> printf "%s=%S<br/>\n"
+                     (html_escaper k) (html_escaper v))
     smr.conf;
   printf ("\
       </div>
@@ -158,15 +159,15 @@ let render dn events =
 ");
   List.iter
     (fun test_data ->
-       let class_result, text_result = 
-         match test_data.test_result with 
+       let class_result, text_result =
+         match test_data.test_result with
            | RSuccess        -> "ounit-success", "succeed"
            | RFailure (_, _) -> "ounit-failure", "failed"
            | RError (_, _)   -> "ounit-error", "error"
            | RSkip _         -> "ounit-skip", "skipped"
            | RTodo _         -> "ounit-todo", "TODO"
        in
-       let class_severity_opt = 
+       let class_severity_opt =
          function
            | Some LError   -> "ounit-log-error"
            | Some LWarning -> "ounit-log-warning"
@@ -178,30 +179,35 @@ let render dn events =
       <h2>%s (%s)</h2>
       <div class='ounit-started-at'>Started at: %s</div>
       <div class='ounit-duration'>Test duration: %0.3fs</div>
-      <div class='ounit-log'>\n" 
+      <div class='ounit-log'>\n"
          class_result
          (html_escaper test_data.test_name)
          (html_escaper text_result)
          (date_iso8601 test_data.timestamp_start)
          (test_data.timestamp_end -. test_data.timestamp_start);
-       printf "<span class='ounit-timestamp'>%0.3fs</span>Start<br/>\n" 
+       printf "<span class='ounit-timestamp'>%0.3fs</span>Start<br/>\n"
          0.0;
        List.iter (fun (tmstp, svrt, str) ->
                     printf "\
-        <span class='%s'><span class='ounit-timestamp'>%0.3fs</span>%s</span><br/>\n" 
+        <span class='%s'>
+          <span class='ounit-timestamp'>%0.3fs</span>%s</span><br/>\n"
                       (class_severity_opt svrt) tmstp (html_escaper str))
          test_data.log_entries;
-       printf "<span class='ounit-timestamp'>%0.3fs</span>End<br/>\n" 
+       printf "<span class='ounit-timestamp'>%0.3fs</span>End<br/>\n"
          (test_data.timestamp_end -. test_data.timestamp_start);
        printf "<div class='ounit-result'>";
        begin
          (* TODO: use backtrace *)
-         match test_data.test_result with 
+         match test_data.test_result with
            | RSuccess -> printf "Success."
-           | RFailure (str, backtrace) -> printf "Failure:<br/>%s" (html_escaper str)
-           | RError (str, backtrace) -> printf "Error:<br/>%s" (html_escaper str)
-           | RSkip str -> printf "Skipped:<br/>%s" (html_escaper str)
-           | RTodo str -> printf "Todo:<br/>%s" (html_escaper str)
+           | RFailure (str, backtrace) ->
+               printf "Failure:<br/>%s" (html_escaper str)
+           | RError (str, backtrace) ->
+               printf "Error:<br/>%s" (html_escaper str)
+           | RSkip str ->
+               printf "Skipped:<br/>%s" (html_escaper str)
+           | RTodo str ->
+               printf "Todo:<br/>%s" (html_escaper str)
        end;
        printf "</div>";
        printf "\
@@ -214,7 +220,7 @@ let render dn events =
   close_out chn
 
 let create () =
-  match global_output_html_dir () with 
+  match global_output_html_dir () with
     | Some dn ->
         post_logger (render dn)
     | None ->

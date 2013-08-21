@@ -43,5 +43,5 @@ setup.data:
 
 doc-test: doc
 	 ocamldoc -g ../ocaml-tmp/odoc-extract-code/odoc_extract_code.cmo \
-		 -load _build/src/oUnit.odoc -intro doc/manual.txt > _build/src/tmp.ml;
+	   -load _build/src/oUnit.odoc -intro doc/manual.txt > _build/src/tmp.ml;
 	 ocamlc -c -I _build/src/ _build/src/tmp.ml

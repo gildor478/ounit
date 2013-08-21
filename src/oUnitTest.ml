@@ -10,31 +10,31 @@ let (>:::) s l = TestLabel(s, TestList(l)) (* infix *)
 (* Utility function to manipulate test *)
 let rec test_decorate g =
   function
-    | TestCase f -> 
+    | TestCase f ->
         TestCase (g f)
     | TestList tst_lst ->
         TestList (List.map (test_decorate g) tst_lst)
     | TestLabel (str, tst) ->
         TestLabel (str, test_decorate g tst)
 
-let test_case_count = OUnitUtils.test_case_count 
+let test_case_count = OUnitUtils.test_case_count
 let string_of_node = OUnitUtils.string_of_node
 let string_of_path = OUnitUtils.string_of_path
-    
-(* Returns all possible paths in the test. The order is from test case
-   to root 
- *)
-let test_case_paths test = 
-  let rec tcps path test = 
-    match test with 
-      | TestCase _ -> 
-          [path] 
 
-      | TestList tests -> 
-          List.concat 
+(* Returns all possible paths in the test. The order is from test case
+   to root.
+ *)
+let test_case_paths test =
+  let rec tcps path test =
+    match test with
+      | TestCase _ ->
+          [path]
+
+      | TestList tests ->
+          List.concat
             (mapi (fun t i -> tcps ((ListItem i)::path) t) tests)
 
-      | TestLabel (l, t) -> 
+      | TestLabel (l, t) ->
           tcps ((Label l)::path) t
   in
     tcps [] test
@@ -44,7 +44,7 @@ module SetTestPath = Set.Make(String)
 
 let test_filter ?(skip=false) only test =
   let set_test =
-    List.fold_left 
+    List.fold_left
       (fun st str -> SetTestPath.add str st)
       SetTestPath.empty
       only
@@ -61,8 +61,8 @@ let test_filter ?(skip=false) only test =
           | TestCase f ->
               begin
                 if skip then
-                  Some 
-                    (TestCase 
+                  Some
+                    (TestCase
                        (fun ctxt ->
                           OUnitAssert.skip_if true "Test disabled";
                           f ctxt))
@@ -73,7 +73,7 @@ let test_filter ?(skip=false) only test =
           | TestList tst_lst ->
               begin
                 let ntst_lst =
-                  fold_lefti 
+                  fold_lefti
                     (fun ntst_lst tst i ->
                        let nntst_lst =
                          match filter_test ((ListItem i) :: path) tst with
@@ -95,11 +95,11 @@ let test_filter ?(skip=false) only test =
           | TestLabel (lbl, tst) ->
               begin
                 let ntst_opt =
-                  filter_test 
+                  filter_test
                     ((Label lbl) :: path)
                     tst
                 in
-                  match ntst_opt with 
+                  match ntst_opt with
                     | Some ntst ->
                         Some (TestLabel (lbl, ntst))
                     | None ->

@@ -2,7 +2,7 @@
 
 (**
     Heuristic to pick a test to run.
-   
+
     @author Sylvain Le Gall
   *)
 

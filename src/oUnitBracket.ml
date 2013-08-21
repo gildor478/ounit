@@ -1,16 +1,16 @@
 
-open OUnitTypes 
+open OUnitTypes
 
 let bracket set_up f tear_down ctxt =
-  let fixture = 
-    set_up ctxt 
+  let fixture =
+    set_up ctxt
   in
-  let () = 
+  let () =
     try
       let () = f (ctxt, fixture) in
         tear_down (ctxt, fixture)
-    with e -> 
-      let () = 
+    with e ->
+      let () =
         tear_down (ctxt, fixture)
       in
         raise e
@@ -20,7 +20,7 @@ let bracket set_up f tear_down ctxt =
 let bracket_tmpfile ?(prefix="ounit-") ?(suffix=".txt") ?mode f =
   bracket
     (fun ctxt ->
-       let (fn, chn) = 
+       let (fn, chn) =
          Filename.open_temp_file ?mode prefix suffix
        in
          OUnitLogger.Test.logf ctxt.logger
@@ -28,10 +28,10 @@ let bracket_tmpfile ?(prefix="ounit-") ?(suffix=".txt") ?mode f =
            "Created a temporary file: '%s'"
            fn;
          (fn, chn))
-    f 
+    f
     (fun (ctxt, (fn, chn)) ->
        begin
-         try 
+         try
            close_out chn
          with _ ->
            ()
@@ -49,7 +49,7 @@ let bracket_tmpfile ?(prefix="ounit-") ?(suffix=".txt") ?mode f =
 
 
 let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") f =
-  bracket 
+  bracket
     (fun ctxt ->
        let tmpdn = Filename.temp_file prefix suffix in
          Sys.remove tmpdn;
@@ -61,13 +61,13 @@ let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") f =
          tmpdn)
     f
     (fun (ctxt, tmpdn) ->
-       let log_delete fn = 
+       let log_delete fn =
          OUnitLogger.Test.logf ctxt.logger
            LInfo
            "Delete in a temporary directory: '%s'"
            fn
        in
-       let rec rmdir fn = 
+       let rec rmdir fn =
          Array.iter
            (fun bn ->
               let fn' = Filename.concat fn bn in

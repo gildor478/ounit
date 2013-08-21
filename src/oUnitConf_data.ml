@@ -15,15 +15,15 @@ let data_of_string ~origin str =
     ignore
 
 let rec data_set spec data =
-  match spec, data with 
+  match spec, data with
     (* Unit. *)
 
     | Arg.Unit fspec, Unit ->
-        fspec () 
+        fspec ()
 
     | Arg.Unit fspec, Bool (_, b) ->
         if b then
-          fspec () 
+          fspec ()
 
     | Arg.Clear var, Unit ->
         var := false
@@ -43,13 +43,13 @@ let rec data_set spec data =
     | (Arg.Rest _|Arg.String _|Arg.Set_string _), Unit ->
         raise (ExpectType "string")
 
-    | Arg.Rest fspec, d  
+    | Arg.Rest fspec, d
     | Arg.String fspec, d ->
         fspec (string_of_data d)
 
     | Arg.Set_string var, d ->
         var := (string_of_data d)
-                 
+
     (* Float. *)
 
     | Arg.Set_float var, Float (_, f) ->
@@ -64,7 +64,7 @@ let rec data_set spec data =
     | Arg.Float fspec, Int (_, i) ->
         fspec (float_of_int i)
 
-    | (Arg.Set_float _|Arg.Float _), _ -> 
+    | (Arg.Set_float _|Arg.Float _), _ ->
         raise (ExpectType "float")
 
     (* Integer. *)
@@ -88,11 +88,11 @@ let rec data_set spec data =
 
     (* Symbol. *)
 
-    | Arg.Symbol (lst, fspec), d -> 
+    | Arg.Symbol (lst, fspec), d ->
         let str = string_of_data d in
           if List.mem str lst then
             fspec str
-          else 
+          else
             raise (ExpectEnum (str, lst))
 
     (* Tuple. *)
@@ -108,14 +108,14 @@ let rec data_set spec data =
         in
         if count_non_unit <> List.length lst' then
           raise (ExpectArgCount (count_non_unit, List.length lst'))
-        else 
+        else
           let rec apply_tuple lst_spec lst_data =
-            match lst_spec with 
+            match lst_spec with
               | (Arg.Unit fspec) :: tl_spec ->
                   fspec (); apply_tuple tl_spec lst_data
               | spec :: tl_spec ->
                   begin
-                    match lst_data with 
+                    match lst_data with
                       | data :: tl_data ->
                           data_set spec data; apply_tuple tl_spec tl_data
                       | [] ->

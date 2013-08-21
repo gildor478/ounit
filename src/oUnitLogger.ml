@@ -5,7 +5,7 @@
 open OUnitTypes
 open OUnitUtils
 
-type logger = 
+type logger =
     {
       fwrite: log_event -> unit;
       fpos:   unit -> position option;
@@ -22,7 +22,7 @@ let results_style_1_X =
 
 let string_of_event ev =
   let spf fmt = Printf.sprintf fmt in
-  let string_of_result = 
+  let string_of_result =
     function
       | RSuccess -> "RSuccess"
       | RFailure (msg, _) -> spf "RFailure (%S, _)" msg
@@ -36,10 +36,10 @@ let string_of_event ev =
       | LWarning -> "LWarning"
       | LInfo    -> "LInfo"
   in
-    match ev with 
+    match ev with
       | GlobalEvent e ->
           begin
-            match e with 
+            match e with
               | GConf (k, v) -> spf "GConf (%S, %S)" k v
               | GStart       -> "GStart"
               | GEnd         -> "GEnd"
@@ -47,7 +47,7 @@ let string_of_event ev =
           end
       | TestEvent (path,  e) ->
           begin
-            match e with 
+            match e with
               | EStart ->
                   "EStart"
               | EEnd ->
@@ -64,7 +64,7 @@ let format_event verbose log_event =
   match log_event.event with
     | GlobalEvent e ->
         begin
-          match e with 
+          match e with
             | GConf (k, v) ->
                 if verbose then
                   Printf.sprintf "%s=%S\n" k v
@@ -80,38 +80,38 @@ let format_event verbose log_event =
                   "End testing.\n"
                 else
                   ""
-            | GResults (running_time, results, test_case_count) -> 
+            | GResults (running_time, results, test_case_count) ->
                 let separator1 = String.make (Format.get_margin ()) '=' in
                 let separator2 = String.make (Format.get_margin ()) '-' in
                 let buf = Buffer.create 1024 in
                 let bprintf fmt = Printf.bprintf buf fmt in
-                let print_results = 
-                  List.iter 
-                    (fun (path, test_result, pos_opt) -> 
+                let print_results =
+                  List.iter
+                    (fun (path, test_result, pos_opt) ->
                        if results_style_1_X () then
                          begin
-                           bprintf "%s\n%s: %s\n\n%s\n%s\n" 
-                             separator1 
-                             (result_flavour test_result) 
-                             (string_of_path path) 
-                             (result_msg test_result) 
+                           bprintf "%s\n%s: %s\n\n%s\n%s\n"
+                             separator1
+                             (result_flavour test_result)
+                             (string_of_path path)
+                             (result_msg test_result)
                              separator2
                          end
                        else
                          begin
                            bprintf "%s\n" separator1;
                            begin
-                             match pos_opt with 
+                             match pos_opt with
                                | Some pos ->
                                    bprintf "%s\n" (ocaml_position pos)
                                | None ->
                                    ()
                            end;
-                           bprintf "Error: %s\n\n" 
+                           bprintf "Error: %s\n\n"
                              (string_of_path path);
                            begin
-                             match test_result with 
-                               | RFailure (_, Some backtrace) 
+                             match test_result with
+                               | RFailure (_, Some backtrace)
                                | RError (_, Some backtrace) ->
                                    bprintf "%s\n" backtrace
                                | _ ->
@@ -121,9 +121,9 @@ let format_event verbose log_event =
                            bprintf "%s\n" separator2;
                          end)
                 in
-                let filter f = 
-                  let lst = 
-                    List.filter 
+                let filter f =
+                  let lst =
+                    List.filter
                       (fun (_, test_result, _) -> f test_result)
                       results
                   in
@@ -139,15 +139,15 @@ let format_event verbose log_event =
 
                   print_results errors;
                   print_results failures;
-                  bprintf "Ran: %d tests in: %.2f seconds.\n" 
+                  bprintf "Ran: %d tests in: %.2f seconds.\n"
                     (List.length results) running_time;
 
                   (* Print final verdict *)
-                  if was_successful results then 
+                  if was_successful results then
                     begin
                       if skips = [] then
                         bprintf "OK"
-                      else 
+                      else
                         bprintf "OK: Cases: %d Skip: %d"
                           test_case_count nskips
                     end
@@ -155,8 +155,8 @@ let format_event verbose log_event =
                     begin
                       bprintf
                         "FAILED: Cases: %d Tried: %d Errors: %d \
-                              Failures: %d Skip:%d Todo:%d" 
-                        test_case_count 
+                              Failures: %d Skip:%d Todo:%d"
+                        test_case_count
                         (List.length results)
                         nerrors
                         nfailures
@@ -169,7 +169,7 @@ let format_event verbose log_event =
 
     | TestEvent (path, e) ->
         begin
-          let string_of_result = 
+          let string_of_result =
             if verbose then
               function
                 | RSuccess        -> "ok\n"
@@ -186,16 +186,16 @@ let format_event verbose log_event =
                 | RTodo _         -> "T"
           in
             if verbose then
-              match e with 
-                | EStart -> 
+              match e with
+                | EStart ->
                     Printf.sprintf "%s start\n" (string_of_path path)
-                | EEnd -> 
+                | EEnd ->
                     Printf.sprintf "%s end\n" (string_of_path path)
-                | EResult result -> 
+                | EResult result ->
                     string_of_result result
                 | ELog (lvl, str) ->
-                    let prefix = 
-                      match lvl with 
+                    let prefix =
+                      match lvl with
                         | LError -> "E"
                         | LWarning -> "W"
                         | LInfo -> "I"
@@ -203,8 +203,8 @@ let format_event verbose log_event =
                       prefix^": "^str^"\n"
                 | ELogRaw str ->
                     str
-            else 
-              match e with 
+            else
+              match e with
                 | EStart _ | EEnd _ | ELog _ | ELogRaw _ -> ""
                 | EResult result -> string_of_result result
         end
@@ -221,7 +221,7 @@ let file_logger fn =
   let fpos () =
     Some { filename = fn; line = !line }
   in
-  let fclose ()= 
+  let fclose () =
     close_out chn
   in
     {
@@ -232,7 +232,7 @@ let file_logger fn =
 
 
 let std_logger verbose =
-  let fwrite log_ev = 
+  let fwrite log_ev =
     print_string (format_event verbose log_ev);
     flush stdout
   in
@@ -256,7 +256,7 @@ let null_logger =
     fclose = ignore;
   }
 
-let post_logger fpost = 
+let post_logger fpost =
   let data = ref [] in
   let fwrite ev = data := ev :: !data in
   let fclose () = fpost (List.rev !data) in
@@ -267,7 +267,7 @@ let post_logger fpost =
     }
 
 let report logger ev =
-  logger.fwrite 
+  logger.fwrite
     {
       timestamp = now ();
       event = ev;
@@ -279,38 +279,38 @@ let position logger =
 let close logger =
   logger.fclose ()
 
-let combine lst = 
+let combine lst =
   let rec fpos =
     function
       | logger :: tl ->
           begin
-            match position logger with 
+            match position logger with
               | Some _ as pos ->
                   pos
               | None ->
                   fpos tl
           end
-      | [] -> 
+      | [] ->
           None
   in
     {
-      fwrite = 
-        (fun log_ev -> 
-           List.iter 
-             (fun logger -> 
+      fwrite =
+        (fun log_ev ->
+           List.iter
+             (fun logger ->
                 logger.fwrite log_ev) lst);
       fpos   = (fun () -> fpos lst);
-      fclose = 
-        (fun () -> 
+      fclose =
+        (fun () ->
            List.iter (fun logger -> close logger) (List.rev lst));
     }
 
 let create output_file_opt verbose logger =
-  let std_logger= 
-    std_logger verbose 
+  let std_logger=
+    std_logger verbose
   in
-  let file_logger = 
-    match output_file_opt with 
+  let file_logger =
+    match output_file_opt with
       | Some fn ->
           file_logger fn
       | None ->
@@ -318,13 +318,13 @@ let create output_file_opt verbose logger =
   in
     combine [std_logger; file_logger; logger]
 
-module Test = 
-struct 
-  type t = test_event -> unit 
+module Test =
+struct
+  type t = test_event -> unit
 
   let create driver path =
     fun ev ->
-      driver.fwrite  
+      driver.fwrite
         {
           timestamp = now ();
           event = TestEvent (path, ev)
@@ -335,7 +335,7 @@ struct
       (fun s -> t (ELogRaw s))
       fmt
 
-  let logf t lvl fmt = 
+  let logf t lvl fmt =
     Printf.ksprintf
       (fun s -> t (ELog (lvl, s)))
       fmt

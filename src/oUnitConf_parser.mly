@@ -6,7 +6,7 @@
 %token <string * int> INT
 %token <string * float> FLOAT
 %token <string> STRING
-%token <Lexing.position * string> VAR 
+%token <Lexing.position * string> VAR
 %token SEMICOLON EQUAL EOF
 %start main
 %type <(Lexing.position * string * OUnitConf_types.data) list> main

@@ -36,7 +36,7 @@ let runner socket =
       try
         test (); (path, RSuccess)
       with e ->
-        let backtrace = 
+        let backtrace =
           if Printexc.backtrace_status ()
           then Some (Printexc.get_backtrace ())
           else None
@@ -44,7 +44,7 @@ let runner socket =
         match e with
           | Failure s -> (path, RFailure (s, backtrace))
           | Skip s -> (path, RSkip s)
-          | Todo s -> (path, RTodo s) 
+          | Todo s -> (path, RTodo s)
           | s -> (path, RError (Printexc.to_string s, backtrace))
 
   and write_socket sock str =

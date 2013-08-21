@@ -1,6 +1,6 @@
 
-type data = 
-  | Unit 
+type data =
+  | Unit
   | Bool of string * bool
   | Int of string * int
   | Float of string * float
@@ -9,8 +9,8 @@ type data =
   | Tuple of data list
 
 let data_merge d1 d2 =
-  match d1, d2 with 
-    | Unit, d 
+  match d1, d2 with
+    | Unit, d
     | d, Unit -> d
 
     | Tuple lst1, Tuple lst2 -> Tuple (lst1 @ lst2)

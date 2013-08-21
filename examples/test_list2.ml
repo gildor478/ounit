@@ -13,5 +13,5 @@ let test_list_append _ =
   assert_equal list_b list_a
 
 let suite = "Test_list2" >::: ["test_list_length2" >:: test_list_length;
-			       "test_list_append2" >:: test_list_append]
+                               "test_list_append2" >:: test_list_append]
 

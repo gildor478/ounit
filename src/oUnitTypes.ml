@@ -10,20 +10,20 @@ exception Skip of string
 
 exception Todo of string
 
-(** See OUnit.mli. *) 
+(** See OUnit.mli. *)
 type node = ListItem of int | Label of string
 
-(** See OUnit.mli. *) 
-type path = node list 
+(** See OUnit.mli. *)
+type path = node list
 
 (** See OUnit2.mli. *)
 type backtrace = string option
 
-(** See OUnit.mli. *) 
+(** See OUnit.mli. *)
 type test_result =
   | RSuccess
   | RFailure of string * backtrace
-  | RError of string * backtrace 
+  | RError of string * backtrace
   | RSkip of string
   | RTodo of string
 
@@ -37,13 +37,13 @@ type position =
 (* See OUnit.mli. *)
 type test_results = (path * test_result * position option) list
 
-(** See OUnit.mli. *) 
-type log_severity = 
+(** See OUnit.mli. *)
+type log_severity =
   | LError
   | LWarning
   | LInfo
 
-(** See OUnit.mli. *) 
+(** See OUnit.mli. *)
 type test_event =
   | EStart
   | EEnd
@@ -58,17 +58,17 @@ type global_event =
   | GEnd    (** Finish running the tests. *)
   | GResults of (float * test_results * int)
 
-type log_event_t = 
+type log_event_t =
   | GlobalEvent of global_event
   | TestEvent of path * test_event
 
-type log_event = 
+type log_event =
     {
       timestamp: float;
       event: log_event_t;
     }
 
-type test_ctxt = 
+type test_ctxt =
     {
       logger: test_event -> unit
     }
@@ -76,12 +76,12 @@ type test_ctxt =
 type test_fun = test_ctxt -> unit
 
 (* The type of tests *)
-type test = 
+type test =
   | TestCase of test_fun
   | TestList of test list
   | TestLabel of string * test
 
-type state = 
+type state =
     {
       tests_planned: (path * test_fun) list;
       results: test_results;

@@ -12,7 +12,7 @@ let assert_string = OUnitAssert.assert_string
 (* let assert_command = OUnitAssert.assert_command *)
 let assert_command
       ?exit_code ?sinput ?foutput ?use_stderr ?env ~ctxt prg args =
-  OUnitAssert.assert_command 
+  OUnitAssert.assert_command
       ?exit_code ?sinput ?foutput ?use_stderr ?env ~ctxt
       prg args
 let assert_equal = OUnitAssert.assert_equal

@@ -1,7 +1,7 @@
 
 open OUnit2
 
-let xmllint = 
+let xmllint =
   (* TODO: create conf_make in OUnit2. *)
   OUnitConf.make
     "xmllint"
@@ -10,7 +10,7 @@ let xmllint =
     "xmllint"
     "XML linter program to validate output."
 
-let testFakeHTML = 
+let testFakeHTML =
   (* TODO: create conf_make in OUnit2. *)
   OUnitConf.make
     "testFakeHTML"
@@ -27,21 +27,21 @@ let tests =
        (* For easier dev. we don't use a temporary directory but a permanent
         * one, so that we can see the result.
         *)
-       let () = 
+       let () =
          skip_if (Sys.os_type = "Win32")
            "Don't run on Win32."
        in
        let html_dir = "log-html" in
        let junit_xml = Filename.concat html_dir "junit.xml" in
-       let link_to_source bn = 
+       let link_to_source bn =
          Sys.remove (Filename.concat html_dir bn);
-         Unix.symlink 
-           (Filename.concat (Sys.getcwd ()) (Filename.concat "src" bn)) 
+         Unix.symlink
+           (Filename.concat (Sys.getcwd ()) (Filename.concat "src" bn))
            (Filename.concat html_dir bn)
        in
          if not (Sys.file_exists html_dir) then
            Unix.mkdir html_dir 0o750;
-         assert_command 
+         assert_command
            ~ctxt
            ~exit_code:(Unix.WEXITED 1)
            (testFakeHTML ())

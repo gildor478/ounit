@@ -15,21 +15,21 @@ open OUnitTypes
  *)
 
 (* TODO: move into run_test_tt_main. *)
-let global_verbose = 
-  OUnitConf.make 
+let global_verbose =
+  OUnitConf.make
     "verbose"
     (fun r -> Arg.Set r)
     ~printer:string_of_bool
     false
     "Run test in verbose mode."
 
-let global_output_file = 
+let global_output_file =
   let pwd = Sys.getcwd () in
   let ocamlbuild_dir = Filename.concat pwd "_build" in
-  let dir = 
+  let dir =
     if Sys.file_exists ocamlbuild_dir && Sys.is_directory ocamlbuild_dir then
       ocamlbuild_dir
-    else 
+    else
       pwd
   in
   let fn = Filename.concat dir "oUnit.log" in
@@ -40,7 +40,7 @@ let global_output_file =
                    (fun r -> Arg.Unit (fun () -> r:= None)),
                    None,
                    "Prevent to write log in a file."]
-      ~printer:(function 
+      ~printer:(function
                   | None -> "<none>"
                   | Some fn -> Printf.sprintf "%S" fn)
       (fun r -> Arg.String (fun s -> r := Some s))
@@ -55,23 +55,23 @@ let global_runner = ref OUnitRunnerSeq.run_all_tests
 
 (* Run all tests, report starts, errors, failures, and return the results *)
 let perform_test logger test =
-  let rec flatten_test path acc = 
+  let rec flatten_test path acc =
     function
-      | TestCase(f) -> 
+      | TestCase(f) ->
           (path, f) :: acc
 
       | TestList (tests) ->
-          fold_lefti 
-            (fun acc t cnt -> 
-               flatten_test 
-                 ((ListItem cnt)::path) 
+          fold_lefti
+            (fun acc t cnt ->
+               flatten_test
+                 ((ListItem cnt)::path)
                  acc t)
             acc tests
-      | TestLabel (label, t) -> 
+      | TestLabel (label, t) ->
           flatten_test ((Label label)::path) acc t
   in
-  let test_cases = 
-    List.rev (flatten_test [] [] test) 
+  let test_cases =
+    List.rev (flatten_test [] [] test)
   in
     !global_runner logger !global_chooser test_cases
 
@@ -81,8 +81,8 @@ let run_test_tt ?verbose test =
     Printexc.record_backtrace true
   in
 
-  let base_logger = 
-    OUnitLogger.create 
+  let base_logger =
+    OUnitLogger.create
       (global_output_file ())
       (global_verbose ())
       OUnitLogger.null_logger
@@ -103,16 +103,16 @@ let run_test_tt ?verbose test =
   in
 
   (* Now start the test *)
-  let running_time, test_results = 
-    time_fun 
+  let running_time, test_results =
+    time_fun
       perform_test
       logger
-      test 
+      test
   in
-    
+
     (* Print test report *)
-    OUnitLogger.report logger 
-      (GlobalEvent 
+    OUnitLogger.report logger
+      (GlobalEvent
          (GResults (running_time, test_results, test_case_count test)));
 
     (* Reset logger. *)
@@ -120,22 +120,23 @@ let run_test_tt ?verbose test =
 
     (* Return the results possibly for further processing *)
     test_results
-      
+
 (* Call this one from you test suites *)
-let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) ?fexit suite = 
-  let fexit = 
-    match fexit with 
-      | Some f -> f 
+let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) ?fexit suite =
+  let fexit =
+    match fexit with
+      | Some f -> f
       | None ->
           (fun test_results ->
              if not (was_successful test_results) then
                exit 1)
   in
   let only_test =
-    OUnitConf.make 
+    OUnitConf.make
       "only_test"
       ~arg_string:"path"
-      ~printer:(fun lst -> String.concat "," (List.map (Printf.sprintf "%S") lst))
+      ~printer:(fun lst ->
+                  String.concat "," (List.map (Printf.sprintf "%S") lst))
       (fun r -> Arg.String (fun str -> r := str :: !r))
       []
       "Run only the selected tests."
@@ -144,11 +145,11 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) ?fexit suite =
     OUnitConf.make
       "list_test"
       (fun r -> Arg.Set r)
-      ~printer:string_of_bool 
+      ~printer:string_of_bool
       false
       "List tests"
   in
-  let () = 
+  let () =
     OUnitConf.load arg_specs
   in
     if list_test () then
@@ -159,25 +160,25 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) ?fexit suite =
       end
     else
       begin
-        let nsuite = 
+        let nsuite =
           if only_test () = [] then
             suite
           else
             begin
-              match OUnitTest.test_filter ~skip:true (only_test ()) suite with 
+              match OUnitTest.test_filter ~skip:true (only_test ()) suite with
                 | Some test ->
                     test
                 | None ->
-                    failwith 
+                    failwith
                       (Printf.sprintf
                          "Filtering test %s lead to no tests."
                          (String.concat ", " (only_test ())))
             end
         in
 
-        let test_results = 
+        let test_results =
           set_verbose (global_verbose ());
-          run_test_tt ~verbose:(global_verbose ()) nsuite 
+          run_test_tt ~verbose:(global_verbose ()) nsuite
         in
           fexit test_results
       end

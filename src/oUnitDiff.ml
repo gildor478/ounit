@@ -8,7 +8,7 @@
 
 open Format
 
-module type DIFF_ELEMENT = 
+module type DIFF_ELEMENT =
 sig
   type t
 
@@ -19,9 +19,9 @@ sig
   val pp_print_sep: Format.formatter -> unit -> unit
 end
 
-module type S = 
+module type S =
 sig
-  type e 
+  type e
 
   type t
 
@@ -37,20 +37,20 @@ sig
 end
 
 let assert_equal ?msg compare pp_printer pp_diff exp act =
-  OUnit.assert_equal 
+  OUnit.assert_equal
     ~cmp:(fun t1 t2 -> (compare t1 t2) = 0)
-    ~printer:(fun t -> 
+    ~printer:(fun t ->
                 let buff = Buffer.create 13 in
                 let fmt = formatter_of_buffer buff in
-                  pp_printer fmt t; 
+                  pp_printer fmt t;
                   pp_print_flush fmt ();
-                  Buffer.contents buff) 
-    ~pp_diff 
-    ?msg 
+                  Buffer.contents buff)
+    ~pp_diff
+    ?msg
     exp act
 
-module SetMake (D: DIFF_ELEMENT) : S with type e = D.t = 
-struct 
+module SetMake (D: DIFF_ELEMENT) : S with type e = D.t =
+struct
   module Set = Set.Make(D)
 
   type e = D.t
@@ -58,12 +58,12 @@ struct
   type t = Set.t
 
   let compare =
-    Set.compare 
+    Set.compare
 
-  let pp_printer fmt t = 
+  let pp_printer fmt t =
     let first = ref true in
       pp_open_box fmt 0;
-      Set.iter 
+      Set.iter
         (fun e ->
            if not !first then
              D.pp_print_sep fmt ();
@@ -72,10 +72,10 @@ struct
         t;
       pp_close_box fmt ()
 
-  let pp_diff fmt (t1, t2) = 
+  let pp_diff fmt (t1, t2) =
     let first = ref true in
-    let print_list c t = 
-      Set.iter 
+    let print_list c t =
+      Set.iter
         (fun e ->
            if not !first then
              D.pp_print_sep fmt ();
@@ -101,13 +101,14 @@ struct
 
 end
 
-module ListSimpleMake (D: DIFF_ELEMENT) : S with type e = D.t and type t = D.t list =
-struct 
+module ListSimpleMake (D: DIFF_ELEMENT) : S
+    with type e = D.t and type t = D.t list =
+struct
   type e = D.t
 
   type t = e list
 
-  let rec compare t1 t2 = 
+  let rec compare t1 t2 =
     match t1, t2 with
       | e1 :: tl1, e2 :: tl2 ->
           begin
@@ -126,23 +127,23 @@ struct
 
       | [], _ ->
           1
-  
-  let pp_print_gen pre fmt t = 
+
+  let pp_print_gen pre fmt t =
     let first = ref true in
       pp_open_box fmt 0;
-      List.iter 
+      List.iter
         (fun e ->
-           if not !first then 
+           if not !first then
              D.pp_print_sep fmt ();
            fprintf fmt "%s%a" pre D.pp_printer e;
            first := false)
         t;
       pp_close_box fmt ()
 
-  let pp_printer fmt t = 
+  let pp_printer fmt t =
     pp_print_gen "" fmt t
 
-  let pp_diff fmt (t1, t2) = 
+  let pp_diff fmt (t1, t2) =
     let rec pp_diff' n t1 t2 =
       match t1, t2 with
         | e1 :: tl1, e2 :: tl2 ->

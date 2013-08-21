@@ -37,12 +37,12 @@ let run_all_tests logger chooser test_cases =
     try
       test_fun ();
       RSuccess
-    with e -> 
+    with e ->
       (* No backtraces because I suspect them to not be thread-safe. *)
       match e with
         | Failure s -> RFailure (s, None)
         | Skip s -> RSkip s
-        | Todo s -> RTodo s 
+        | Todo s -> RTodo s
         | s -> RError (Printexc.to_string s, None)
   in
 
@@ -70,7 +70,8 @@ let run_all_tests logger chooser test_cases =
     Event.sync (Event.send suite_result_chan !l)
   in
 
-  (* Beginning of preform_test.runn equivalent, wait results from synchronizer. *)
+  (* Beginning of preform_test.runn equivalent, wait results from synchronizer.
+   *)
   let rec schedule wait_chan suite_result_chan = function
     | [] -> Event.sync (Event.receive suite_result_chan)
     | test::tests_planned ->
@@ -79,7 +80,7 @@ let run_all_tests logger chooser test_cases =
   in
   (* Init channels to pass values with easy synchronization. *)
   let len = List.length test_cases in
-  
+
   (* Threads will get tests by there. *)
   let wait_chan = Event.new_channel () in
   (* Threads will send test result here. *)
@@ -90,17 +91,17 @@ let run_all_tests logger chooser test_cases =
 
   (* Init our threads: a pool, a scheduler that dispatches tests, *)
   (* and a synchronizer that aggregates result and call the logger. *)
-  let pool_size = 
+  let pool_size =
     if len < thread_pool_threshold () then
-      len 
+      len
     else
       thread_pool_size ()
   in
-  let _thrd = 
+  let _thrd =
     Thread.create synchronizer_main (len, result_chan, suite_result_chan)
   in
     for i = 0 to pool_size do
-      let _thrd = 
+      let _thrd =
         Thread.create thread_main (wait_chan, result_chan)
       in
         ()

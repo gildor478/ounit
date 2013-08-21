@@ -13,9 +13,7 @@ let test_list_append _ =
   assert_equal list_b list_a
 
 let suite = "OUnit Example" >::: ["test_list_length" >:: test_list_length;
-				  "test_list_append" >:: test_list_append]
+                                  "test_list_append" >:: test_list_append]
 
-(*
-let _ =
+let () =
   run_test_tt_main suite
-  *)

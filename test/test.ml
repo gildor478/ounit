@@ -1,7 +1,7 @@
 
 open OUnit2
 
-let rec ounit2_of_ounit1= 
+let rec ounit2_of_ounit1 =
   function
     | OUnit.TestCase f ->
         OUnit2.TestCase (fun ctxt -> f ())
