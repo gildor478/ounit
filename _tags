@@ -1,33 +1,4 @@
 # OASIS_START
-# DO NOT EDIT (digest: 20d7c73529fc9b8b83fc478104e72a61)
-# Ignore VCS directories, you can use the same kind of rule outside 
-# OASIS_START/STOP if you want to exclude directories that contains 
-# useless stuff for the build process
-<**/.svn>: -traverse
-<**/.svn>: not_hygienic
-".bzr": -traverse
-".bzr": not_hygienic
-".hg": -traverse
-".hg": not_hygienic
-".git": -traverse
-".git": not_hygienic
-"_darcs": -traverse
-"_darcs": not_hygienic
-# Library oUnit
-"src/oUnit.cmxs": use_oUnit
-# Library oUnitThreads
-"src/oUnitThreads.cmxs": use_oUnitThreads
-<src/*.ml{,i}>: use_oUnit
-<src/*.ml{,i}>: pkg_threads
-<src/*.ml{,i}>: pkg_unix
-# Executable testFakeHTML
-"test/testFakeHTML.byte": use_oUnit
-"test/testFakeHTML.byte": pkg_unix
-# Executable test
-"test/test.byte": use_oUnit
-"test/test.byte": pkg_unix
-<test/*.ml{,i}>: use_oUnit
-<test/*.ml{,i}>: pkg_unix
 # OASIS_STOP
 "src/oUnit.ml": syntax_camlp4o, pkg_camlp4.macro
 "src/oUnit.odoc": oasis_document_api_ounit
