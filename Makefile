@@ -45,3 +45,25 @@ doc-test: doc
 	 ocamldoc -g ../ocaml-tmp/odoc-extract-code/odoc_extract_code.cmo \
 	   -load _build/src/oUnit.odoc -intro doc/manual.txt > _build/src/tmp.ml;
 	 ocamlc -c -I _build/src/ _build/src/tmp.ml
+
+PRECOMMIT_ARGS= \
+	    --exclude log-html \
+	    --exclude myocamlbuild.ml \
+	    --exclude setup.ml \
+	    --exclude README.txt \
+	    --exclude INSTALL.txt \
+	    --exclude Makefile \
+	    --exclude configure \
+	    --exclude _tags
+
+precommit:
+	 @if command -v OCamlPrecommit > /dev/null; then \
+	   OCamlPrecommit $(PRECOMMIT_ARGS); \
+	 else \
+	   echo "Skipping precommit checks.";\
+	 fi
+
+test: precommit
+
+.PHONY: precommit
+
