@@ -234,7 +234,34 @@ let create_child map_test_cases =
           }
 
 let default_timeout = 5.0
-let shards = 5
+
+let shards =
+  let shards = ref 2 in
+  if Sys.os_type = "Unix" then begin
+    if Sys.file_exists "/proc/cpuinfo" then begin
+      let chn_in = open_in "/proc/cpuinfo" in
+      let () =
+        try
+          while true do
+            try
+              let line = input_line chn_in in
+                Scanf.sscanf line "cpu cores : %d" (fun i -> shards := i)
+            with Scanf.Scan_failure _ ->
+              ()
+          done
+        with End_of_file ->
+          ()
+      in
+        close_in chn_in
+    end
+  end;
+  OUnitConf.make
+    "shards"
+    ~arg_string:"n"
+    ~printer:string_of_int
+    (fun r -> Arg.Set_int r)
+    !shards
+    "Number of shards when using 'processes' as a runner."
 
 (* Run all tests. *)
 let run_all_tests logger (chooser: chooser) test_cases =
@@ -249,7 +276,7 @@ let run_all_tests logger (chooser: chooser) test_cases =
   let children =
     Array.to_list
       (Array.init
-         shards
+         (shards ())
          (fun n -> create_child map_test_cases))
   in
 
