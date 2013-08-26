@@ -31,7 +31,7 @@ let string_of_path = OUnitTest.string_of_path
 let test_case_paths = OUnitTest.test_case_paths
 let perform_test =
   OUnitCore.perform_test
-    OUnitRunnerSeq.run_all_tests
+    OUnitRunnerSequential.run_all_tests
     OUnitChooser.simple
 let run_test_tt = OUnitCore.run_test_tt ~version:2
 let run_test_tt_main = OUnitCore.run_test_tt_main ~version:2

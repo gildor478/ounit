@@ -83,7 +83,7 @@ let run_test_tt ~version ?verbose test =
   let runner () =
     (* TODO: transform in command line. *)
     if version = 1 then
-      OUnitRunnerSeq.run_all_tests
+      OUnitRunnerSequential.run_all_tests
     else
       OUnitRunnerProcesses.run_all_tests
   in

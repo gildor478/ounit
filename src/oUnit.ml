@@ -209,7 +209,7 @@ let perform_test logger1 tst =
   in
     list_result1_of_list_result
       (OUnitCore.perform_test
-         OUnitRunnerSeq.run_all_tests
+         OUnitRunnerSequential.run_all_tests
          OUnitChooser.simple
          logger
          (test_of_test1 tst))
