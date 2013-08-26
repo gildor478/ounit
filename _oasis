@@ -43,6 +43,7 @@ Library "oUnit"
                    OUnitAssert,
                    OUnitBracket,
                    OUnitTest,
+                   OUnitRunner,
                    OUnitRunnerSeq,
                    OUnitRunnerProcesses,
                    OUnitCore

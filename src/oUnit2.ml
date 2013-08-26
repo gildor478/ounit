@@ -29,8 +29,11 @@ let test_case_count = OUnitTest.test_case_count
 let string_of_node = OUnitTest.string_of_node
 let string_of_path = OUnitTest.string_of_path
 let test_case_paths = OUnitTest.test_case_paths
-let perform_test = OUnitCore.perform_test
-let run_test_tt = OUnitCore.run_test_tt
-let run_test_tt_main = OUnitCore.run_test_tt_main
+let perform_test =
+  OUnitCore.perform_test
+    OUnitRunnerSeq.run_all_tests
+    OUnitChooser.simple
+let run_test_tt = OUnitCore.run_test_tt ~version:2
+let run_test_tt_main = OUnitCore.run_test_tt_main ~version:2
 let logf ctxt log_severity fmt =
    OUnitLogger.Test.logf ctxt.logger log_severity fmt

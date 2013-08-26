@@ -153,9 +153,9 @@ let now () =
 
 (* Function which runs the given function and returns the running time
    of the function, and the original result in a tuple *)
-let time_fun f x y =
+let time_fun f x =
   let begin_time = now () in
-  let res = f x y in
+  let res = f x in
     (now () -. begin_time, res)
 
 let date_iso8601 ?(tz=true) timestamp =

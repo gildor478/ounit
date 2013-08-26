@@ -47,14 +47,8 @@ let global_output_file =
       (Some fn)
       "Output verbose log in the given file."
 
-(* TODO: remove *)
-let global_chooser = ref OUnitChooser.simple
-
-(* TODO: remove *)
-let global_runner = ref OUnitRunnerSeq.run_all_tests
-
 (* Run all tests, report starts, errors, failures, and return the results *)
-let perform_test logger test =
+let perform_test runner chooser logger test =
   let rec flatten_test path acc =
     function
       | TestCase(f) ->
@@ -73,12 +67,25 @@ let perform_test logger test =
   let test_cases =
     List.rev (flatten_test [] [] test)
   in
-    !global_runner logger !global_chooser test_cases
+    runner logger chooser test_cases
 
 (* A simple (currently too simple) text based test runner *)
-let run_test_tt ?verbose test =
+let run_test_tt ~version ?verbose test =
   let () =
     Printexc.record_backtrace true
+  in
+
+  let chooser () =
+    (* TODO: transform in command line. *)
+    OUnitChooser.simple
+  in
+
+  let runner () =
+    (* TODO: transform in command line. *)
+    if version = 1 then
+      OUnitRunnerSeq.run_all_tests
+    else
+      OUnitRunnerProcesses.run_all_tests
   in
 
   let base_logger =
@@ -105,8 +112,10 @@ let run_test_tt ?verbose test =
   (* Now start the test *)
   let running_time, test_results =
     time_fun
-      perform_test
-      logger
+      (perform_test
+         (runner ())
+         (chooser ())
+         logger)
       test
   in
 
@@ -121,8 +130,13 @@ let run_test_tt ?verbose test =
     (* Return the results possibly for further processing *)
     test_results
 
-(* Call this one from you test suites *)
-let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) ?fexit suite =
+(* Call this one to act as your main() function. *)
+let run_test_tt_main
+      ~version
+      ?(arg_specs=[])
+      ?(set_verbose=ignore)
+      ?fexit
+      suite =
   let fexit =
     match fexit with
       | Some f -> f
@@ -149,6 +163,7 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) ?fexit suite =
       false
       "List tests"
   in
+
   let () =
     OUnitConf.load arg_specs
   in
@@ -178,7 +193,7 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) ?fexit suite =
 
         let test_results =
           set_verbose (global_verbose ());
-          run_test_tt ~verbose:(global_verbose ()) nsuite
+          run_test_tt ~version ~verbose:(global_verbose ()) nsuite
         in
           fexit test_results
       end

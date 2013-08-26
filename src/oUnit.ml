@@ -208,11 +208,15 @@ let perform_test logger1 tst =
       ignore
   in
     list_result1_of_list_result
-      (OUnitCore.perform_test logger (test_of_test1 tst))
+      (OUnitCore.perform_test
+         OUnitRunnerSeq.run_all_tests
+         OUnitChooser.simple
+         logger
+         (test_of_test1 tst))
 
 let run_test_tt ?verbose test =
   list_result1_of_list_result
-    (OUnitCore.run_test_tt ?verbose (test_of_test1 test))
+    (OUnitCore.run_test_tt ~version:1 ?verbose (test_of_test1 test))
 
 let run_test_tt_main ?arg_specs ?set_verbose test =
   let lst_rslt = ref [] in
@@ -220,6 +224,6 @@ let run_test_tt_main ?arg_specs ?set_verbose test =
     lst_rslt := list_result1_of_list_result lst
   in
     OUnitCore.run_test_tt_main
-      ?arg_specs ?set_verbose ~fexit (test_of_test1 test);
+      ~version:1 ?arg_specs ?set_verbose ~fexit (test_of_test1 test);
     !lst_rslt
 

@@ -35,7 +35,8 @@ type position =
     }
 
 (* See OUnit.mli. *)
-type test_results = (path * test_result * position option) list
+type test_result_full = (path * test_result * position option)
+type test_results = test_result_full list
 
 (** See OUnit.mli. *)
 type log_severity =
@@ -86,3 +87,5 @@ type state =
       tests_planned: (path * test_fun) list;
       results: test_results;
     }
+
+type chooser = state -> path * test_fun
