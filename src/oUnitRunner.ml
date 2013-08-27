@@ -28,3 +28,21 @@ let run_one_test logger test_case =
     OUnitLogger.report logger (TestEvent (test_path, EResult result));
     OUnitLogger.report logger (TestEvent (test_path, EEnd));
     test_path, result, position
+
+type runner =
+    OUnitLogger.logger ->
+    OUnitChooser.chooser ->
+    (path * test_fun) list ->
+    test_results
+
+
+module Plugin =
+  OUnitPlugin.Make
+    (struct
+       type t = runner
+       let name = "runner"
+       let conf_help =
+         "Select a the method to run tests."
+     end)
+
+include Plugin

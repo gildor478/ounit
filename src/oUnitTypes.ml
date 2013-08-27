@@ -87,5 +87,3 @@ type state =
       tests_planned: (path * test_fun) list;
       results: test_results;
     }
-
-type chooser = state -> path * test_fun

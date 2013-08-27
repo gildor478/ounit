@@ -6,13 +6,13 @@
 open OUnitTypes
 
 (* Run all tests, sequential version *)
-let run_all_tests logger (chooser: chooser) test_cases =
+let run_all_tests logger chooser test_cases =
   let rec iter state =
     match state.tests_planned with
       | [] ->
           state.results
       | _ ->
-          let (test_path, _) as test_case = chooser state in
+          let (test_path, _) as test_case = chooser logger state in
           let result = OUnitRunner.run_one_test logger test_case in
             iter
               {
@@ -24,3 +24,6 @@ let run_all_tests logger (chooser: chooser) test_cases =
               }
   in
   iter {results = []; tests_planned = test_cases}
+
+let () =
+  OUnitRunner.register "sequential" 50 run_all_tests

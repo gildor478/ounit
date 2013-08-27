@@ -32,28 +32,14 @@ let thread_pool_size =
 
 (* Run all test, threaded version *)
 let run_all_tests logger chooser test_cases =
-  (* perform_test.run_test_case equivalent *)
-  let thread_run test_fun =
-    try
-      test_fun ();
-      RSuccess
-    with e ->
-      (* No backtraces because I suspect them to not be thread-safe. *)
-      match e with
-        | Failure s -> RFailure (s, None)
-        | Skip s -> RSkip s
-        | Todo s -> RTodo s
-        | s -> RError (Printexc.to_string s, None)
-  in
 
   (* Thread-wide synchronization. *)
   let thread_main (wait_chan, result_chan) =
     while true do
       let event = Event.receive wait_chan in
-      let (test_path, test_fun) = Event.sync event in
-      OUnitLogger.report logger (TestEvent (test_path, EStart));
-      let test_res = thread_run test_fun in
-        Event.sync (Event.send result_chan (test_path, test_res))
+      let test_case = Event.sync event in
+      let result = OUnitRunner.run_one_test logger test_case in
+        Event.sync (Event.send result_chan result)
     done
   in
 
@@ -61,10 +47,8 @@ let run_all_tests logger chooser test_cases =
   let synchronizer_main (test_number, result_chan, suite_result_chan) =
     let i = ref test_number and l = ref [] in
     while !i > 0 do
-      let (path, res) = Event.sync (Event.receive result_chan) in
-        OUnitLogger.report logger (TestEvent (path, (EResult res)));
-        OUnitLogger.report logger (TestEvent (path, EEnd));
-        l := (path, res, None)::!l;
+      let result = Event.sync (Event.receive result_chan) in
+        l := result :: !l;
         decr i
     done;
     Event.sync (Event.send suite_result_chan !l)
@@ -73,6 +57,7 @@ let run_all_tests logger chooser test_cases =
   (* Beginning of preform_test.runn equivalent, wait results from synchronizer.
    *)
   let rec schedule wait_chan suite_result_chan = function
+    (* TODO: no use of chooser, that is bad. *)
     | [] -> Event.sync (Event.receive suite_result_chan)
     | test::tests_planned ->
         Event.sync (Event.send wait_chan test);
@@ -108,3 +93,5 @@ let run_all_tests logger chooser test_cases =
     done;
     schedule wait_chan suite_result_chan test_cases
 
+let () =
+  OUnitRunner.register "threads" 70 run_all_tests

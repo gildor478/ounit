@@ -264,7 +264,7 @@ let shards =
     "Number of shards when using 'processes' as a runner."
 
 (* Run all tests. *)
-let run_all_tests logger (chooser: chooser) test_cases =
+let run_all_tests logger chooser test_cases =
   let map_test_cases =
     List.fold_left
       (fun mp ((test_path, _) as test_case) ->
@@ -296,7 +296,7 @@ let run_all_tests logger (chooser: chooser) test_cases =
       | [] ->
           None, state
       | _ ->
-          let (test_path, (_: test_fun)) as test_case = chooser state in
+          let (test_path, _) as test_case = chooser logger state in
             Some test_case,
             {state with
                 (* TODO: add tests_running. *)
@@ -383,3 +383,6 @@ let run_all_tests logger (chooser: chooser) test_cases =
 
     iter state
 
+let () =
+  if Sys.os_type = "Unix" then
+    OUnitRunner.register "processes" 100 run_all_tests

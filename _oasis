@@ -31,11 +31,12 @@ Library "oUnit"
            OUnit2
   InternalModules: OUnitTypes,
                    OUnitUtils,
-                   OUnitChooser,
                    OUnitConf_parser,
                    OUnitConf_lexer,
                    OUnitConf_data,
                    OUnitConf_types,
+                   OUnitPlugin,
+                   OUnitChooser,
                    OUnitResultSummary,
                    OUnitLoggerHTML,
                    OUnitLoggerHTMLData,

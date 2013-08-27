@@ -209,14 +209,18 @@ let perform_test logger1 tst =
   in
     list_result1_of_list_result
       (OUnitCore.perform_test
-         OUnitRunnerSequential.run_all_tests
-         OUnitChooser.simple
+         OUnitCore.default_runner_v1
+         OUnitCore.default_chooser_v1
          logger
          (test_of_test1 tst))
 
 let run_test_tt ?verbose test =
   list_result1_of_list_result
-    (OUnitCore.run_test_tt ~version:1 ?verbose (test_of_test1 test))
+    (OUnitCore.run_test_tt
+       ?verbose
+       OUnitCore.default_chooser_v1
+       OUnitCore.default_runner_v1
+       (test_of_test1 test))
 
 let run_test_tt_main ?arg_specs ?set_verbose test =
   let lst_rslt = ref [] in

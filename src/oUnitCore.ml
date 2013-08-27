@@ -10,6 +10,10 @@
 open OUnitUtils
 open OUnitTypes
 
+(* Plugin initialisation. *)
+open OUnitRunnerSequential
+open OUnitRunnerProcesses
+
 (*
  * Types and global states.
  *)
@@ -70,22 +74,9 @@ let perform_test runner chooser logger test =
     runner logger chooser test_cases
 
 (* A simple (currently too simple) text based test runner *)
-let run_test_tt ~version ?verbose test =
+let run_test_tt ?verbose chooser runner test =
   let () =
     Printexc.record_backtrace true
-  in
-
-  let chooser () =
-    (* TODO: transform in command line. *)
-    OUnitChooser.simple
-  in
-
-  let runner () =
-    (* TODO: transform in command line. *)
-    if version = 1 then
-      OUnitRunnerSequential.run_all_tests
-    else
-      OUnitRunnerProcesses.run_all_tests
   in
 
   let base_logger =
@@ -112,10 +103,7 @@ let run_test_tt ~version ?verbose test =
   (* Now start the test *)
   let running_time, test_results =
     time_fun
-      (perform_test
-         (runner ())
-         (chooser ())
-         logger)
+      (perform_test runner chooser logger)
       test
   in
 
@@ -129,6 +117,9 @@ let run_test_tt ~version ?verbose test =
 
     (* Return the results possibly for further processing *)
     test_results
+
+let default_chooser_v1 = OUnitChooser.simple
+let default_runner_v1 = OUnitRunnerSequential.run_all_tests
 
 (* Call this one to act as your main() function. *)
 let run_test_tt_main
@@ -163,7 +154,18 @@ let run_test_tt_main
       false
       "List tests"
   in
-
+  let chooser =
+    if version = 1 then
+      (fun () -> default_chooser_v1)
+    else
+      OUnitChooser.conf ()
+  in
+  let runner =
+    if version = 1 then
+      (fun () -> default_runner_v1)
+    else
+      OUnitRunner.conf ()
+  in
   let () =
     OUnitConf.load arg_specs
   in
@@ -193,7 +195,11 @@ let run_test_tt_main
 
         let test_results =
           set_verbose (global_verbose ());
-          run_test_tt ~version ~verbose:(global_verbose ()) nsuite
+          run_test_tt
+            ~verbose:(global_verbose ())
+            (chooser ())
+            (runner ())
+            nsuite
         in
           fexit test_results
       end
