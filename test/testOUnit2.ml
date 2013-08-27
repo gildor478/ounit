@@ -123,7 +123,7 @@ let assert_equal_test_result =
   assert_equal
     ~cmp:
     (fun a b ->
-       let norm (path, test_result, pos) =
+       let norm_one (path, test_result, pos) =
          let test_result' =
            match test_result with
              | RSuccess -> RSuccess
@@ -134,7 +134,10 @@ let assert_equal_test_result =
          in
            (path, test_result', pos)
        in
-           (List.rev_map norm a) = (List.rev_map norm b))
+       let norm lst =
+         List.sort Pervasives.compare (List.rev_map norm_one lst)
+       in
+         norm a = norm b)
     ~printer:
     (fun results ->
       String.concat "; "
