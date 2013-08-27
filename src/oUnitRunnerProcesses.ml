@@ -280,13 +280,13 @@ let run_all_tests logger chooser test_cases =
          (fun n -> create_child map_test_cases))
   in
 
-  let state = OUnitState.create test_cases in
+  let state = OUnitState.create (chooser logger) test_cases in
 
   (* Initial assignement of test to children. *)
   let state =
     List.fold_left
       (fun state child ->
-         match OUnitState.next_test_case chooser logger state with
+         match OUnitState.next_test_case state with
            | Some (test_path, _), state ->
                child.channel.send_data (RunTest test_path);
                child.state <- RunningTest test_path;
@@ -330,8 +330,6 @@ let run_all_tests logger chooser test_cases =
                    begin
                      let next_test_case_opt, state =
                        OUnitState.next_test_case
-                         chooser
-                         logger
                          (OUnitState.add_test_result test_result state)
                      in
                      let () =

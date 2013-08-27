@@ -8,7 +8,7 @@ open OUnitTypes
 (* Run all tests, sequential version *)
 let run_all_tests logger chooser test_cases =
   let rec iter state =
-    match OUnitState.next_test_case chooser logger state with
+    match OUnitState.next_test_case state with
       | None, state ->
           OUnitState.get_results state
       | Some test_case, state ->
@@ -17,7 +17,7 @@ let run_all_tests logger chooser test_cases =
                (OUnitRunner.run_one_test logger test_case)
                state)
   in
-  iter (OUnitState.create test_cases)
+  iter (OUnitState.create (chooser logger) test_cases)
 
 let () =
   OUnitRunner.register "sequential" 50 run_all_tests

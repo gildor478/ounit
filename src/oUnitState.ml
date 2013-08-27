@@ -8,12 +8,14 @@ type t =
     {
       tests_planned: (path * test_fun) list;
       results: test_results;
+      chooser: t -> (path * test_fun);
     }
 
-let create test_cases =
+let create chooser test_cases =
   {
     results = [];
     tests_planned = test_cases;
+    chooser = chooser;
   }
 
 let filter_out e lst = List.filter (fun (e', _) -> e <> e') lst
@@ -23,15 +25,16 @@ let add_test_result test_result state =
     {
       results = test_result :: state.results;
       tests_planned = filter_out test_path state.tests_planned;
+      chooser = state.chooser;
       (* TODO: add tests_running. *)
     }
 
-let next_test_case chooser logger state =
+let next_test_case state =
   match state.tests_planned with
     | [] ->
         None, state
     | _ ->
-        let (test_path, _) as test_case = chooser logger state in
+        let (test_path, _) as test_case = state.chooser state in
           Some test_case,
           {state with
               (* TODO: add tests_running. *)
