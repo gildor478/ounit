@@ -78,8 +78,7 @@ let make
         | Arg.Set_string _
         | Arg.String _ -> "s"
         | Arg.Bool _ -> "{true,false}"
-        | Arg.Symbol (lst, _) ->
-            "{"^(String.concat "|" lst)^"}"
+        | Arg.Symbol (lst, _) -> ""
         | Arg.Tuple lst ->
             String.concat " " (List.map cli_help_arg lst)
     in
