@@ -46,7 +46,7 @@ Library "oUnit"
                    OUnitTest,
                    OUnitState,
                    OUnitRunner,
-                   OUnitRunnerSeq,
+                   OUnitRunnerSequential,
                    OUnitRunnerProcesses,
                    OUnitCore
   BuildDepends: unix
