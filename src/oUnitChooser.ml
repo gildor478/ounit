@@ -5,8 +5,9 @@
   *)
 
 open OUnitTypes
+open OUnitState
 
-type chooser = OUnitLogger.logger -> state -> (path * test_fun)
+type chooser = OUnitLogger.logger -> OUnitState.t -> (path * test_fun)
 
 module Plugin =
   OUnitPlugin.Make

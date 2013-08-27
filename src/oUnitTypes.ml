@@ -81,9 +81,3 @@ type test =
   | TestCase of test_fun
   | TestList of test list
   | TestLabel of string * test
-
-type state =
-    {
-      tests_planned: (path * test_fun) list;
-      results: test_results;
-    }

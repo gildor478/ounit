@@ -44,6 +44,7 @@ Library "oUnit"
                    OUnitAssert,
                    OUnitBracket,
                    OUnitTest,
+                   OUnitState,
                    OUnitRunner,
                    OUnitRunnerSeq,
                    OUnitRunnerProcesses,

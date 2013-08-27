@@ -280,41 +280,13 @@ let run_all_tests logger chooser test_cases =
          (fun n -> create_child map_test_cases))
   in
 
-  let filter_out e lst = List.filter (fun (e', _) -> e <> e') lst in
-
-  let add_test_result test_result state =
-    let (test_path, _, _) = test_result in
-      {
-        results = test_result :: state.results;
-        tests_planned = filter_out test_path state.tests_planned;
-        (* TODO: add tests_running. *)
-      }
-  in
-
-  let next_test_case state =
-    match state.tests_planned with
-      | [] ->
-          None, state
-      | _ ->
-          let (test_path, _) as test_case = chooser logger state in
-            Some test_case,
-            {state with
-                (* TODO: add tests_running. *)
-                 tests_planned = filter_out test_path state.tests_planned}
-  in
-
-  let state =
-    {
-      results = [];
-      tests_planned = test_cases;
-    }
-  in
+  let state = OUnitState.create test_cases in
 
   (* Initial assignement of test to children. *)
   let state =
     List.fold_left
       (fun state child ->
-         match next_test_case state with
+         match OUnitState.next_test_case chooser logger state with
            | Some (test_path, _), state ->
                child.channel.send_data (RunTest test_path);
                child.state <- RunningTest test_path;
@@ -329,7 +301,7 @@ let run_all_tests logger chooser test_cases =
 
   let rec iter state =
     if List.for_all (fun child -> child.state = Exited) children then begin
-      state.results
+      OUnitState.get_results state
     end else begin
       let children_fd_lst =
         List.rev_map (fun worker -> worker.select_fd) children
@@ -357,7 +329,10 @@ let run_all_tests logger chooser test_cases =
                | TestDone test_result ->
                    begin
                      let next_test_case_opt, state =
-                       next_test_case (add_test_result test_result state)
+                       OUnitState.next_test_case
+                         chooser
+                         logger
+                         (OUnitState.add_test_result test_result state)
                      in
                      let () =
                        match next_test_case_opt with
