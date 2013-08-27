@@ -277,7 +277,9 @@ let run_all_tests logger chooser test_cases =
     Array.to_list
       (Array.init
          (shards ())
-         (fun n -> create_child map_test_cases))
+         (fun n ->
+            OUnitLogger.infof logger "Starting child process number %d." n;
+            create_child map_test_cases))
   in
 
   let state = OUnitState.create (chooser logger) test_cases in
@@ -322,6 +324,7 @@ let run_all_tests logger chooser test_cases =
              match child.channel.receive_data () with
                | AckExit ->
                    child.state <- Exited;
+                   OUnitLogger.infof logger "A child has ended.";
                    state
                | Log log_ev ->
                    OUnitLogger.report logger log_ev;

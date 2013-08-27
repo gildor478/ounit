@@ -41,6 +41,7 @@ let string_of_event ev =
           begin
             match e with
               | GConf (k, v) -> spf "GConf (%S, %S)" k v
+              | GInfo s      -> spf "GInfo %S" s
               | GStart       -> "GStart"
               | GEnd         -> "GEnd"
               | GResults _   -> "GResults"
@@ -68,6 +69,11 @@ let format_event verbose log_event =
             | GConf (k, v) ->
                 if verbose then
                   Printf.sprintf "%s=%S\n" k v
+                else
+                  ""
+            | GInfo str ->
+                if verbose then
+                  str^"\n"
                 else
                   ""
             | GStart ->
@@ -272,6 +278,11 @@ let report logger ev =
       timestamp = now ();
       event = ev;
     }
+
+let infof logger fmt =
+  Printf.ksprintf
+    (fun str -> report logger (GlobalEvent (GInfo str)))
+    fmt
 
 let position logger =
   logger.fpos ()
