@@ -12,14 +12,6 @@ type logger =
       fclose: unit -> unit;
     }
 
-let results_style_1_X =
-  OUnitConf.make
-    "results_style_1_X"
-    (fun r -> Arg.Set r)
-    ~printer:string_of_bool
-    false
-    "Use OUnit 1.X results printer."
-
 let string_of_event ev =
   let spf fmt = Printf.sprintf fmt in
   let string_of_result =
@@ -61,7 +53,16 @@ let string_of_event ev =
                   spf "ELogRaw %S" str
           end
 
-let format_event verbose log_event =
+(* TODO: deprecate in 2.1.0. *)
+let results_style_1_X =
+  OUnitConf.make
+    "results_style_1_X"
+    (fun r -> Arg.Set r)
+    ~printer:string_of_bool
+    false
+    "Use OUnit 1.X results printer (temporary solution until 2.1.0+)."
+
+let format_event conf verbose log_event =
   match log_event.event with
     | GlobalEvent e ->
         begin
@@ -94,7 +95,7 @@ let format_event verbose log_event =
                 let print_results =
                   List.iter
                     (fun (path, test_result, pos_opt) ->
-                       if results_style_1_X () then
+                       if results_style_1_X conf then
                          begin
                            bprintf "%s\n%s: %s\n\n%s\n%s\n"
                              separator1
@@ -215,11 +216,11 @@ let format_event verbose log_event =
                 | EResult result -> string_of_result result
         end
 
-let file_logger fn =
+let file_logger conf fn =
   let chn = open_out fn in
   let line = ref 1 in
   let fwrite ev =
-    let str =  format_event true ev in
+    let str =  format_event conf true ev in
     String.iter (function '\n' -> incr line | _ -> ()) str;
     output_string chn str;
     flush chn
@@ -236,10 +237,17 @@ let file_logger fn =
       fclose = fclose;
     }
 
+let verbose =
+  OUnitConf.make
+    "verbose"
+    (fun r -> Arg.Set r)
+    ~printer:string_of_bool
+    false
+    "Run test in verbose mode."
 
-let std_logger verbose =
+let std_logger conf =
   let fwrite log_ev =
-    print_string (format_event verbose log_ev);
+    print_string (format_event conf (verbose conf) log_ev);
     flush stdout
   in
     {
@@ -316,18 +324,33 @@ let combine lst =
            List.iter (fun logger -> close logger) (List.rev lst));
     }
 
-let create output_file_opt verbose logger =
+let output_file =
+  OUnitConf.make
+    "output_file"
+    ~arg_string:"fn"
+    ~alternates:["no_output_file",
+                 (fun r -> Arg.Unit (fun () -> r := None)),
+                 None,
+                 "Prevent to write log in a file."]
+    ~printer:(function
+                | None -> "<none>"
+                | Some fn -> Printf.sprintf "%S" fn)
+    (fun r -> Arg.String (fun s -> r := Some s))
+    (Some (Filename.concat OUnitUtils.buildir "oUnit.log"))
+    "Output verbose log in the given file."
+
+let create conf =
   let std_logger=
-    std_logger verbose
+    std_logger conf
   in
   let file_logger =
-    match output_file_opt with
+    match output_file conf with
       | Some fn ->
-          file_logger fn
+          file_logger conf fn
       | None ->
           null_logger
   in
-    combine [std_logger; file_logger; logger]
+    combine [std_logger; file_logger]
 
 module Test =
 struct

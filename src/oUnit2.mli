@@ -293,14 +293,21 @@ val run_test_tt : ?verbose:bool -> test -> test_results
     line arguments to set the verbose level and limit the number of test to
     run.
 
-    @param arg_specs add extra command line arguments
-    @param set_verbose call a function to set verbosity
-    @param fexit call a final function after test, by default exit 1.
+    @param test the test suite to run.
 
     @version 1.1.0
   *)
-val run_test_tt_main :
-    ?arg_specs:(Arg.key * Arg.spec * Arg.doc) list ->
-    ?set_verbose:(bool -> unit) ->
-    ?fexit:(test_results -> unit) ->
-    test -> unit
+val run_test_tt_main : test -> unit
+
+(* TODO: comment. *)
+val conf_make:
+    string ->
+    ?arg_string:string ->
+    ?alternates:(string *
+                 ('a ref -> Arg.spec) *
+                 string option * Arg.doc) list ->
+    printer:('a -> string) ->
+    ('a ref -> Arg.spec) ->
+    'a ->
+    Arg.doc ->
+    test_ctxt -> 'a

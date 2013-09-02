@@ -9,6 +9,10 @@ open OUnitState
 
 type chooser = OUnitLogger.logger -> OUnitState.t -> (path * test_fun)
 
+(** Most simple heuristic, just pick the first test. *)
+let simple _ state =
+  List.hd state.tests_planned
+
 module Plugin =
   OUnitPlugin.Make
     (struct
@@ -16,13 +20,10 @@ module Plugin =
        let name = "chooser"
        let conf_help =
          "Select a the method to choose tests to run."
+       let default = simple
      end)
 
 include Plugin
-
-(** Most simple heuristic, just pick the first test. *)
-let simple _ state =
-  List.hd state.tests_planned
 
 let () =
   register "simple" 0 simple

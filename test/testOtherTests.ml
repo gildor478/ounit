@@ -2,8 +2,7 @@
 open OUnit2
 
 let xmllint =
-  (* TODO: create conf_make in OUnit2. *)
-  OUnitConf.make
+  conf_make
     "xmllint"
     (fun v -> Arg.Set_string v)
     ~printer:(fun s -> s)
@@ -11,8 +10,7 @@ let xmllint =
     "XML linter program to validate output."
 
 let testFakeHTML =
-  (* TODO: create conf_make in OUnit2. *)
-  OUnitConf.make
+  conf_make
     "testFakeHTML"
     (fun v -> Arg.Set_string v)
     ~printer:(fun s -> s)
@@ -44,7 +42,7 @@ let tests =
          assert_command
            ~ctxt
            ~exit_code:(Unix.WEXITED 1)
-           (testFakeHTML ())
+           (testFakeHTML ctxt)
            ["-output-file"; Filename.concat html_dir "fake-html.log";
             "-output-html-dir"; html_dir;
             "-output-junit-file"; junit_xml];
@@ -52,7 +50,7 @@ let tests =
          List.iter link_to_source ["oUnit.js"; "oUnit.css"];
          assert_command
            ~ctxt
-           (xmllint ())
+           (xmllint ctxt)
            ["--noout"; "--nonet"; "--schema"; "test/JUnit.xsd"; junit_xml];
          (* TODO: css validation and xhtml validation. *)
          ())

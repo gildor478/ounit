@@ -7,20 +7,6 @@ open OUnitLogger
 open OUnitUtils
 open OUnitResultSummary
 
-let global_output_html_dir =
-  let value =
-    OUnitConf.make
-      "output_html_dir"
-      (fun r -> Arg.Set_string r)
-      ~printer:(Printf.sprintf "%S")
-      ""
-      "Output directory of the HTML files."
-  in
-    fun () ->
-      match value () with
-        | "" -> None
-        | fn -> Some fn
-
 let html_escaper str =
   let buffer = Buffer.create (String.length str) in
   let addc = Buffer.add_char buffer in
@@ -66,9 +52,9 @@ let html_escaper str =
       str;
     Buffer.contents buffer
 
-let render dn events =
+let render conf dn events =
   let smr =
-    OUnitResultSummary.of_log_events events
+    OUnitResultSummary.of_log_events conf events
   in
   let () =
     if not (Sys.file_exists dn) then
@@ -219,9 +205,19 @@ let render dn events =
 </html>";
   close_out chn
 
-let create () =
-  match global_output_html_dir () with
+let output_html_dir =
+  OUnitConf.make
+    "output_html_dir"
+    (fun r -> Arg.String (fun str -> r := Some str))
+    ~printer:(function
+                | Some s -> Printf.sprintf "%S" s
+                | None -> "<none>")
+    None
+    "Output directory of the HTML files."
+
+let create conf =
+  match output_html_dir conf with
     | Some dn ->
-        post_logger (render dn)
+        post_logger (render conf dn)
     | None ->
         null_logger

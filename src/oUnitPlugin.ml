@@ -6,56 +6,37 @@ sig
   type t
   val name: string
   val conf_help: string
+  val default: t
 end
 
 module Make(Settings: SETTINGS) =
 struct
-  let all: (string * Settings.t) list ref = ref []
+  let all: (string * Settings.t) list ref = ref ["default", Settings.default]
 
-  let default: (int * string * Settings.t) option ref = ref None
+  let default = ref (0, "default")
 
   let register name pref f =
     all := (name, f) :: !all;
-    match !default with
-      | None ->
-          default := Some (pref, name, f)
-      | Some (pref', _, _) ->
-          if pref > pref' then
-            default := Some (pref, name, f)
+    default := max !default (pref, name)
 
-  let conf () = 
+  let of_name s =
+    try
+      List.assoc s !all
+    with Not_found ->
+      failwith
+        (Printf.sprintf "Unable to find %s '%s'." Settings.name s)
 
-    let default =
-      match !default with
-        | Some (_, name, _) -> name
-        | None ->
-            failwith
-              (Printf.sprintf "No registered %s plugin." Settings.name)
-    in
+  let choice =
+    OUnitConf.make_translate
+      Settings.name
+      ~printer:(fun s -> s)
+      ~translate:of_name
+      (fun r ->
+         Arg.Symbol
+           (List.map fst !all, (fun str -> r := str)))
+      (snd !default)
+      Settings.conf_help
 
-    let name =
-      OUnitConf.make
-        Settings.name
-        ~printer:(fun s -> s)
-        (fun r ->
-           Arg.Symbol
-             (List.map fst !all, (fun str -> r := str)))
-        default
-        Settings.conf_help
-    in
+  let default = Settings.default
 
-      (fun () ->
-         try
-           List.assoc (name ()) !all
-         with Not_found ->
-           failwith
-             (Printf.sprintf
-                "Unable to find %s '%s'." Settings.name (name ())))
-
-  let get_default () = 
-    match !default with
-      | Some (_, _, f) -> f
-      | None ->
-          failwith
-            (Printf.sprintf "No registered %s plugin." Settings.name)
 end

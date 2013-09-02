@@ -37,7 +37,7 @@ type t =
       successes: int;
     }
 
-let global_encoding =
+let encoding =
   OUnitConf.make
     "log_encoding"
     (fun r -> Arg.Set_string r)
@@ -45,8 +45,8 @@ let global_encoding =
     "utf-8"
     "Encoding of the log."
 
-let of_log_events events =
-  let conf =
+let of_log_events conf events =
+  let global_conf =
     List.fold_left
       (fun acc log_ev ->
          match log_ev.event with
@@ -191,12 +191,12 @@ let of_log_events events =
   let skips    = count is_skip in
   let todos    = count is_todo in
   let successes = count is_success in
-  let charset = global_encoding () in
+  let charset = encoding conf in
     {
       suite_name      = suite_name;
       start_at        = start_at;
       charset         = charset;
-      conf            = conf;
+      conf            = global_conf;
       running_time    = running_time;
       global_results  = global_results;
       test_case_count = test_case_count;

@@ -1,14 +1,18 @@
-(** Common utilities to run test.
-  *)
 
 open OUnitTypes
 
-let run_one_test logger test_case =
+(** Common utilities to run test. *)
+let run_one_test conf logger test_case =
   let (test_path, test_fun) = test_case in
   let () = OUnitLogger.report logger (TestEvent (test_path, EStart)) in
   let result =
     try
-      let ctxt = { logger = OUnitLogger.Test.create logger test_path } in
+      let ctxt =
+        {
+          logger = OUnitLogger.Test.create logger test_path;
+          conf = conf;
+        }
+      in
       test_fun ctxt;
       RSuccess
     with e ->
@@ -30,12 +34,31 @@ let run_one_test logger test_case =
     test_path, result, position
 
 type runner =
+    OUnitConf.t ->
     OUnitLogger.logger ->
     OUnitChooser.chooser ->
     (path * test_fun) list ->
     test_results
 
+(* The simplest runner possible, run test one after the other in a single
+ * process, without threads.
+ *)
 
+(* Run all tests, sequential version *)
+let sequential_runner conf logger chooser test_cases =
+  let rec iter state =
+    match OUnitState.next_test_case state with
+      | None, state ->
+          OUnitState.get_results state
+      | Some test_case, state ->
+          iter
+            (OUnitState.add_test_result
+               (run_one_test conf logger test_case)
+               state)
+  in
+  iter (OUnitState.create (chooser logger) test_cases)
+
+(* Plugin interface. *)
 module Plugin =
   OUnitPlugin.Make
     (struct
@@ -43,6 +66,12 @@ module Plugin =
        let name = "runner"
        let conf_help =
          "Select a the method to run tests."
+       let default = sequential_runner
+
      end)
 
 include Plugin
+
+let () =
+  register "sequential" 0 sequential_runner
+

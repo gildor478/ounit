@@ -8,25 +8,11 @@ open OUnitUtils
 open OUnitResultSummary
 
 
-let global_output_junit_file =
-  let value =
-    OUnitConf.make
-      "output_junit_file"
-      (fun r -> Arg.Set_string r)
-      ~printer:(Printf.sprintf "%S")
-      ""
-      "Output file for JUnit."
-  in
-    fun () ->
-      match value () with
-        | "" -> None
-        | fn -> Some fn
-
 let xml_escaper = OUnitLoggerHTML.html_escaper
 
-let render fn events =
+let render conf fn events =
   let smr =
-    OUnitResultSummary.of_log_events events
+    OUnitResultSummary.of_log_events conf events
   in
   let chn = open_out fn in
   let string_of_failure =
@@ -102,7 +88,8 @@ let render fn events =
 \    <system-out>\n";
     List.iter
       (fun log_event ->
-         printf "%s" (xml_escaper (OUnitLogger.format_event true log_event)))
+         printf "%s"
+           (xml_escaper (OUnitLogger.format_event conf true log_event)))
       events;
     printf "\
 \    </system-out>
@@ -112,10 +99,19 @@ let render fn events =
 ";
     close_out chn
 
+let output_junit_file =
+  OUnitConf.make
+    "output_junit_file"
+    (fun r -> Arg.String (fun s -> r := Some s))
+    ~printer:(function
+                | Some s -> Printf.sprintf "%S" s
+                | None -> "<none>")
+    None
+    "Output file for JUnit."
 
-let create () =
-  match global_output_junit_file () with
+let create conf =
+  match output_junit_file conf with
     | Some fn ->
-        post_logger (render fn)
+        post_logger (render conf fn)
     | None ->
         null_logger

@@ -72,7 +72,8 @@ type log_event =
 
 type test_ctxt =
     {
-      logger: test_event -> unit
+      logger: test_event -> unit;
+      conf: OUnitConf.t;
     }
 
 type test_fun = test_ctxt -> unit

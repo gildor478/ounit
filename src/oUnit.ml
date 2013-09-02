@@ -1,4 +1,29 @@
 
+let default_v1_conf ?(verbose=false) () =
+  (* TODO: preset for OUnit v1 and hide options. Add a blacklist to OUnitConf.t
+   *)
+  let conf =
+    OUnitConf.default
+      ~preset:
+      [
+        "chooser", "simple";
+        "runner", "sequential";
+        "results_style_1_X", "true";
+      ]
+      ()
+  in
+    OUnitConf.set conf
+      "verbose"
+      (OUnitConf_types.Bool (string_of_bool verbose, verbose));
+    conf
+
+(* TODO: rename default_v1_context. *)
+let default_context =
+  {
+    OUnitTypes.logger = OUnitLogger.Test.create OUnitLogger.null_logger [];
+    OUnitTypes.conf = default_v1_conf ();
+  }
+
 type node = ListItem of int | Label of string
 
 let node1_of_node =
@@ -22,11 +47,6 @@ type test =
     TestCase of test_fun
   | TestList of test list
   | TestLabel of string * test
-
-let default_context =
-  {
-    OUnitTypes.logger = OUnitLogger.Test.create OUnitLogger.null_logger [];
-  }
 
 let rec test1_of_test =
   function
@@ -102,14 +122,13 @@ let assert_string =
 let assert_command
       ?exit_code ?sinput ?foutput ?use_stderr ?env ?(verbose=false) prg args =
   let ctxt =
-    if verbose then
       {
-        OUnitTypes.logger = OUnitLogger.Test.create
-                              (OUnitLogger.std_logger verbose)
-                              []
+        default_context with
+            OUnitTypes.logger =
+              OUnitLogger.Test.create
+                (OUnitLogger.std_logger (default_v1_conf ()))
+                [];
       }
-    else
-      default_context
   in
     OUnitAssert.assert_command
       ?exit_code ?sinput ?foutput ?use_stderr ?env ~ctxt
@@ -207,27 +226,73 @@ let perform_test logger1 tst =
              end)
       ignore
   in
+  let conf = default_v1_conf () in
     list_result1_of_list_result
       (OUnitCore.perform_test
-         OUnitCore.default_runner_v1
-         OUnitCore.default_chooser_v1
+         conf
+         (OUnitRunner.choice conf)
+         (OUnitChooser.choice conf)
          logger
          (test_of_test1 tst))
 
 let run_test_tt ?verbose test =
+  let conf = default_v1_conf ?verbose () in
   list_result1_of_list_result
     (OUnitCore.run_test_tt
-       ?verbose
-       OUnitCore.default_chooser_v1
-       OUnitCore.default_runner_v1
+       conf
+       (OUnitRunner.choice conf)
+       (OUnitChooser.choice conf)
        (test_of_test1 test))
 
-let run_test_tt_main ?arg_specs ?set_verbose test =
-  let lst_rslt = ref [] in
-  let fexit lst =
-    lst_rslt := list_result1_of_list_result lst
-  in
-    OUnitCore.run_test_tt_main
-      ~version:1 ?arg_specs ?set_verbose ~fexit (test_of_test1 test);
-    !lst_rslt
+let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
+  let suite = test_of_test1 suite in
+  let only_test = ref [] in
+  let list_test = ref false in
+  let extra_specs =
+    [
+      "-only-test",
+      Arg.String (fun str -> only_test := str :: !only_test),
+      "path Run only the selected tests.";
 
+      "-list-test",
+      Arg.Set list_test,
+      " List tests";
+    ]
+  in
+  let conf = default_v1_conf () in
+    OUnitConf.cli_parse extra_specs conf;
+    set_verbose (OUnitLogger.verbose conf);
+    if !list_test then
+      begin
+        List.iter
+          (fun pth -> print_endline (OUnitUtils.string_of_path pth))
+          (OUnitTest.test_case_paths suite);
+        []
+      end
+    else
+      begin
+        let nsuite =
+          if !only_test = [] then
+            suite
+          else
+            begin
+              match OUnitTest.test_filter ~skip:true !only_test suite with
+                | Some test ->
+                    test
+                | None ->
+                    failwith
+                      (Printf.sprintf
+                         "Filtering test %s lead to no tests."
+                         (String.concat ", " !only_test))
+            end
+        in
+
+        let test_results =
+          OUnitCore.run_test_tt
+            conf
+            (OUnitRunner.choice conf)
+            (OUnitChooser.choice conf)
+            nsuite
+        in
+          list_result1_of_list_result test_results
+      end

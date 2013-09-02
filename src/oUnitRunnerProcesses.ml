@@ -122,7 +122,7 @@ let make_channel
     }
 
 (* Run a child, react to message receive from parent. *)
-let main_child_loop channel map_test_cases =
+let main_child_loop channel conf map_test_cases =
   let stop = ref false in
   let logger =
     (* TODO: identify the running process in log. *)
@@ -155,7 +155,7 @@ let main_child_loop channel map_test_cases =
             stop := true
         | RunTest test_path ->
             let test_case = MapPath.find test_path map_test_cases in
-            let result = OUnitRunner.run_one_test logger test_case in
+            let result = OUnitRunner.run_one_test conf logger test_case in
               channel.send_data (TestDone result)
         | LogPosition _ ->
             assert false
@@ -175,7 +175,7 @@ type child =
       mutable state: child_state;
     }
 
-let create_child map_test_cases =
+let create_child conf map_test_cases =
   let safe_close fd = try close fd with Unix_error _ -> () in
   let pipe_read_from_child, pipe_write_to_parent = Unix.pipe () in
   let pipe_read_from_parent, pipe_write_to_child  = Unix.pipe () in
@@ -199,7 +199,7 @@ let create_child map_test_cases =
             pipe_read_from_parent
             pipe_write_to_parent
         in
-          main_child_loop channel map_test_cases;
+          main_child_loop channel conf map_test_cases;
           channel.close ();
           safe_close pipe_read_from_parent;
           safe_close pipe_write_to_parent;
@@ -264,7 +264,7 @@ let shards =
     "Number of shards when using 'processes' as a runner."
 
 (* Run all tests. *)
-let run_all_tests logger chooser test_cases =
+let processes_runner conf logger chooser test_cases =
   let map_test_cases =
     List.fold_left
       (fun mp ((test_path, _) as test_case) ->
@@ -276,10 +276,10 @@ let run_all_tests logger chooser test_cases =
   let children =
     Array.to_list
       (Array.init
-         (shards ())
+         (shards conf)
          (fun n ->
             OUnitLogger.infof logger "Starting child process number %d." n;
-            create_child map_test_cases))
+            create_child conf map_test_cases))
   in
 
   let state = OUnitState.create (chooser logger) test_cases in
@@ -361,4 +361,4 @@ let run_all_tests logger chooser test_cases =
 
 let () =
   if Sys.os_type = "Unix" then
-    OUnitRunner.register "processes" 100 run_all_tests
+    OUnitRunner.register "processes" 100 processes_runner

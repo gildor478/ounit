@@ -31,14 +31,14 @@ let thread_pool_size =
  *)
 
 (* Run all test, threaded version *)
-let run_all_tests logger chooser test_cases =
+let threads_runner conf logger chooser test_cases =
 
   (* Thread-wide synchronization. *)
   let thread_main (wait_chan, result_chan) =
     while true do
       let event = Event.receive wait_chan in
       let test_case = Event.sync event in
-      let result = OUnitRunner.run_one_test logger test_case in
+      let result = OUnitRunner.run_one_test conf logger test_case in
         Event.sync (Event.send result_chan result)
     done
   in
@@ -77,10 +77,10 @@ let run_all_tests logger chooser test_cases =
   (* Init our threads: a pool, a scheduler that dispatches tests, *)
   (* and a synchronizer that aggregates result and call the logger. *)
   let pool_size =
-    if len < thread_pool_threshold () then
+    if len < thread_pool_threshold conf then
       len
     else
-      thread_pool_size ()
+      thread_pool_size conf
   in
   let _thrd =
     Thread.create synchronizer_main (len, result_chan, suite_result_chan)
@@ -94,4 +94,4 @@ let run_all_tests logger chooser test_cases =
     schedule wait_chan suite_result_chan test_cases
 
 let () =
-  OUnitRunner.register "threads" 70 run_all_tests
+  OUnitRunner.register "threads" 70 threads_runner
