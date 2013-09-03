@@ -255,11 +255,8 @@ let shards =
         close_in chn_in
     end
   end;
-  OUnitConf.make
+  OUnitConf.make_int
     "shards"
-    ~arg_string:"n"
-    ~printer:string_of_int
-    (fun r -> Arg.Set_int r)
     !shards
     "Number of shards when using 'processes' as a runner."
 

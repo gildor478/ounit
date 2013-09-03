@@ -206,12 +206,8 @@ let render conf dn events =
   close_out chn
 
 let output_html_dir =
-  OUnitConf.make
+  OUnitConf.make_string_opt
     "output_html_dir"
-    (fun r -> Arg.String (fun str -> r := Some str))
-    ~printer:(function
-                | Some s -> Printf.sprintf "%S" s
-                | None -> "<none>")
     None
     "Output directory of the HTML files."
 

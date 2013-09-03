@@ -300,14 +300,8 @@ val run_test_tt : ?verbose:bool -> test -> test_results
 val run_test_tt_main : test -> unit
 
 (* TODO: comment. *)
-val conf_make:
-    string ->
-    ?arg_string:string ->
-    ?alternates:(string *
-                 ('a ref -> Arg.spec) *
-                 string option * Arg.doc) list ->
-    printer:('a -> string) ->
-    ('a ref -> Arg.spec) ->
-    'a ->
-    Arg.doc ->
-    test_ctxt -> 'a
+val conf_make_string: string -> string -> Arg.doc -> test_ctxt -> string
+val conf_make_string_opt:
+    string -> string option -> Arg.doc -> test_ctxt -> string option
+val conf_make_int: string -> int -> Arg.doc -> test_ctxt -> int
+val conf_make_bool: string -> bool -> Arg.doc -> test_ctxt -> bool

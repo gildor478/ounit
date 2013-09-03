@@ -12,9 +12,8 @@ let default_v1_conf ?(verbose=false) () =
       ]
       ()
   in
-    OUnitConf.set conf
-      "verbose"
-      (OUnitConf_types.Bool (string_of_bool verbose, verbose));
+    OUnitConf.set
+      ~origin:"Preset oUnit.ml" conf "verbose" (string_of_bool verbose);
     conf
 
 (* TODO: rename default_v1_context. *)

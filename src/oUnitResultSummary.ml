@@ -38,10 +38,8 @@ type t =
     }
 
 let encoding =
-  OUnitConf.make
+  OUnitConf.make_string
     "log_encoding"
-    (fun r -> Arg.Set_string r)
-    ~printer:(Printf.sprintf "%S")
     "utf-8"
     "Encoding of the log."
 

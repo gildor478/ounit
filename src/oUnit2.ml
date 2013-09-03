@@ -53,4 +53,13 @@ let run_test_tt_main = OUnitCore.run_test_tt_main
 (* TODO move this to OUnitCore. *)
 let logf ctxt log_severity fmt =
    OUnitLogger.Test.logf ctxt.logger log_severity fmt
-let conf_make = OUnitCore.conf_make
+
+(* TODO move this to OUnitCore. *)
+let conf_wrap f name default help =
+  let get = f name default help in
+    fun ctxt -> get ctxt.conf
+
+let conf_make_string = conf_wrap OUnitConf.make_string
+let conf_make_string_opt = conf_wrap OUnitConf.make_string_opt
+let conf_make_int = conf_wrap OUnitConf.make_int
+let conf_make_bool = conf_wrap OUnitConf.make_bool

@@ -34,7 +34,7 @@ let run_one_test conf logger test_case =
     test_path, result, position
 
 type runner =
-    OUnitConf.t ->
+    OUnitConf.conf ->
     OUnitLogger.logger ->
     OUnitChooser.chooser ->
     (path * test_fun) list ->

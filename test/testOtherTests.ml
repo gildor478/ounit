@@ -2,18 +2,14 @@
 open OUnit2
 
 let xmllint =
-  conf_make
+  conf_make_string
     "xmllint"
-    (fun v -> Arg.Set_string v)
-    ~printer:(fun s -> s)
     "xmllint"
     "XML linter program to validate output."
 
 let testFakeHTML =
-  conf_make
+  conf_make_string
     "testFakeHTML"
-    (fun v -> Arg.Set_string v)
-    ~printer:(fun s -> s)
     "testFakeHTML"
     "The testFakeHTML executable to run."
 

@@ -55,12 +55,10 @@ let string_of_event ev =
 
 (* TODO: deprecate in 2.1.0. *)
 let results_style_1_X =
-  OUnitConf.make
+  OUnitConf.make_bool
     "results_style_1_X"
-    (fun r -> Arg.Set r)
-    ~printer:string_of_bool
     false
-    "Use OUnit 1.X results printer (temporary solution until 2.1.0+)."
+    "Use OUnit 1.X results printer (will be deprecated in 2.1.0+)."
 
 let format_event conf verbose log_event =
   match log_event.event with
@@ -238,10 +236,8 @@ let file_logger conf fn =
     }
 
 let verbose =
-  OUnitConf.make
+  OUnitConf.make_bool
     "verbose"
-    (fun r -> Arg.Set r)
-    ~printer:string_of_bool
     false
     "Run test in verbose mode."
 
@@ -325,17 +321,8 @@ let combine lst =
     }
 
 let output_file =
-  OUnitConf.make
+  OUnitConf.make_string_opt
     "output_file"
-    ~arg_string:"fn"
-    ~alternates:["no_output_file",
-                 (fun r -> Arg.Unit (fun () -> r := None)),
-                 None,
-                 "Prevent to write log in a file."]
-    ~printer:(function
-                | None -> "<none>"
-                | Some fn -> Printf.sprintf "%S" fn)
-    (fun r -> Arg.String (fun s -> r := Some s))
     (Some (Filename.concat OUnitUtils.buildir "oUnit.log"))
     "Output verbose log in the given file."
 

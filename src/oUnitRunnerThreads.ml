@@ -6,18 +6,14 @@ open OUnitTypes
  *)
 
 let thread_pool_threshold =
-  OUnitConf.make
+  OUnitConf.make_int
     "thread_pool_threshold"
-    (fun r -> Arg.Set_int r)
-    ~printer:string_of_int
     10
     "Under this limit, create exactly one thread by test (threads-runner)."
 
 let thread_pool_size =
-  OUnitConf.make
+  OUnitConf.make_int
     "thread_pool_size"
-    (fun r -> Arg.Set_int r)
-    ~printer:string_of_int
     15
     "Max number of concurrent threads (threads-runner)."
 

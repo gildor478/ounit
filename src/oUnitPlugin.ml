@@ -27,13 +27,9 @@ struct
         (Printf.sprintf "Unable to find %s '%s'." Settings.name s)
 
   let choice =
-    OUnitConf.make_translate
+    OUnitConf.make_enum
       Settings.name
-      ~printer:(fun s -> s)
-      ~translate:of_name
-      (fun r ->
-         Arg.Symbol
-           (List.map fst !all, (fun str -> r := str)))
+      (fun () -> !all)
       (snd !default)
       Settings.conf_help
 

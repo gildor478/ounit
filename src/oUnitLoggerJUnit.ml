@@ -100,12 +100,8 @@ let render conf fn events =
     close_out chn
 
 let output_junit_file =
-  OUnitConf.make
+  OUnitConf.make_string_opt
     "output_junit_file"
-    (fun r -> Arg.String (fun s -> r := Some s))
-    ~printer:(function
-                | Some s -> Printf.sprintf "%S" s
-                | None -> "<none>")
     None
     "Output file for JUnit."
 
