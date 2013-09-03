@@ -20,10 +20,7 @@ type test_ctxt
 type test_fun = test_ctxt -> unit
 
 (** The type of tests *)
-type test =
-    TestCase of test_fun
-  | TestList of test list
-  | TestLabel of string * test
+type test
 
 (** {2 Assertions}
 
@@ -61,8 +58,6 @@ val assert_string : string -> unit
     @param use_stderr redirect [stderr] to [stdout]
     @param env Unix environment
     @param verbose if a failed, dump stdout/stderr of the process to stderr
-
-    @since 1.1.0
   *)
 val assert_command :
     ?exit_code:Unix.process_status ->
@@ -112,14 +107,10 @@ val assert_raises : ?msg:string -> exn -> (unit -> 'a) -> unit
 (** [skip cond msg] If [cond] is true, skip the test for the reason explain in
     [msg]. For example [skip_if (Sys.os_type = "Win32") "Test a doesn't run on
     windows"].
-
-    @since 1.0.3
   *)
 val skip_if : bool -> string -> unit
 
 (** The associated test is still to be done, for the reason given.
-
-    @since 1.0.3
   *)
 val todo : string -> unit
 
@@ -158,8 +149,6 @@ val bracket :
     @param prefix see [Filename.open_temp_file]
     @param suffix see [Filename.open_temp_file]
     @param mode see [Filename.open_temp_file]
-
-    @since 1.1.0
   *)
 val bracket_tmpfile:
   ?prefix:string ->
@@ -174,8 +163,6 @@ val bracket_tmpfile:
 
     @param prefix see [Filename.open_temp_file]
     @param suffix see [Filename.open_temp_file]
-
-    @since 2.0.0
   *)
 val bracket_tmpdir:
   ?prefix:string ->
@@ -194,6 +181,12 @@ val (>::) : string -> test_fun -> test
 (** Create a TestLabel for a TestList *)
 val (>:::) : string -> test list -> test
 
+(** Generic function to create a test case. *)
+val test_case : test_fun -> test
+
+(** Generic function to create a test list. *)
+val test_list : test list -> test
+
 (** Some shorthands which allows easy test construction.
 
    Examples:
@@ -207,39 +200,6 @@ val (>:::) : string -> test list -> test
                                        TestCase((fun _ -> ())))]))]
 *)
 
-(** [test_decorate g tst] Apply [g] to test function contains in [tst] tree.
-
-    @since 1.0.3
-  *)
-val test_decorate : (test_fun -> test_fun) -> test -> test
-
-(** [test_filter paths tst] Filter test based on their path string
-    representation.
-
-    @param skip] if set, just use [skip_if] for the matching tests.
-    @since 1.0.3
-  *)
-val test_filter : ?skip:bool -> string list -> test -> test option
-
-(** {2 Retrieve Information from Tests} *)
-
-(** Returns the number of available test cases *)
-val test_case_count : test -> int
-
-(** Types which represent the path of a test *)
-type node = ListItem of int | Label of string
-type path = node list (** The path to the test (in reverse order). *)
-
-(** Make a string from a node *)
-val string_of_node : node -> string
-
-(** Make a string from a path. The path will be reversed before it is
-    tranlated into a string *)
-val string_of_path : path -> string
-
-(** Returns a list with paths of the test *)
-val test_case_paths : test -> path list
-
 (** {2 Performing Tests} *)
 
 (** Severity level for log. *)
@@ -252,52 +212,13 @@ type log_severity =
   *)
 val logf: test_ctxt -> log_severity -> ('a, unit, string, unit) format4 -> 'a
 
-(** Backtrace, if available. *)
-type backtrace = string option
-
-(** The possible results of a test *)
-type test_result =
-    RSuccess
-  | RFailure of string * backtrace
-  | RError of string * backtrace
-  | RSkip of string
-  | RTodo of string
-
-(** Events which occur during a test run. *)
-type test_event =
-    EStart                        (** A test start. *)
-  | EEnd                          (** A test end. *)
-  | EResult of test_result        (** Result of a test. *)
-  | ELog of log_severity * string (** An event is logged in a test. *)
-  | ELogRaw of string             (** Print raw data in the wg. *)
-
-(** Position in a file. *)
-type position =
-    {
-      filename: string;
-      line: int;
-    }
-
-(** Results of a test run. *)
-type test_results = (path * test_result * position option) list
-
-(** Perform the test, allows you to build your own test runner *)
-val perform_test : OUnitLogger.logger -> test -> test_results
-(** A simple text based test runner.
-
-    @param verbose print verbose message
-  *)
-val run_test_tt : ?verbose:bool -> test -> test_results
-
 (** Main version of the text based test runner. It reads the supplied command
     line arguments to set the verbose level and limit the number of test to
     run.
 
     @param test the test suite to run.
-
-    @version 1.1.0
   *)
-val run_test_tt_main : test -> unit
+val run_test_tt_main : ?exit:(int -> unit) -> test -> unit
 
 (* TODO: comment. *)
 val conf_make_string: string -> string -> Arg.doc -> test_ctxt -> string

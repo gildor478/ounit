@@ -17,9 +17,38 @@ let rec test_decorate g =
     | TestLabel (str, tst) ->
         TestLabel (str, test_decorate g tst)
 
-let test_case_count = OUnitUtils.test_case_count
-let string_of_node = OUnitUtils.string_of_node
-let string_of_path = OUnitUtils.string_of_path
+(* Return the number of available tests *)
+let rec test_case_count =
+  function
+    | TestCase _ -> 1
+    | TestLabel (_, t) -> test_case_count t
+    | TestList l ->
+        List.fold_left
+          (fun c t -> c + test_case_count t)
+          0 l
+
+let string_of_node =
+  function
+    | ListItem n ->
+        string_of_int n
+    | Label s ->
+        s
+
+module Path =
+struct
+  type t = path
+
+  let compare p1 p2 =
+    Pervasives.compare p1 p2
+
+  let to_string p =
+    String.concat ":" (List.rev_map string_of_node p)
+end
+
+module MapPath = Map.Make(Path)
+
+let string_of_path =
+  Path.to_string
 
 (* Returns all possible paths in the test. The order is from test case
    to root.
@@ -64,8 +93,7 @@ let test_filter ?(skip=false) only test =
                   Some
                     (TestCase
                        (fun ctxt ->
-                          OUnitAssert.skip_if true "Test disabled";
-                          f ctxt))
+                          raise (Skip "Test disabled")))
                 else
                   None
               end

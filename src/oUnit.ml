@@ -264,7 +264,7 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
     if !list_test then
       begin
         List.iter
-          (fun pth -> print_endline (OUnitUtils.string_of_path pth))
+          (fun pth -> print_endline (OUnitTest.string_of_path pth))
           (OUnitTest.test_case_paths suite);
         []
       end

@@ -5,86 +5,34 @@
   * @author Sylvain Le Gall
   *)
 
-open OUnitTypes
+let is_blank =
+  function
+  | ' ' | '\012' | '\n' | '\r' | '\t' -> true
+  | _ -> false
+
+let rec trim s =
+  let strlen = String.length s in
+  if strlen = 0 then
+    ""
+  else if is_blank s.[0] then
+    trim (String.sub s 1 (strlen - 1))
+  else if is_blank s.[strlen - 1] then
+    trim (String.sub s 0 (strlen - 1))
+  else
+    s
+
+let trim_comment s =
+  let buff = Buffer.create (String.length s) in
+  let idx = ref 0 in
+    while !idx < String.length s && s.[!idx] != '#' do
+      Buffer.add_char buff s.[!idx];
+      incr idx
+    done;
+    Buffer.contents buff
 
 let cmp_float ?(epsilon = 0.00001) a b =
   abs_float (a -. b) <= epsilon *. (abs_float a) ||
     abs_float (a -. b) <= epsilon *. (abs_float b)
-
-let is_success =
-  function
-    | RSuccess -> true
-    | RFailure _ | RError _  | RSkip _ | RTodo _ -> false
-
-let is_failure =
-  function
-    | RFailure _ -> true
-    | RSuccess | RError _  | RSkip _ | RTodo _ -> false
-
-let is_error =
-  function
-    | RError _ -> true
-    | RSuccess | RFailure _ | RSkip _ | RTodo _ -> false
-
-let is_skip =
-  function
-    | RSkip _ -> true
-    | RSuccess | RFailure _ | RError _  | RTodo _ -> false
-
-let is_todo =
-  function
-    | RTodo _ -> true
-    | RSuccess | RFailure _ | RError _  | RSkip _ -> false
-
-let result_flavour =
-  function
-    | RError _ -> "Error"
-    | RFailure _ -> "Failure"
-    | RSuccess -> "Success"
-    | RSkip _ -> "Skip"
-    | RTodo _ -> "Todo"
-
-
-let result_msg =
-  function
-    | RSuccess -> "Success"
-    | RError (msg, _)
-    | RFailure (msg, _)
-    | RSkip msg
-    | RTodo msg -> msg
-
-let string_of_node =
-  function
-    | ListItem n ->
-        string_of_int n
-    | Label s ->
-        s
-
-(* Return the number of available tests *)
-let rec test_case_count =
-  function
-    | TestCase _ -> 1
-    | TestLabel (_, t) -> test_case_count t
-    | TestList l ->
-        List.fold_left
-          (fun c t -> c + test_case_count t)
-          0 l
-
-module Path =
-struct
-  type t = path
-
-  let compare p1 p2 =
-    Pervasives.compare p1 p2
-
-  let to_string p =
-    String.concat ":" (List.rev_map string_of_node p)
-end
-
-module MapPath = Map.Make(Path)
-
-let string_of_path =
-  Path.to_string
 
 let buff_format_printf f =
   let buff = Buffer.create 13 in
@@ -117,12 +65,6 @@ let fold_lefti f accu l =
   in
     rfold_lefti 0 accu l
 
-let ocaml_position pos =
-  Printf.sprintf
-    "File \"%s\", line %d, characters 1-1:"
-    pos.filename pos.line
-
-
 let now () =
   Unix.gettimeofday ()
 
@@ -149,14 +91,6 @@ let date_iso8601 ?(tz=true) timestamp =
       res ^ "+00:00"
     else
       res
-
-let was_successful lst =
-  List.for_all
-    (fun (_, rslt, _) ->
-       match rslt with
-         | RSuccess | RSkip _ -> true
-         | _ -> false)
-    lst
 
 let buildir =
   (* Detect a location where we can store semi-temporary data:

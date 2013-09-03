@@ -75,7 +75,9 @@ let run_test_tt conf runner chooser test =
     (* Print test report *)
     OUnitLogger.report logger
       (GlobalEvent
-         (GResults (running_time, test_results, test_case_count test)));
+         (GResults (running_time,
+                    test_results,
+                    OUnitTest.test_case_count test)));
 
     (* Reset logger. *)
     OUnitLogger.close logger;
@@ -83,8 +85,11 @@ let run_test_tt conf runner chooser test =
     (* Return the results possibly for further processing *)
     test_results
 
+(* Test-only override. *)
+let run_test_tt_main_conf = ref OUnitConf.load
+
 (* Call this one to act as your main() function. *)
-let run_test_tt_main suite =
+let run_test_tt_main ?(exit=Pervasives.exit) suite =
   let only_test = ref [] in
   let list_test = ref false in
   let extra_specs =
@@ -98,11 +103,11 @@ let run_test_tt_main suite =
       " List tests";
     ]
   in
-  let conf = OUnitConf.load extra_specs in
+  let conf = !run_test_tt_main_conf extra_specs in
     if !list_test then
       begin
         List.iter
-          (fun pth -> print_endline (string_of_path pth))
+          (fun pth -> print_endline (OUnitTest.string_of_path pth))
           (OUnitTest.test_case_paths suite)
       end
     else
@@ -130,7 +135,7 @@ let run_test_tt_main suite =
             (OUnitChooser.choice conf)
             nsuite
         in
-          if not (was_successful test_results) then
+          if not (OUnitResultSummary.was_successful test_results) then
             exit 1
       end
 

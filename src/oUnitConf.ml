@@ -1,4 +1,5 @@
-open Lexing
+
+open OUnitUtils
 
 exception Parse_error of string
 
@@ -50,34 +51,6 @@ let cli_name name =
        | _ -> ()
   done;
   cli_name
-
-(* TODO: move in Utils. *)
-let is_blank =
-  function
-  | ' ' | '\012' | '\n' | '\r' | '\t' -> true
-  | _ -> false
-
-(* TODO: move in Utils. *)
-let rec trim s =
-  let strlen = String.length s in
-  if strlen = 0 then
-    ""
-  else if is_blank s.[0] then
-    trim (String.sub s 1 (strlen - 1))
-  else if is_blank s.[strlen - 1] then
-    trim (String.sub s 0 (strlen - 1))
-  else
-    s
-
-(* TODO: move in Utils. *)
-let trim_comment s =
-  let buff = Buffer.create (String.length s) in
-  let idx = ref 0 in
-    while !idx < String.length s && s.[!idx] != '#' do
-      Buffer.add_char buff s.[!idx];
-      incr idx
-    done;
-    Buffer.contents buff
 
 let make ~name ~parse ~print ~default ~help ~fcli () =
   let () =

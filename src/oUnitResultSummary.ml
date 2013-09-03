@@ -4,6 +4,7 @@
 
 open OUnitTypes
 open OUnitUtils
+open OUnitTest
 
 type log_entry =
     float (* time since start of the test *) *
@@ -36,6 +37,55 @@ type t =
       todos: int;
       successes: int;
     }
+
+let is_success =
+  function
+    | RSuccess -> true
+    | RFailure _ | RError _  | RSkip _ | RTodo _ -> false
+
+let is_failure =
+  function
+    | RFailure _ -> true
+    | RSuccess | RError _  | RSkip _ | RTodo _ -> false
+
+let is_error =
+  function
+    | RError _ -> true
+    | RSuccess | RFailure _ | RSkip _ | RTodo _ -> false
+
+let is_skip =
+  function
+    | RSkip _ -> true
+    | RSuccess | RFailure _ | RError _  | RTodo _ -> false
+
+let is_todo =
+  function
+    | RTodo _ -> true
+    | RSuccess | RFailure _ | RError _  | RSkip _ -> false
+
+let result_flavour =
+  function
+    | RError _ -> "Error"
+    | RFailure _ -> "Failure"
+    | RSuccess -> "Success"
+    | RSkip _ -> "Skip"
+    | RTodo _ -> "Todo"
+
+let result_msg =
+  function
+    | RSuccess -> "Success"
+    | RError (msg, _)
+    | RFailure (msg, _)
+    | RSkip msg
+    | RTodo msg -> msg
+
+let was_successful lst =
+  List.for_all
+    (fun (_, rslt, _) ->
+       match rslt with
+         | RSuccess | RSkip _ -> true
+         | _ -> false)
+    lst
 
 let encoding =
   OUnitConf.make_string

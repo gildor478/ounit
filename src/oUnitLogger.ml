@@ -4,6 +4,7 @@
 
 open OUnitTypes
 open OUnitUtils
+open OUnitResultSummary
 
 type logger =
     {
@@ -52,6 +53,13 @@ let string_of_event ev =
               | ELogRaw str ->
                   spf "ELogRaw %S" str
           end
+
+let string_of_path = OUnitTest.string_of_path
+
+let ocaml_position pos =
+  Printf.sprintf
+    "File \"%s\", line %d, characters 1-1:"
+    pos.filename pos.line
 
 (* TODO: deprecate in 2.1.0. *)
 let results_style_1_X =
@@ -235,35 +243,44 @@ let file_logger conf fn =
       fclose = fclose;
     }
 
+let null_logger =
+  {
+    fwrite = ignore;
+    fpos   = (fun () -> None);
+    fclose = ignore;
+  }
+
 let verbose =
   OUnitConf.make_bool
     "verbose"
     false
     "Run test in verbose mode."
 
+let display =
+  OUnitConf.make_bool
+    "display"
+    true
+    "Output logs on screen."
+
 let std_logger conf =
-  let fwrite log_ev =
-    print_string (format_event conf (verbose conf) log_ev);
-    flush stdout
-  in
-    {
-      fwrite = fwrite;
-      fpos   = (fun () -> None);
-      fclose = ignore;
-    }
+  if display conf then
+    let fwrite log_ev =
+      print_string (format_event conf (verbose conf) log_ev);
+      flush stdout
+    in
+      {
+        fwrite = fwrite;
+        fpos   = (fun () -> None);
+        fclose = ignore;
+      }
+  else
+    null_logger
 
 let fun_logger fwrite fclose =
   {
     fwrite = (fun log_ev -> fwrite log_ev);
     fpos   = (fun () -> None);
     fclose = fclose;
-  }
-
-let null_logger =
-  {
-    fwrite = ignore;
-    fpos   = (fun () -> None);
-    fclose = ignore;
   }
 
 let post_logger fpost =
