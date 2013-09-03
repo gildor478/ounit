@@ -3,6 +3,7 @@
   *)
 
 open OUnitTypes
+open OUnitTest
 
 type t =
     {

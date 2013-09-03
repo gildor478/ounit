@@ -5,6 +5,7 @@
 open OUnitTypes
 open OUnitUtils
 open OUnitTest
+open OUnitLogger
 
 type log_entry =
     float (* time since start of the test *) *

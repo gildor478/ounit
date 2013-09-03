@@ -19,8 +19,8 @@ let default_v1_conf ?(verbose=false) () =
 (* TODO: rename default_v1_context. *)
 let default_context =
   {
-    OUnitTypes.logger = OUnitLogger.Test.create OUnitLogger.null_logger [];
-    OUnitTypes.conf = default_v1_conf ();
+    OUnitTest.logger = OUnitLogger.Test.create OUnitLogger.null_logger [];
+    OUnitTest.conf = default_v1_conf ();
   }
 
 type node = ListItem of int | Label of string
@@ -49,15 +49,15 @@ type test =
 
 let rec test1_of_test =
   function
-    | OUnitTypes.TestCase f -> TestCase (fun () -> f default_context)
-    | OUnitTypes.TestList lst -> TestList (List.map test1_of_test lst)
-    | OUnitTypes.TestLabel (str, tst) -> TestLabel (str, test1_of_test tst)
+    | OUnitTest.TestCase f -> TestCase (fun () -> f default_context)
+    | OUnitTest.TestList lst -> TestList (List.map test1_of_test lst)
+    | OUnitTest.TestLabel (str, tst) -> TestLabel (str, test1_of_test tst)
 
 let rec test_of_test1 =
   function
-    | TestCase f -> OUnitTypes.TestCase (fun ctxt -> f ())
-    | TestList lst -> OUnitTypes.TestList (List.map test_of_test1 lst)
-    | TestLabel (str, tst) ->  OUnitTypes.TestLabel (str, test_of_test1 tst)
+    | TestCase f -> OUnitTest.TestCase (fun ctxt -> f ())
+    | TestList lst -> OUnitTest.TestList (List.map test_of_test1 lst)
+    | TestLabel (str, tst) ->  OUnitTest.TestLabel (str, test_of_test1 tst)
 
 type test_result =
     RSuccess of path
@@ -123,9 +123,9 @@ let assert_command
   let ctxt =
       {
         default_context with
-            OUnitTypes.logger =
+            OUnitTest.logger =
               OUnitLogger.Test.create
-                (OUnitLogger.std_logger (default_v1_conf ()))
+                (OUnitLoggerStd.std_logger (default_v1_conf ()))
                 [];
       }
   in
@@ -206,21 +206,21 @@ let perform_test logger1 tst =
   let logger =
     OUnitLogger.fun_logger
       (function
-         | {OUnitTypes.event = OUnitTypes.GlobalEvent _} ->
+         | {OUnitLogger.event = OUnitLogger.GlobalEvent _} ->
              ()
-         | {OUnitTypes.event = OUnitTypes.TestEvent (path, test_event)} ->
+         | {OUnitLogger.event = OUnitLogger.TestEvent (path, test_event)} ->
              begin
                let path1 =
                  path1_of_path path
                in
                  match test_event with
-                   | OUnitTypes.EStart ->
+                   | OUnitLogger.EStart ->
                        logger1 (EStart path1)
-                   | OUnitTypes.EEnd ->
+                   | OUnitLogger.EEnd ->
                        logger1 (EEnd path1)
-                   | OUnitTypes.EResult rslt ->
+                   | OUnitLogger.EResult rslt ->
                        logger1 (EResult (test_result1_of_test_result path rslt))
-                   | OUnitTypes.ELog _ | OUnitTypes.ELogRaw _ ->
+                   | OUnitLogger.ELog _ | OUnitLogger.ELogRaw _ ->
                        ()
              end)
       ignore
@@ -260,7 +260,7 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
   in
   let conf = default_v1_conf () in
     OUnitConf.cli_parse extra_specs conf;
-    set_verbose (OUnitLogger.verbose conf);
+    set_verbose (OUnitLoggerStd.verbose conf);
     if !list_test then
       begin
         List.iter

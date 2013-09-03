@@ -6,6 +6,7 @@
 
 open OUnitTypes
 open OUnitState
+open OUnitTest
 
 type chooser = OUnitLogger.logger -> OUnitState.t -> (path * test_fun)
 

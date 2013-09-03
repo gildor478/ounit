@@ -203,10 +203,7 @@ val test_list : test list -> test
 (** {2 Performing Tests} *)
 
 (** Severity level for log. *)
-type log_severity =
-  | LError
-  | LWarning
-  | LInfo
+type log_severity = [ `Error | `Warning | `Info ]
 
 (** Log into OUnit logging system.
   *)

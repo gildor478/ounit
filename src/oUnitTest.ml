@@ -2,6 +2,20 @@
 open OUnitTypes
 open OUnitUtils
 
+type test_ctxt =
+    {
+      logger: OUnitLogger.Test.t;
+      conf: OUnitConf.conf;
+    }
+
+type test_fun = test_ctxt -> unit
+
+(* The type of tests *)
+type test =
+  | TestCase of test_fun
+  | TestList of test list
+  | TestLabel of string * test
+
 (* Some shorthands which allows easy test construction *)
 let (>:) s t = TestLabel(s, t)             (* infix *)
 let (>::) s f = TestLabel(s, TestCase(f))  (* infix *)

@@ -35,6 +35,7 @@ Library "oUnit"
                    OUnitPlugin,
                    OUnitChooser,
                    OUnitResultSummary,
+                   OUnitLoggerStd,
                    OUnitLoggerHTML,
                    OUnitLoggerHTMLData,
                    OUnitLoggerJUnit,

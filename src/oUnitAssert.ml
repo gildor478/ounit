@@ -2,6 +2,7 @@
 open OUnitTypes
 open OUnitUtils
 open OUnitBracket
+open OUnitTest
 
 let skip_if b msg =
   if b then

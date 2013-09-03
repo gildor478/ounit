@@ -1,5 +1,7 @@
 
 open OUnitTypes
+open OUnitTest
+open OUnitLogger
 
 (** Common utilities to run test. *)
 let run_one_test conf logger test_case =

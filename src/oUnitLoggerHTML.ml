@@ -155,9 +155,9 @@ let render conf dn events =
        in
        let class_severity_opt =
          function
-           | Some LError   -> "ounit-log-error"
-           | Some LWarning -> "ounit-log-warning"
-           | Some LInfo    -> "ounit-log-info"
+           | Some `Error   -> "ounit-log-error"
+           | Some `Warning -> "ounit-log-warning"
+           | Some `Info    -> "ounit-log-info"
            | None -> ""
        in
        printf "

@@ -8,6 +8,7 @@
   *)
 
 open OUnitTypes
+open OUnitLogger
 open Unix
 
 type message_to_child =

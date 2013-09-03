@@ -1,13 +1,17 @@
-include OUnitTypes
 open OUnitCore
+open OUnitTest
 
 let (>:) = OUnitTest.(>:)
 let (>::) = OUnitTest.(>::)
 let (>:::) = OUnitTest.(>:::)
 
+type test_ctxt = OUnitTest.test_ctxt
+type test_fun = OUnitTest.test_fun
+type test = OUnitTest.test
 let test_case f = TestCase f
 let test_list lst = TestList lst
 
+type log_severity = OUnitLogger.log_severity
 
 let (@?) = OUnitAssert.assert_bool
 

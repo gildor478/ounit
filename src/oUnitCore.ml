@@ -9,6 +9,8 @@
 
 open OUnitUtils
 open OUnitTypes
+open OUnitTest
+open OUnitLogger
 
 (* Plugin initialisation. *)
 open OUnitRunnerProcesses
@@ -48,7 +50,7 @@ let run_test_tt conf runner chooser test =
   let logger =
     OUnitLogger.combine
       [
-        OUnitLogger.create conf;
+        OUnitLoggerStd.create conf;
         OUnitLoggerHTML.create conf;
         OUnitLoggerJUnit.create conf;
       ]
@@ -58,9 +60,7 @@ let run_test_tt conf runner chooser test =
     (* TODO: move into perform test. *)
     List.iter
       (fun (k, v) ->
-         OUnitLogger.report logger
-           (OUnitTypes.GlobalEvent
-              (OUnitTypes.GConf (k, v))))
+         OUnitLogger.report logger (GlobalEvent (GConf (k, v))))
       (OUnitConf.dump conf)
   in
 
