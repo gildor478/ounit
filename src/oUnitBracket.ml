@@ -1,5 +1,4 @@
 
-open OUnitTypes
 open OUnitTest
 
 let bracket set_up f tear_down ctxt =

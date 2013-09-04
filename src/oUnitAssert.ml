@@ -1,5 +1,4 @@
 
-open OUnitTypes
 open OUnitUtils
 open OUnitBracket
 open OUnitTest

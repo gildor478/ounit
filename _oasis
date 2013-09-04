@@ -29,8 +29,7 @@ Library "oUnit"
            OUnitLogger, # TODO: hide in OUnit2
            OUnitConf, # TODO: hide in OUnit2
            OUnit2
-  InternalModules: OUnitTypes,
-                   OUnitUtils,
+  InternalModules: OUnitUtils,
                    OUnitPropList,
                    OUnitPlugin,
                    OUnitChooser,

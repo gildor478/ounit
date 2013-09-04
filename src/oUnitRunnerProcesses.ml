@@ -7,8 +7,8 @@
   * concurrent. Moreover we cannot use Unix.fork because it's not portable
   *)
 
-open OUnitTypes
 open OUnitLogger
+open OUnitTest
 open Unix
 
 type message_to_child =
@@ -24,8 +24,8 @@ let string_of_message_to_child =
 
 type message_from_child =
   | AckExit
-  | Log of log_event_t
-  | TestDone of test_result_full
+  | Log of OUnitTest.log_event_t
+  | TestDone of OUnitTest.result_full
   | PositionLog
 
 let string_of_message_from_child =

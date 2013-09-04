@@ -1,14 +1,42 @@
 
-open OUnitTypes
 open OUnitUtils
 
-type test_ctxt =
+exception Skip of string
+
+exception Todo of string
+
+(** See OUnit.mli. *)
+type node = ListItem of int | Label of string
+
+(** See OUnit.mli. *)
+type path = node list
+
+(** See OUnit2.mli. *)
+type backtrace = string option
+
+(** See OUnit.mli. *)
+type result =
+  | RSuccess
+  | RFailure of string * backtrace
+  | RError of string * backtrace
+  | RSkip of string
+  | RTodo of string
+
+(* See OUnit.mli. *)
+type result_full = (path * result * OUnitLogger.position option)
+
+type result_list = result_full list
+
+type ctxt =
     {
-      logger: OUnitLogger.Test.t;
+      logger: result OUnitLogger.Test.t;
       conf: OUnitConf.conf;
     }
 
-type test_fun = test_ctxt -> unit
+type log_event_t = (path, result) OUnitLogger.log_event_t
+type logger = (path, result) OUnitLogger.logger
+
+type test_fun = ctxt -> unit
 
 (* The type of tests *)
 type test =

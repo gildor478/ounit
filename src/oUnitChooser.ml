@@ -4,11 +4,10 @@
     @author Sylvain Le Gall
   *)
 
-open OUnitTypes
 open OUnitState
 open OUnitTest
 
-type chooser = OUnitLogger.logger -> OUnitState.t -> (path * test_fun)
+type chooser = OUnitTest.logger -> OUnitState.t -> (path * test_fun)
 
 (** Most simple heuristic, just pick the first test. *)
 let simple _ state =

@@ -5,7 +5,7 @@ let (>:) = OUnitTest.(>:)
 let (>::) = OUnitTest.(>::)
 let (>:::) = OUnitTest.(>:::)
 
-type test_ctxt = OUnitTest.test_ctxt
+type test_ctxt = OUnitTest.ctxt
 type test_fun = OUnitTest.test_fun
 type test = OUnitTest.test
 let test_case f = TestCase f

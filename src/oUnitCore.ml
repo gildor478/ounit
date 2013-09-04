@@ -8,7 +8,6 @@
 (***********************************************************************)
 
 open OUnitUtils
-open OUnitTypes
 open OUnitTest
 open OUnitLogger
 

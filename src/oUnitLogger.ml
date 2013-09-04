@@ -2,55 +2,55 @@
    Logger for information and various OUnit events.
  *)
 
-open OUnitTypes
 open OUnitUtils
+
+(* See OUnit.mli. *)
+type position =
+    {
+      filename: string;
+      line: int;
+    }
 
 (** See OUnit.mli. *)
 type log_severity = [`Error | `Warning | `Info]
 
 (** See OUnit.mli. *)
-type test_event =
+type 'result test_event =
   | EStart
   | EEnd
-  | EResult of test_result
+  | EResult of 'result
   | ELog of log_severity * string
   | ELogRaw of string
 
+type ('path, 'result) result_full = ('path * 'result * position option)
+
 (** Events which occur at the global level. *)
-type global_event =
+type ('path, 'result) global_event =
   | GConf of string * string (** Dump a configuration options. *)
   | GInfo of string
   | GStart  (** Start running the tests. *)
   | GEnd    (** Finish running the tests. *)
-  | GResults of (float * test_results * int)
+  | GResults of (float * ('path, 'result) result_full list * int)
 
-type log_event_t =
-  | GlobalEvent of global_event
-  | TestEvent of path * test_event
+type ('path, 'result) log_event_t =
+  | GlobalEvent of ('path, 'result) global_event
+  | TestEvent of 'path * 'result test_event
 
-type log_event =
+type ('path, 'result) log_event =
     {
       timestamp: float;
-      event: log_event_t;
+      event: ('path, 'result) log_event_t;
     }
 
-type logger =
+type ('path, 'result) logger =
     {
-      fwrite: log_event -> unit;
+      fwrite: ('path, 'result) log_event -> unit;
       fpos:   unit -> position option;
       fclose: unit -> unit;
     }
 
 let string_of_event ev =
   let spf fmt = Printf.sprintf fmt in
-  let string_of_result =
-    function
-      | RSuccess -> "RSuccess"
-      | RFailure (msg, _) -> spf "RFailure (%S, _)" msg
-      | RError (msg, _)   -> spf "RError (%S, _)" msg
-      | RSkip msg -> spf "RSkip %S" msg
-      | RTodo msg -> spf "RTodo %S" msg
-  in
   let string_of_log_severity =
     function
       | `Error   -> "`Error"
@@ -75,7 +75,7 @@ let string_of_event ev =
               | EEnd ->
                   "EEnd"
               | EResult result ->
-                  spf "EResult (%s)" (string_of_result result)
+                  "EResult (_)"
               | ELog (lvl, str) ->
                   spf "ELog (%s, %S)" (string_of_log_severity lvl) str
               | ELogRaw str ->
@@ -154,7 +154,7 @@ let combine lst =
 
 module Test =
 struct
-  type t = test_event -> unit
+  type 'result t = 'result test_event -> unit
 
   let create driver path =
     fun ev ->

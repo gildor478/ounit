@@ -27,13 +27,13 @@ type node = ListItem of int | Label of string
 
 let node1_of_node =
   function
-    | OUnitTypes.ListItem i -> ListItem i
-    | OUnitTypes.Label s -> Label s
+    | OUnitTest.ListItem i -> ListItem i
+    | OUnitTest.Label s -> Label s
 
 let node_of_node1 =
   function
-    | ListItem i -> OUnitTypes.ListItem i
-    | Label s -> OUnitTypes.Label s
+    | ListItem i -> OUnitTest.ListItem i
+    | Label s -> OUnitTest.Label s
 
 type path = node list
 
@@ -72,15 +72,15 @@ let test_result1_of_test_result path rslt =
   in
   let rslt1 =
     match rslt with
-     | OUnitTypes.RSuccess ->
+     | OUnitTest.RSuccess ->
          RSuccess path1
-     | OUnitTypes.RFailure (str, _) ->
+     | OUnitTest.RFailure (str, _) ->
          RFailure (path1, str)
-     | OUnitTypes.RError (str, _) ->
+     | OUnitTest.RError (str, _) ->
          RError (path1, str)
-     | OUnitTypes.RSkip str ->
+     | OUnitTest.RSkip str ->
          RSkip (path1, str)
-     | OUnitTypes.RTodo str ->
+     | OUnitTest.RTodo str ->
          RTodo (path1, str)
   in
     rslt1

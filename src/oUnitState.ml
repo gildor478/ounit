@@ -2,14 +2,13 @@
 (** Manipulate the state of OUnit runner.
   *)
 
-open OUnitTypes
 open OUnitTest
 
 type t =
     {
       tests_planned: (path * test_fun) list;
       tests_running: (path * test_fun) list;
-      results: test_results;
+      results: OUnitTest.result_list;
       chooser: t -> (path * test_fun);
     }
 

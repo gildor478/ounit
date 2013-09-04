@@ -1,6 +1,4 @@
 
-open OUnitTypes
-
 (* Preliminary implementation of threaded version of the runner, see TODO in the
  * code for remaining pieces to fix.
  *)

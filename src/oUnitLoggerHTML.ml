@@ -2,9 +2,9 @@
    HTML logger for OUnit.
  *)
 
-open OUnitTypes
 open OUnitLogger
 open OUnitUtils
+open OUnitTest
 open OUnitResultSummary
 
 let html_escaper str =

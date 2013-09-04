@@ -1,5 +1,5 @@
 
-open OUnitTypes
+open OUnitTest
 open OUnitAssert
 open OUnit2
 

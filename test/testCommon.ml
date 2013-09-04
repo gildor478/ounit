@@ -1,4 +1,4 @@
-open OUnitTypes
+open OUnitTest
 open OUnit2
 
 let perform_test test =

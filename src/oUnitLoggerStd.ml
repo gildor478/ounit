@@ -1,5 +1,4 @@
 
-open OUnitTypes
 open OUnitLogger
 open OUnitTest
 open OUnitResultSummary

@@ -2,9 +2,9 @@
    JUnit logger for OUnit.
  *)
 
-open OUnitTypes
 open OUnitLogger
 open OUnitUtils
+open OUnitTest
 open OUnitResultSummary
 
 

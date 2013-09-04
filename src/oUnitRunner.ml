@@ -1,5 +1,4 @@
 
-open OUnitTypes
 open OUnitTest
 open OUnitLogger
 
@@ -37,10 +36,10 @@ let run_one_test conf logger test_case =
 
 type runner =
     OUnitConf.conf ->
-    OUnitLogger.logger ->
+    OUnitTest.logger ->
     OUnitChooser.chooser ->
     (path * test_fun) list ->
-    test_results
+    OUnitTest.result_list
 
 (* The simplest runner possible, run test one after the other in a single
  * process, without threads.

@@ -2,7 +2,6 @@
    Summary of the results, based on captured log events.
  *)
 
-open OUnitTypes
 open OUnitUtils
 open OUnitTest
 open OUnitLogger
@@ -19,7 +18,7 @@ type test_data =
       timestamp_end: float;        (* UNIX timestamp *)
       log_entries: log_entry list; (* time sorted log entry, timestamp from
                                       timestamp_start *)
-      test_result: test_result;
+      test_result: OUnitTest.result;
     }
 
 type t =
@@ -29,7 +28,7 @@ type t =
       charset: string;
       conf: (string * string) list;
       running_time: float;
-      global_results: test_results;
+      global_results: OUnitTest.result_list;
       test_case_count: int;
       tests: test_data list;
       errors: int;
