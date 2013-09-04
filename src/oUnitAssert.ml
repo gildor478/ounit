@@ -80,8 +80,9 @@ let assert_command
     ~ctxt
     prg args =
 
-    bracket_tmpfile
-      (fun (ctxt, (fn_out, chn_out)) ->
+    OUnitTest.section_ctxt ctxt
+      (fun ctxt ->
+         let (fn_out, chn_out) = bracket_tmpfile ctxt in
          let cmd_print fmt =
            let () =
              match env with
@@ -194,7 +195,6 @@ let assert_command
                  close_in chn;
                  raise e
            end)
-      ctxt
 
 let raises f =
   try

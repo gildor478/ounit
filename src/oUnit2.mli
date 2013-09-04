@@ -124,27 +124,18 @@ val cmp_float : ?epsilon:float -> float -> float -> bool
 
 (** {2 Bracket}
 
-    A bracket is a functional implementation of the commonly used
-    setUp and tearDown feature in unittests. It can be used like this:
-
-    ["MyTestCase" >:: (bracket test_set_up test_fun test_tear_down)]
-
+    A bracket is a registered object with setUp and tearDown in unit tests.
+    Data generated during the setUp will be automatically tearDown when the test
+    ends.
   *)
 
-(** [bracket set_up test tear_down] The [set_up] function runs first, then
-    the [test] function runs and at the end [tear_down] runs. The
-    [tear_down] function runs even if the [test] failed and help to clean
-    the environment.
+(** [bracket set_up tear_down test_ctxt] set up an object and register it to be
+    tore down in [test_ctxt].
   *)
-val bracket :
-    (test_ctxt -> 'a) ->
-    ((test_ctxt * 'a) -> unit) ->
-    ((test_ctxt * 'a) -> unit) ->
-    test_ctxt -> unit
+val bracket : (test_ctxt -> 'a) -> ('a -> test_ctxt -> unit) -> test_ctxt -> 'a
 
-(** [bracket_tmpfile test] The [test] function takes a temporary filename
-    and matching output channel as arguments. The temporary file is created
-    before the test and removed after the test.
+(** [bracket_tmpfile test_ctxt] Create a temporary filename and matching output
+    channel. The temporary file is removed after the test.
 
     @param prefix see [Filename.open_temp_file]
     @param suffix see [Filename.open_temp_file]
@@ -154,12 +145,10 @@ val bracket_tmpfile:
   ?prefix:string ->
   ?suffix:string ->
   ?mode:open_flag list ->
-  ((test_ctxt * (string * out_channel)) -> unit) ->
-  test_ctxt -> unit
+  test_ctxt -> (string * out_channel)
 
-(** [bracket_tmpdir test] The [test] function takes a temporary dirname as
-    argument. The temporary directory is created before the test and remove
-    after the test.
+(** [bracket_tmpdir test] Create a temporary dirname. The temporary directory is
+    removed after the test.
 
     @param prefix see [Filename.open_temp_file]
     @param suffix see [Filename.open_temp_file]
@@ -167,8 +156,7 @@ val bracket_tmpfile:
 val bracket_tmpdir:
   ?prefix:string ->
   ?suffix:string ->
-  ((test_ctxt * string) -> unit) ->
-  test_ctxt -> unit
+  test_ctxt -> string
 
 (** {2 Constructing Tests} *)
 

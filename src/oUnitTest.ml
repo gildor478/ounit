@@ -28,9 +28,11 @@ type result_full = (path * result * OUnitLogger.position option)
 type result_list = result_full list
 
 type ctxt =
+    (* TODO: hide this to avoid building a context outside. *)
     {
       logger: result OUnitLogger.Test.t;
       conf: OUnitConf.conf;
+      mutable tear_down: (ctxt -> unit) list;
     }
 
 type log_event_t = (path, result) OUnitLogger.log_event_t
@@ -43,6 +45,31 @@ type test =
   | TestCase of test_fun
   | TestList of test list
   | TestLabel of string * test
+
+let section_ctxt ctxt f =
+  let old_tear_down = ctxt.tear_down in
+  let clean_exit () =
+    List.iter (fun tear_down -> tear_down ctxt) ctxt.tear_down;
+    ctxt.tear_down <- old_tear_down
+  in
+    ctxt.tear_down <- [];
+    try
+      let res = f ctxt in
+        clean_exit ();
+        res
+    with e ->
+      clean_exit ();
+      raise e
+
+let with_ctxt conf logger test_path f =
+  let ctxt =
+    {
+      logger = OUnitLogger.Test.create logger test_path;
+      conf = conf;
+      tear_down = [];
+    }
+  in
+    section_ctxt ctxt f
 
 (* Some shorthands which allows easy test construction *)
 let (>:) s t = TestLabel(s, t)             (* infix *)

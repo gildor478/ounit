@@ -1,71 +1,47 @@
 
 open OUnitTest
 
-let bracket set_up f tear_down ctxt =
-  let fixture =
-    set_up ctxt
-  in
-  let () =
-    try
-      let () = f (ctxt, fixture) in
-        tear_down (ctxt, fixture)
-    with e ->
-      let () =
-        tear_down (ctxt, fixture)
-      in
-        raise e
-  in
-    ()
+type t = (unit -> unit) list
 
-let bracket_tmpfile ?(prefix="ounit-") ?(suffix=".txt") ?mode f =
-  bracket
-    (fun ctxt ->
+let create set_up tear_down test_ctxt =
+  let fixture = set_up test_ctxt in
+  let tear_down test_ctxt =
+    tear_down fixture test_ctxt
+  in
+    test_ctxt.tear_down <- tear_down :: test_ctxt.tear_down;
+    fixture
+
+let logf logger lvl fmt = OUnitLogger.Test.logf logger lvl fmt
+
+let bracket_tmpfile ?(prefix="ounit-") ?(suffix=".txt") ?mode test_ctxt =
+  create
+    (fun test_ctxt ->
        let (fn, chn) =
          Filename.open_temp_file ?mode prefix suffix
        in
-         OUnitLogger.Test.logf ctxt.logger
-           `Info
-           "Created a temporary file: '%s'"
-           fn;
+         logf test_ctxt.logger `Info "Created a temporary file: %S." fn;
          (fn, chn))
-    f
-    (fun (ctxt, (fn, chn)) ->
-       begin
-         try
-           close_out chn
-         with _ ->
-           ()
-       end;
-       begin
-         try
-           Sys.remove fn;
-           OUnitLogger.Test.logf ctxt.logger
-             `Info
-             "Removed a temporary file: '%s'"
-             fn
-         with _ ->
-           ()
-       end)
+    (fun (fn, chn) test_ctxt ->
+       (try close_out chn with _ -> ());
+       try
+         Sys.remove fn;
+         logf test_ctxt.logger `Info "Removed a temporary file: %S." fn
+       with _ ->
+         ())
+    test_ctxt
 
 
-let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") f =
-  bracket
-    (fun ctxt ->
+let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") test_ctxt =
+  create
+    (fun test_ctxt ->
        let tmpdn = Filename.temp_file prefix suffix in
-         Sys.remove tmpdn;
-         Unix.mkdir tmpdn 0o755;
-         OUnitLogger.Test.logf ctxt.logger
-           `Info
-           "Create a temporary directory: '%s'"
-           tmpdn;
-         tmpdn)
-    f
-    (fun (ctxt, tmpdn) ->
+       Sys.remove tmpdn;
+       Unix.mkdir tmpdn 0o755;
+       logf test_ctxt.logger `Info "Create a temporary directory: %S." tmpdn;
+       tmpdn)
+    (fun tmpdn test_ctxt ->
        let log_delete fn =
-         OUnitLogger.Test.logf ctxt.logger
-           `Info
-           "Delete in a temporary directory: '%s'"
-           fn
+         logf test_ctxt.logger `Info "Delete in a temporary directory: %S." fn
        in
        let rec rmdir fn =
          Array.iter
@@ -87,3 +63,4 @@ let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") f =
          rmdir tmpdn;
          Unix.rmdir tmpdn;
          log_delete tmpdn)
+    test_ctxt

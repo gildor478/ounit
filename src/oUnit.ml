@@ -23,6 +23,7 @@ let default_context =
   {
     OUnitTest.logger = OUnitLogger.Test.create OUnitLogger.null_logger [];
     OUnitTest.conf = default_v1_conf ();
+    OUnitTest.tear_down = [];
   }
 
 type node = ListItem of int | Label of string
@@ -151,16 +152,24 @@ let cmp_float ?epsilon f1 f2 =
   OUnitUtils.cmp_float ?epsilon f1 f2
 
 let bracket pre f post () =
-  OUnitBracket.bracket
-    (fun _ -> pre ())
-    (fun (_, fixture) -> f fixture)
-    (fun (_, fixture) -> post fixture)
-    default_context
+  OUnitTest.section_ctxt default_context
+    (fun ctxt ->
+       let fixture =
+         OUnitBracket.create
+           (fun _ -> pre ())
+           (fun fixture _ -> post fixture)
+           ctxt
+       in
+       let () = f fixture in
+         ())
 
 let bracket_tmpfile ?prefix  ?suffix ?mode gen () =
-  OUnitBracket.bracket_tmpfile ?prefix  ?suffix ?mode
-    (fun (_, fixture) -> gen fixture)
-    default_context
+  OUnitTest.section_ctxt default_context
+    (fun ctxt ->
+       let fixture =
+         OUnitBracket.bracket_tmpfile ?prefix  ?suffix ?mode ctxt
+       in
+         gen fixture)
 
 let (>:) a b =
   test1_of_test (OUnitTest.(>:) a (test_of_test1 b))

@@ -8,14 +8,8 @@ let run_one_test conf logger test_case =
   let () = OUnitLogger.report logger (TestEvent (test_path, EStart)) in
   let result =
     try
-      let ctxt =
-        {
-          logger = OUnitLogger.Test.create logger test_path;
-          conf = conf;
-        }
-      in
-      test_fun ctxt;
-      RSuccess
+      let () = with_ctxt conf logger test_path test_fun in
+        RSuccess
     with e ->
       let backtrace =
         if Printexc.backtrace_status () then
