@@ -23,11 +23,9 @@ let check_variable_name str =
   let () =
     match str.[0] with
       | '0' .. '9' | '_' ->
-          failwith
-            (Printf.sprintf
-               "%S is not a valid variable name. \
-               It must not start with %C"
-               str str.[0]);
+          failwithf
+            "%S is not a valid variable name. It must not start with %C."
+            str str.[0]
       | _ ->
           ()
   in
@@ -36,11 +34,9 @@ let check_variable_name str =
          | 'A' .. 'Z' | 'a' .. 'z' | '_' | '0' .. '9' ->
              ()
          | c ->
-             failwith
-               (Printf.sprintf
-                  "%S is not a valid variable name. \
-                  It must not contain %C"
-                  str c))
+             failwithf
+               "%S is not a valid variable name. It must not contain %C."
+               str c)
       str
 
 let cli_name name =
@@ -56,10 +52,8 @@ let make ~name ~parse ~print ~default ~help ~fcli () =
   let () =
     check_variable_name name;
     if Hashtbl.mem metaconf name then
-      failwith
-        (Printf.sprintf
-           "Duplicate definition for configuration variable %S."
-           name)
+      failwithf
+        "Duplicate definition for configuration variable %S." name
   in
   let set, get = OUnitPropList.new_property default in
   let parse_set str conf = set conf (parse str) in
@@ -180,19 +174,16 @@ let make_enum name get_enums default help =
       try
         List.assoc (get conf) (get_enums ())
       with Not_found ->
-        failwith
-          (Printf.sprintf
-             "Enums list for %s has changed during execution."
-             name)
+        failwithf
+          "Enums list for %s has changed during execution." name
 
 let set ~origin conf name value =
   try
     (Hashtbl.find metaconf name).parse_set value conf
   with
     | Not_found ->
-        failwith
-          (Printf.sprintf
-             "Variable %S is not defined in the application.\n%s" name origin)
+        failwithf
+          "Variable %S is not defined in the application.\n%s" name origin
     | Parse_error str ->
         failwith (str ^ "\n" ^ origin)
 
@@ -216,9 +207,7 @@ let file_parse conf fn =
                   try
                     Scanf.sscanf str "%s = %s" (fun name value -> name, value)
                   with Scanf.Scan_failure _ ->
-                    failwith
-                      (Printf.sprintf
-                         "Unparseable line: %s\n%s" line origin)
+                    failwithf "Unparseable line: %s\n%s" line origin
                 end
             in
               set ~origin conf name value

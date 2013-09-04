@@ -23,8 +23,7 @@ struct
     try
       List.assoc s !all
     with Not_found ->
-      failwith
-        (Printf.sprintf "Unable to find %s '%s'." Settings.name s)
+      OUnitUtils.failwithf "Unable to find %s '%s'." Settings.name s
 
   let choice =
     OUnitConf.make_enum

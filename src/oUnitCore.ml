@@ -120,10 +120,9 @@ let run_test_tt_main ?(exit=Pervasives.exit) suite =
                 | Some test ->
                     test
                 | None ->
-                    failwith
-                      (Printf.sprintf
-                         "Filtering test %s lead to no tests."
-                         (String.concat ", " !only_test))
+                    failwithf
+                      "Filtering test %s lead to no tests."
+                      (String.concat ", " !only_test)
             end
         in
 

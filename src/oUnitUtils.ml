@@ -108,3 +108,6 @@ let buildir =
         concat (basename (basename pwd)) "_build";
         pwd
       ]
+
+let failwithf fmt =
+  Printf.ksprintf failwith fmt

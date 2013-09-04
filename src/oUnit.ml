@@ -1,4 +1,6 @@
 
+open OUnitUtils
+
 let default_v1_conf ?(verbose=false) () =
   (* TODO: preset for OUnit v1 and hide options. Add a blacklist to OUnitConf.t
    *)
@@ -279,10 +281,9 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
                 | Some test ->
                     test
                 | None ->
-                    failwith
-                      (Printf.sprintf
-                         "Filtering test %s lead to no tests."
-                         (String.concat ", " !only_test))
+                    failwithf
+                      "Filtering test %s lead to no tests."
+                      (String.concat ", " !only_test)
             end
         in
 
