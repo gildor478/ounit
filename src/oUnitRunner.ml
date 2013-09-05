@@ -25,7 +25,12 @@ let run_one_test conf logger test_case =
           | s -> RError (Printexc.to_string s, backtrace)
   in
   let main_result_full () =
-    test_path, main_result, OUnitLogger.position logger
+    test_path, main_result,
+    match main_result with
+      | RSuccess | RSkip _ | RTodo _ ->
+          None
+      | RFailure _ | RError _ ->
+          OUnitLogger.position logger
   in
   let result_full, other_result_fulls =
     match main_result, List.rev !non_fatal with
