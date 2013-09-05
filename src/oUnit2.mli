@@ -38,11 +38,6 @@ val assert_failure : string -> 'a
     @raise Failure signal a failure *)
 val assert_bool : string -> bool -> unit
 
-(** Shorthand for assert_bool
-
-    @raise Failure to signal a failure *)
-val ( @? ) : string -> bool -> unit
-
 (** Signals a failure when the string is non-empty. The string identifies the
     failure.
 
@@ -76,12 +71,12 @@ val assert_command :
     @param pp_diff if not equal, ask a custom display of the difference
                 using [diff fmt exp real] where [fmt] is the formatter to use
     @param msg custom message to identify the failure
+    @param ctxt if provided, always print expected and real value
 
     @raise Failure signal a failure
-
-    @version 1.1.0
   *)
 val assert_equal :
+  ?ctxt:test_ctxt ->
   ?cmp:('a -> 'a -> bool) ->
   ?printer:('a -> string) ->
   ?pp_diff:(Format.formatter -> ('a * 'a) -> unit) ->

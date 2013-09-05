@@ -19,7 +19,7 @@ let assert_bool msg b =
 let assert_string str =
   if not (str = "") then assert_failure str
 
-let assert_equal ?(cmp = ( = )) ?printer ?pp_diff ?msg expected actual =
+let assert_equal ?ctxt ?(cmp = ( = )) ?printer ?pp_diff ?msg expected actual =
   let get_error_string () =
     let res =
       buff_format_printf
@@ -68,6 +68,29 @@ let assert_equal ?(cmp = ( = )) ?printer ?pp_diff ?msg expected actual =
       else
         res
   in
+  let logf fmt =
+    match ctxt with
+      | Some ctxt ->
+          OUnitLogger.Test.logf ctxt.test_logger `Info fmt
+      | None ->
+          Printf.ksprintf ignore fmt
+  in
+    begin
+      match msg with
+        | Some str ->
+            logf "%s" str;
+        | _ ->
+            ()
+    end;
+    begin
+      match printer with
+        | Some p ->
+            logf "Expected: %s" (p expected);
+            logf "Actual: %s" (p actual)
+        | _ ->
+            ()
+    end;
+
     if not (cmp expected actual) then
       assert_failure (get_error_string ())
 

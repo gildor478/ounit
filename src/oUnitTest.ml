@@ -91,7 +91,6 @@ let result_full_of_exception ctxt e =
   in
   let result =
     match e with
-      (* TODO: create a real exception for failure (also in assert). *)
       | Failure s -> RFailure (s, backtrace ())
       | Skip s -> RSkip s
       | Todo s -> RTodo s

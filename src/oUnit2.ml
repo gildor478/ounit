@@ -13,8 +13,6 @@ let test_list lst = TestList lst
 
 type log_severity = OUnitLogger.log_severity
 
-let (@?) = OUnitAssert.assert_bool
-
 let assert_failure = OUnitAssert.assert_failure
 let assert_bool = OUnitAssert.assert_bool
 let assert_string = OUnitAssert.assert_string
