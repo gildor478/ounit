@@ -25,7 +25,7 @@ let string_of_message_to_child =
 type message_from_child =
   | AckExit
   | Log of OUnitTest.log_event_t
-  | TestDone of OUnitTest.result_full
+  | TestDone of (OUnitTest.result_full * OUnitTest.result_list)
   | PositionLog
 
 let string_of_message_from_child =
@@ -156,8 +156,8 @@ let main_child_loop channel conf map_test_cases =
             stop := true
         | RunTest test_path ->
             let test_case = MapPath.find test_path map_test_cases in
-            let result = OUnitRunner.run_one_test conf logger test_case in
-              channel.send_data (TestDone result)
+            let res = OUnitRunner.run_one_test conf logger test_case in
+              channel.send_data (TestDone res)
         | LogPosition _ ->
             assert false
     done;

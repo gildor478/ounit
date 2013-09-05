@@ -8,7 +8,7 @@ type t =
     {
       tests_planned: (path * test_fun) list;
       tests_running: (path * test_fun) list;
-      results: OUnitTest.result_list;
+      results: OUnitTest.result_list list;
       chooser: t -> (path * test_fun);
     }
 
@@ -22,10 +22,10 @@ let create chooser test_cases =
 
 let filter_out e lst = List.filter (fun (e', _) -> e <> e') lst
 
-let add_test_result test_result state =
+let add_test_result (test_result, other_test_results) state =
   let (test_path, _, _) = test_result in
     {
-      results = test_result :: state.results;
+      results = (test_result :: other_test_results) :: state.results;
       tests_planned = filter_out test_path state.tests_planned;
       tests_running = filter_out test_path state.tests_running;
       chooser = state.chooser;
@@ -42,4 +42,5 @@ let next_test_case state =
                tests_running = test_case :: state.tests_running;
                tests_planned = filter_out test_path state.tests_planned}
 
-let get_results state = state.results
+let get_results state =
+  List.flatten (List.rev state.results)

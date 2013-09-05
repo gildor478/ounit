@@ -33,6 +33,7 @@ type ctxt =
       logger: result OUnitLogger.Test.t;
       conf: OUnitConf.conf;
       mutable tear_down: (ctxt -> unit) list;
+      non_fatal: result_full list ref;
     }
 
 type log_event_t = (path, result) OUnitLogger.log_event_t
@@ -61,12 +62,13 @@ let section_ctxt ctxt f =
       clean_exit ();
       raise e
 
-let with_ctxt conf logger test_path f =
+let with_ctxt conf logger non_fatal test_path f =
   let ctxt =
     {
       logger = OUnitLogger.Test.create logger test_path;
       conf = conf;
       tear_down = [];
+      non_fatal = non_fatal;
     }
   in
     section_ctxt ctxt f

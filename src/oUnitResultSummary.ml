@@ -79,6 +79,33 @@ let result_msg =
     | RSkip msg
     | RTodo msg -> msg
 
+let worst_cmp result1 result2 =
+  let rank =
+    function
+      | RSuccess -> 0
+      | RSkip _ -> 1
+      | RTodo _ -> 2
+      | RFailure _ -> 3
+      | RError _ -> 4
+  in
+    (rank result1) - (rank result2)
+
+let worst_result_full result_full lst =
+  let worst =
+    List.fold_left
+      (fun ((_, result1, _) as result_full1)
+             ((_, result2, _) as result_full2) ->
+       if worst_cmp result1 result2 < 0 then
+           result_full2
+         else
+           result_full1)
+      result_full lst
+  in
+    worst,
+    List.filter
+      (fun result_full -> not (result_full == worst))
+      (result_full :: lst)
+
 let was_successful lst =
   List.for_all
     (fun (_, rslt, _) ->

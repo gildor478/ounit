@@ -18,12 +18,13 @@ let default_v1_conf ?(verbose=false) () =
       ~origin:"Preset oUnit.ml" conf "verbose" (string_of_bool verbose);
     conf
 
-(* TODO: rename default_v1_context. *)
+(* TODO: use a global variable + with_ctxt. *)
 let default_context =
   {
     OUnitTest.logger = OUnitLogger.Test.create OUnitLogger.null_logger [];
     OUnitTest.conf = default_v1_conf ();
     OUnitTest.tear_down = [];
+    OUnitTest.non_fatal = ref [];
   }
 
 type node = ListItem of int | Label of string
@@ -105,7 +106,7 @@ let result_path =
 type test_results = test_result list
 
 let list_result1_of_list_result =
-  List.map
+  List.rev_map
     (fun (pth, rslt, _) ->
        test_result1_of_test_result pth rslt)
 

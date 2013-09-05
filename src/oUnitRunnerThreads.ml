@@ -32,8 +32,8 @@ let threads_runner conf logger chooser test_cases =
     while true do
       let event = Event.receive wait_chan in
       let test_case = Event.sync event in
-      let result = OUnitRunner.run_one_test conf logger test_case in
-        Event.sync (Event.send result_chan result)
+      let res = OUnitRunner.run_one_test conf logger test_case in
+        Event.sync (Event.send result_chan res)
     done
   in
 
@@ -41,11 +41,13 @@ let threads_runner conf logger chooser test_cases =
   let synchronizer_main (test_number, result_chan, suite_result_chan) =
     let i = ref test_number and l = ref [] in
     while !i > 0 do
-      let result = Event.sync (Event.receive result_chan) in
-        l := result :: !l;
+      let result_full, other_result_fulls =
+        Event.sync (Event.receive result_chan)
+      in
+        l := (result_full :: other_result_fulls) :: !l;
         decr i
     done;
-    Event.sync (Event.send suite_result_chan !l)
+    Event.sync (Event.send suite_result_chan (List.flatten (List.rev !l)))
   in
 
   (* Beginning of preform_test.runn equivalent, wait results from synchronizer.

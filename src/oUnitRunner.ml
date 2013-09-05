@@ -6,9 +6,10 @@ open OUnitLogger
 let run_one_test conf logger test_case =
   let (test_path, test_fun) = test_case in
   let () = OUnitLogger.report logger (TestEvent (test_path, EStart)) in
-  let result =
+  let non_fatal = ref [] in
+  let main_result =
     try
-      let () = with_ctxt conf logger test_path test_fun in
+      let () = with_ctxt conf logger non_fatal test_path test_fun in
         RSuccess
     with e ->
       let backtrace =
@@ -23,10 +24,22 @@ let run_one_test conf logger test_case =
           | Todo s -> RTodo s
           | s -> RError (Printexc.to_string s, backtrace)
   in
-  let position = OUnitLogger.position logger in
+  let main_result_full () =
+    test_path, main_result, OUnitLogger.position logger
+  in
+  let result_full, other_result_fulls =
+    match main_result, List.rev !non_fatal with
+      | RSuccess, [] ->
+          main_result_full (), []
+      | RSuccess, hd :: tl ->
+          OUnitResultSummary.worst_result_full hd tl
+      | _, lst ->
+          OUnitResultSummary.worst_result_full (main_result_full ()) lst
+  in
+  let _, result, _ = result_full in
     OUnitLogger.report logger (TestEvent (test_path, EResult result));
     OUnitLogger.report logger (TestEvent (test_path, EEnd));
-    test_path, result, position
+    result_full, other_result_fulls
 
 type runner =
     OUnitConf.conf ->
