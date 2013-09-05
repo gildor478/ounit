@@ -7,39 +7,23 @@ let run_one_test conf logger test_case =
   let (test_path, test_fun) = test_case in
   let () = OUnitLogger.report logger (TestEvent (test_path, EStart)) in
   let non_fatal = ref [] in
-  let main_result =
-    try
-      let () = with_ctxt conf logger non_fatal test_path test_fun in
-        RSuccess
-    with e ->
-      let backtrace =
-        if Printexc.backtrace_status () then
-          Some (Printexc.get_backtrace ())
-        else
-          None
-      in
-        match e with
-          | Failure s -> RFailure (s, backtrace)
-          | Skip s -> RSkip s
-          | Todo s -> RTodo s
-          | s -> RError (Printexc.to_string s, backtrace)
-  in
-  let main_result_full () =
-    test_path, main_result,
-    match main_result with
-      | RSuccess | RSkip _ | RTodo _ ->
-          None
-      | RFailure _ | RError _ ->
-          OUnitLogger.position logger
+  let main_result_full =
+    with_ctxt conf logger non_fatal test_path
+      (fun ctxt ->
+         try
+           test_fun ctxt;
+           test_path, RSuccess, None
+         with e ->
+           OUnitTest.result_full_of_exception ctxt e)
   in
   let result_full, other_result_fulls =
-    match main_result, List.rev !non_fatal with
-      | RSuccess, [] ->
-          main_result_full (), []
-      | RSuccess, hd :: tl ->
+    match main_result_full, List.rev !non_fatal with
+      | (_, RSuccess, _), [] ->
+          main_result_full, []
+      | (_, RSuccess, _), hd :: tl ->
           OUnitResultSummary.worst_result_full hd tl
       | _, lst ->
-          OUnitResultSummary.worst_result_full (main_result_full ()) lst
+          OUnitResultSummary.worst_result_full main_result_full lst
   in
   let _, result, _ = result_full in
     OUnitLogger.report logger (TestEvent (test_path, EResult result));

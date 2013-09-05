@@ -30,8 +30,10 @@ type result_list = result_full list
 type ctxt =
     (* TODO: hide this to avoid building a context outside. *)
     {
-      logger: result OUnitLogger.Test.t;
       conf: OUnitConf.conf;
+      logger: (path, result) OUnitLogger.logger;
+      path: path;
+      test_logger: result OUnitLogger.Test.t;
       mutable tear_down: (ctxt -> unit) list;
       non_fatal: result_full list ref;
     }
@@ -47,6 +49,9 @@ type test =
   | TestList of test list
   | TestLabel of string * test
 
+(** Isolate a function inside a context. All the tear down will run before
+    returning.
+ *)
 let section_ctxt ctxt f =
   let old_tear_down = ctxt.tear_down in
   let clean_exit () =
@@ -62,16 +67,53 @@ let section_ctxt ctxt f =
       clean_exit ();
       raise e
 
+(** Create a context and run the function. *)
 let with_ctxt conf logger non_fatal test_path f =
   let ctxt =
     {
-      logger = OUnitLogger.Test.create logger test_path;
       conf = conf;
+      logger = logger;
+      path = test_path;
+      test_logger = OUnitLogger.Test.create logger test_path;
       tear_down = [];
       non_fatal = non_fatal;
     }
   in
     section_ctxt ctxt f
+
+(** Transform an exception in a result. *)
+let result_full_of_exception ctxt e =
+  let backtrace () =
+    if Printexc.backtrace_status () then
+      Some (Printexc.get_backtrace ())
+    else
+      None
+  in
+  let result =
+    match e with
+      (* TODO: create a real exception for failure (also in assert). *)
+      | Failure s -> RFailure (s, backtrace ())
+      | Skip s -> RSkip s
+      | Todo s -> RTodo s
+      | s -> RError (Printexc.to_string s, backtrace ())
+  in
+  let position =
+    match result with
+      | RSuccess | RSkip _ | RTodo _ ->
+          None
+      | RFailure _ | RError _ ->
+          OUnitLogger.position ctxt.logger
+  in
+    ctxt.path, result, position
+
+(** Isolate a function inside a context, just as [!section_ctxt] but don't
+    propagate a failure, register it for later.
+  *)
+let non_fatal ctxt f =
+  try
+    section_ctxt ctxt f
+  with e ->
+    ctxt.non_fatal := result_full_of_exception ctxt e :: !(ctxt.non_fatal)
 
 (* Some shorthands which allows easy test construction *)
 let (>:) s t = TestLabel(s, t)             (* infix *)
@@ -210,5 +252,3 @@ let test_filter ?(skip=false) only test =
       end
   in
     filter_test [] test
-
-

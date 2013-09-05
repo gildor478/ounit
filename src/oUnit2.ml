@@ -33,10 +33,11 @@ let cmp_float = OUnitUtils.cmp_float
 let bracket = OUnitBracket.create
 let bracket_tmpfile = OUnitBracket.bracket_tmpfile
 let bracket_tmpdir = OUnitBracket.bracket_tmpdir
+let non_fatal = OUnitTest.non_fatal
 let run_test_tt_main = OUnitCore.run_test_tt_main
 
 let logf ctxt log_severity fmt =
-   OUnitLogger.Test.logf ctxt.logger log_severity fmt
+   OUnitLogger.Test.logf ctxt.test_logger log_severity fmt
 
 let conf_wrap f name default help =
   let get = f name default help in

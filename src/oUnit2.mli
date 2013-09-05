@@ -211,3 +211,9 @@ val conf_make_string_opt:
     string -> string option -> Arg.doc -> test_ctxt -> string option
 val conf_make_int: string -> int -> Arg.doc -> test_ctxt -> int
 val conf_make_bool: string -> bool -> Arg.doc -> test_ctxt -> bool
+
+(** [non_fatal ctxt f] Run [f] but if an exception is raised or an assert fails,
+    don't stop, just register the result. The global test running result will mix
+    in the non fatal result to determine the success or failure of the test.
+  *)
+val non_fatal: test_ctxt -> (test_ctxt -> unit) -> unit

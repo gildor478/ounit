@@ -20,12 +20,16 @@ let default_v1_conf ?(verbose=false) () =
 
 (* TODO: use a global variable + with_ctxt. *)
 let default_context =
-  {
-    OUnitTest.logger = OUnitLogger.Test.create OUnitLogger.null_logger [];
-    OUnitTest.conf = default_v1_conf ();
-    OUnitTest.tear_down = [];
-    OUnitTest.non_fatal = ref [];
-  }
+  let logger = OUnitLogger.null_logger in
+    {
+      OUnitTest.
+      conf = default_v1_conf ();
+      logger = logger;
+      path = [];
+      test_logger = OUnitLogger.Test.create logger [];
+      tear_down = [];
+      non_fatal = ref [];
+    }
 
 type node = ListItem of int | Label of string
 
@@ -127,7 +131,7 @@ let assert_command
   let ctxt =
       {
         default_context with
-            OUnitTest.logger =
+            OUnitTest.test_logger =
               OUnitLogger.Test.create
                 (OUnitLoggerStd.std_logger (default_v1_conf ()))
                 [];

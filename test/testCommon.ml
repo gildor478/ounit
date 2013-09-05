@@ -8,24 +8,23 @@ let perform_test test =
       conf OUnitRunner.default OUnitChooser.default null_logger test
 
 let assert_equal_test_result exp res =
+  let norm lst =
+   let norm_one (path, test_result, pos) =
+     let test_result' =
+       match test_result with
+         | RSuccess -> RSuccess
+         | RFailure (str, _) -> RFailure (str, None)
+         | RError (str, _) -> RError(str, None)
+         | RSkip str -> RSkip str
+         | RTodo str -> RTodo str
+     in
+       (path, test_result', pos)
+   in
+     List.sort Pervasives.compare (List.rev_map norm_one lst)
+  in
   assert_equal
     ~cmp:
-    (fun a b ->
-       let norm_one (path, test_result, pos) =
-         let test_result' =
-           match test_result with
-             | RSuccess -> RSuccess
-             | RFailure (str, _) -> RFailure (str, None)
-             | RError (str, _) -> RError(str, None)
-             | RSkip str -> RSkip str
-             | RTodo str -> RTodo str
-         in
-           (path, test_result', pos)
-       in
-       let norm lst =
-         List.sort Pervasives.compare (List.rev_map norm_one lst)
-       in
-         norm a = norm b)
+    (fun a b -> norm a = norm b)
     ~printer:
     (fun results ->
       String.concat "; "
@@ -52,6 +51,6 @@ let assert_equal_test_result exp res =
               in
                 Printf.sprintf "%S, %s"
                   (OUnitTest.string_of_path path) test_result_string)
-           results))
+           (norm results)))
     exp res
 

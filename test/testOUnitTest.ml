@@ -103,11 +103,62 @@ let test_case_paths _ =
                  Label "suite_d"]]
     (test_case_paths suite_d)
 
+let test_non_fatal _ =
+    assert_equal_test_result
+      [
+        [ListItem 0],
+        RSuccess,
+        None;
+
+        [ListItem 1],
+        RFailure("OUnit: fail", None),
+        None;
+
+        [ListItem 2],
+        RFailure("error", None),
+        None;
+
+        [ListItem 2],
+        RFailure("OUnit: fail", None),
+        None;
+
+        [ListItem 3],
+        RFailure("error", None),
+        None;
+
+        [ListItem 3],
+        RFailure("OUnit: fail", None),
+        None;
+      ]
+      (perform_test
+         (TestList
+            [
+              (* success *)
+              TestCase ignore;
+              (* failure *)
+              TestCase (fun _ -> assert_failure "fail");
+              (* error + failure *)
+              TestCase
+                (fun ctxt ->
+                   OUnitTest.non_fatal ctxt
+                     (fun _ ->
+                        failwith "error");
+                     assert_failure "fail");
+              (* failure + error *)
+              TestCase
+                (fun ctxt ->
+                   OUnitTest.non_fatal ctxt
+                     (fun _ ->
+                        assert_failure "fail");
+                     failwith "error");
+          ]))
+
 let tests =
   "OUnitTest" >:::
   [ "test_case_count" >:: test_case_count;
     "test_case_paths" >:: test_case_paths;
     "test_case_filter" >:: test_case_filter;
     "test_case_decorate" >:: test_case_decorate;
+    "test_non_fatal" >:: test_non_fatal;
   ]
 

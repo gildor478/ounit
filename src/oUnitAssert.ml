@@ -117,7 +117,7 @@ let assert_command
            Array.of_list (prg :: args)
          in
          let pid =
-           OUnitLogger.Test.raw_printf ctxt.logger "%s"
+           OUnitLogger.Test.raw_printf ctxt.test_logger "%s"
              (buff_format_printf
                 (fun fmt ->
                    Format.fprintf fmt "@[Starting command '%t'@]\n" cmd_print));
@@ -172,7 +172,7 @@ let assert_command
                while !len <> 0 do
                  len := input chn buff 0 (String.length buff);
                  OUnitLogger.Test.raw_printf
-                   ctxt.logger "%s" (String.sub buff 0 !len);
+                   ctxt.test_logger "%s" (String.sub buff 0 !len);
                done;
                close_in chn
            end;

@@ -19,13 +19,13 @@ let bracket_tmpfile ?(prefix="ounit-") ?(suffix=".txt") ?mode test_ctxt =
        let (fn, chn) =
          Filename.open_temp_file ?mode prefix suffix
        in
-         logf test_ctxt.logger `Info "Created a temporary file: %S." fn;
+         logf test_ctxt.test_logger `Info "Created a temporary file: %S." fn;
          (fn, chn))
     (fun (fn, chn) test_ctxt ->
        (try close_out chn with _ -> ());
        try
          Sys.remove fn;
-         logf test_ctxt.logger `Info "Removed a temporary file: %S." fn
+         logf test_ctxt.test_logger `Info "Removed a temporary file: %S." fn
        with _ ->
          ())
     test_ctxt
@@ -37,11 +37,13 @@ let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") test_ctxt =
        let tmpdn = Filename.temp_file prefix suffix in
        Sys.remove tmpdn;
        Unix.mkdir tmpdn 0o755;
-       logf test_ctxt.logger `Info "Create a temporary directory: %S." tmpdn;
+       logf test_ctxt.test_logger `Info
+         "Create a temporary directory: %S." tmpdn;
        tmpdn)
     (fun tmpdn test_ctxt ->
        let log_delete fn =
-         logf test_ctxt.logger `Info "Delete in a temporary directory: %S." fn
+         logf test_ctxt.test_logger `Info
+           "Delete in a temporary directory: %S." fn
        in
        let rec rmdir fn =
          Array.iter
