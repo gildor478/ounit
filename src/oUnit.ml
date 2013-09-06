@@ -1,35 +1,19 @@
 
 open OUnitUtils
 
-let default_v1_conf ?(verbose=false) () =
-  (* TODO: preset for OUnit v1 and hide options. Add a blacklist to OUnitConf.t
-   *)
-  let conf =
-    OUnitConf.default
-      ~preset:
-      [
-        "chooser", "simple";
-        "runner", "sequential";
-        "results_style_1_X", "true";
-      ]
-      ()
-  in
-    OUnitConf.set
-      ~origin:"Preset oUnit.ml" conf "verbose" (string_of_bool verbose);
-    conf
-
-(* TODO: use a global variable + with_ctxt. *)
-let default_context =
-  let logger = OUnitLogger.null_logger in
-    {
-      OUnitTest.
-      conf = default_v1_conf ();
-      logger = logger;
-      path = [];
-      test_logger = OUnitLogger.Test.create logger [];
-      tear_down = [];
-      non_fatal = ref [];
-    }
+let get_test_context,
+    set_test_context,
+    reset_test_context =
+  let context_opt = ref None in
+    (* get *)
+    (fun () ->
+       match !context_opt with
+         | Some ctxt -> ctxt
+         | None -> failwith "Function need to be called from inside a test."),
+    (fun ctxt ->
+       context_opt := Some ctxt),
+    (fun ctxt ->
+       context_opt := None)
 
 type node = ListItem of int | Label of string
 
@@ -57,15 +41,33 @@ type test =
 
 let rec test1_of_test =
   function
-    | OUnitTest.TestCase f -> TestCase (fun () -> f default_context)
+    | OUnitTest.TestCase f -> TestCase (fun () -> f (get_test_context ()))
     | OUnitTest.TestList lst -> TestList (List.map test1_of_test lst)
     | OUnitTest.TestLabel (str, tst) -> TestLabel (str, test1_of_test tst)
 
 let rec test_of_test1 =
   function
-    | TestCase f -> OUnitTest.TestCase (fun ctxt -> f ())
+    | TestCase f ->
+        OUnitTest.TestCase
+          (fun ctxt ->
+             set_test_context ctxt;
+             f ();
+             reset_test_context ())
     | TestList lst -> OUnitTest.TestList (List.map test_of_test1 lst)
     | TestLabel (str, tst) ->  OUnitTest.TestLabel (str, test_of_test1 tst)
+
+let rec ounit2_of_ounit1 =
+  function
+    | TestCase f ->
+        OUnit2.test_case
+          (fun ctxt ->
+             set_test_context ctxt;
+             f ();
+             reset_test_context ())
+    | TestList lst ->
+        OUnit2.test_list (List.map ounit2_of_ounit1 lst)
+    | TestLabel (lbl, test) ->
+        OUnit2.( >: ) lbl (ounit2_of_ounit1 test)
 
 type test_result =
     RSuccess of path
@@ -129,12 +131,15 @@ let assert_string =
 let assert_command
       ?exit_code ?sinput ?foutput ?use_stderr ?env ?(verbose=false) prg args =
   let ctxt =
+    let ctxt = get_test_context () in
+    let conf' = Hashtbl.copy ctxt.OUnitTest.conf in
+      OUnitConf.set ~origin:"OUnit.assert_command" conf'
+        "verbose" (string_of_bool verbose);
       {
-        default_context with
+        ctxt with
             OUnitTest.test_logger =
               OUnitLogger.Test.create
-                (OUnitLoggerStd.std_logger (default_v1_conf ()))
-                [];
+                (OUnitLoggerStd.std_logger conf') ctxt.OUnitTest.path;
       }
   in
     OUnitAssert.assert_command
@@ -157,7 +162,7 @@ let cmp_float ?epsilon f1 f2 =
   OUnitUtils.cmp_float ?epsilon f1 f2
 
 let bracket pre f post () =
-  OUnitTest.section_ctxt default_context
+  OUnitTest.section_ctxt (get_test_context ())
     (fun ctxt ->
        let fixture =
          OUnitBracket.create
@@ -169,7 +174,7 @@ let bracket pre f post () =
          ())
 
 let bracket_tmpfile ?prefix  ?suffix ?mode gen () =
-  OUnitTest.section_ctxt default_context
+  OUnitTest.section_ctxt (get_test_context ())
     (fun ctxt ->
        let fixture =
          OUnitBracket.bracket_tmpfile ?prefix  ?suffix ?mode ctxt
@@ -189,10 +194,14 @@ let test_decorate g tst =
   test1_of_test
     (OUnitTest.test_decorate
        (fun f ->
-          let f1 = (fun () -> f default_context) in
+          let f1 = (fun () -> f (get_test_context ())) in
           let f1' = g f1 in
-            (fun _ -> f1' ()))
+            (fun ctxt ->
+               set_test_context ctxt;
+               f1' ();
+               reset_test_context ()))
        (test_of_test1 tst))
+
 let test_filter ?skip lst test =
   let res =
     OUnitTest.test_filter ?skip lst (test_of_test1 test)
@@ -217,6 +226,18 @@ let test_case_paths tst =
     List.map
       (List.map node1_of_node)
       lst
+
+let default_v1_conf ?(verbose=false) () =
+  OUnitConf.default
+    ~preset:
+    [
+      "chooser", "simple";
+      "runner", "sequential";
+      "results_style_1_X", "true";
+      "verbose", (string_of_bool verbose);
+      "output_file", "none";
+    ]
+    ()
 
 let perform_test logger1 tst =
   let logger =
@@ -263,8 +284,13 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
   let suite = test_of_test1 suite in
   let only_test = ref [] in
   let list_test = ref false in
-  let extra_specs =
+  let verbose = ref false in
+  let specs =
     [
+      "-verbose",
+      Arg.Set verbose,
+      " Rather than displaying dots while running the test, be more verbose.";
+
       "-only-test",
       Arg.String (fun str -> only_test := str :: !only_test),
       "path Run only the selected tests.";
@@ -272,10 +298,15 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
       "-list-test",
       Arg.Set list_test,
       " List tests";
-    ]
+    ] @ arg_specs
   in
-  let conf = default_v1_conf () in
-    OUnitConf.cli_parse extra_specs conf;
+  let () =
+    Arg.parse
+      (Arg.align specs)
+      (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
+      ("usage: " ^ Sys.argv.(0) ^ " [options] [-only-test path]*")
+  in
+  let conf = default_v1_conf ~verbose:!verbose () in
     set_verbose (OUnitLoggerStd.verbose conf);
     if !list_test then
       begin

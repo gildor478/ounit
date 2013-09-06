@@ -259,3 +259,6 @@ val run_test_tt_main :
     ?arg_specs:(Arg.key * Arg.spec * Arg.doc) list ->
     ?set_verbose:(bool -> unit) ->
     test -> test_results
+
+
+val ounit2_of_ounit1 : test -> OUnit2.test

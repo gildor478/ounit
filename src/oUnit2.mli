@@ -14,13 +14,13 @@
 (** {2 Types} *)
 
 (** Context of a test. *)
-type test_ctxt
+type test_ctxt = OUnitTest.ctxt
 
 (** The type of test function *)
 type test_fun = test_ctxt -> unit
 
 (** The type of tests *)
-type test
+type test = OUnitTest.test
 
 (** {2 Assertions}
 
