@@ -67,3 +67,8 @@ test: precommit
 
 .PHONY: precommit
 
+doc-dev-dist: doc
+	chmod +x doc-dist.sh
+	./doc-dist.sh --version dev
+
+.PHONY: doc-dev-dist
