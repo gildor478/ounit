@@ -67,8 +67,17 @@ test: precommit
 
 .PHONY: precommit
 
-doc-dev-dist: doc
-	chmod +x doc-dist.sh
+doc-dev-dist: doc fix-perms
 	./doc-dist.sh --version dev
 
 .PHONY: doc-dev-dist
+
+deploy: doc fix-perms
+	./doc-dist.sh --version $(shell oasis query version)
+
+.PHONY: deploy
+
+fix-perms:
+	chmod +x doc-dist.sh
+
+.PHONY: fix-perms
