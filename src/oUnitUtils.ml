@@ -162,13 +162,13 @@ let buildir =
    *)
   let pwd = Sys.getcwd () in
   let dir_exists fn = Sys.file_exists fn && Sys.is_directory fn in
-  let open Filename in
+  let concat, dirname = Filename.concat, Filename.dirname in
     List.find
       dir_exists
       [
         concat pwd "_build";
-        concat (basename pwd) "_build";
-        concat (basename (basename pwd)) "_build";
+        concat (dirname pwd) "_build";
+        concat (dirname (dirname pwd)) "_build";
         pwd
       ]
 

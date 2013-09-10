@@ -108,5 +108,5 @@ let tests =
          let fn_exp = "test/testOtherTests.ml" in
            assert_equal ~printer:(fun s -> s) fn_exp fn1;
            assert_equal ~printer:(fun s -> s) fn_exp fn2;
-           assert_equal ~printer:string_of_int 3 (lineno2 - lineno1))
+           assert_equal ~printer:string_of_int 3 (lineno2 - lineno1));
   ]
