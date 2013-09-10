@@ -67,12 +67,18 @@ let format_event conf verbose log_event =
                                | None ->
                                    ()
                            end;
-                           bprintf "Error: %s\n\n"
-                             (string_of_path path);
+                           bprintf "Error: %s%s\n\n"
+                             (string_of_path path)
+                             (if pos_opt <> None then " (in the log)." else "");
                            begin
                              match test_result with
-                               | RFailure (_, Some backtrace)
                                | RError (_, Some backtrace) ->
+                                   bprintf "%s\n" backtrace
+                               | RFailure (_, Some pos, _) ->
+                                   bprintf "%s\nError: %s (in the code).\n\n"
+                                     (ocaml_position pos)
+                                     (string_of_path path)
+                               | RFailure (_, _, Some backtrace) ->
                                    bprintf "%s\n" backtrace
                                | _ ->
                                    ()
@@ -132,18 +138,18 @@ let format_event conf verbose log_event =
           let string_of_result =
             if verbose then
               function
-                | RSuccess        -> "ok\n"
-                | RFailure (_, _) -> "FAIL\n"
-                | RError (_, _)   -> "ERROR\n"
-                | RSkip _         -> "SKIP\n"
-                | RTodo _         -> "TODO\n"
+                | RSuccess   -> "ok\n"
+                | RFailure _ -> "FAIL\n"
+                | RError _   -> "ERROR\n"
+                | RSkip _    -> "SKIP\n"
+                | RTodo _    -> "TODO\n"
             else
               function
-                | RSuccess        -> "."
-                | RFailure (_, _) -> "F"
-                | RError (_, _)   -> "E"
-                | RSkip _         -> "S"
-                | RTodo _         -> "T"
+                | RSuccess   -> "."
+                | RFailure _ -> "F"
+                | RError _   -> "E"
+                | RSkip _    -> "S"
+                | RTodo _    -> "T"
           in
             if verbose then
               match e with

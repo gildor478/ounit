@@ -21,8 +21,8 @@ let test_diff ctxt =
     [1; 2; 5; 4]
   in
     assert_raises
-      (Failure "OUnit: expected: 1, 2, 3, 4, 5 but got: 1, 2, 4, 5\n\
-                differences: -3")
+      (OUnitTest.OUnit_failure "expected: 1, 2, 3, 4, 5 but got: 1, 2, 4, 5\n\
+                                differences: -3")
       (fun () ->
          DiffSetInt.assert_equal
            (DiffSetInt.of_list lst_exp)
@@ -30,8 +30,8 @@ let test_diff ctxt =
     DiffSetInt.assert_equal
       (DiffSetInt.of_list lst_exp) (DiffSetInt.of_list lst_exp);
     assert_raises
-      (Failure "OUnit: expected: 1, 2, 3, 4, 5 but got: 1, 2, 5, 4\
-                \ndifferences: element number 2 differ (3 <> 5)")
+      (OUnitTest.OUnit_failure "expected: 1, 2, 3, 4, 5 but got: 1, 2, 5, 4\n\
+                                differences: element number 2 differ (3 <> 5)")
       (fun () ->
          DiffListSimpleInt.assert_equal lst_exp lst_real);
     DiffListSimpleInt.assert_equal lst_exp lst_exp

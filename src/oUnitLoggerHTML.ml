@@ -147,11 +147,11 @@ let render conf dn events =
     (fun test_data ->
        let class_result, text_result =
          match test_data.test_result with
-           | RSuccess        -> "ounit-success", "succeed"
-           | RFailure (_, _) -> "ounit-failure", "failed"
-           | RError (_, _)   -> "ounit-error", "error"
-           | RSkip _         -> "ounit-skip", "skipped"
-           | RTodo _         -> "ounit-todo", "TODO"
+           | RSuccess    -> "ounit-success", "succeed"
+           | RFailure _  -> "ounit-failure", "failed"
+           | RError _    -> "ounit-error", "error"
+           | RSkip _     -> "ounit-skip", "skipped"
+           | RTodo _     -> "ounit-todo", "TODO"
        in
        let class_severity_opt =
          function
@@ -186,7 +186,7 @@ let render conf dn events =
          (* TODO: use backtrace *)
          match test_data.test_result with
            | RSuccess -> printf "Success."
-           | RFailure (str, backtrace) ->
+           | RFailure (str, _, backtrace) ->
                printf "Failure:<br/>%s" (html_escaper str)
            | RError (str, backtrace) ->
                printf "Error:<br/>%s" (html_escaper str)

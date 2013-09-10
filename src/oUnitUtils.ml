@@ -30,6 +30,69 @@ let trim_comment s =
     done;
     Buffer.contents buff
 
+let split_lines s =
+  let rev_lst = ref [] in
+  let buff = Buffer.create 13 in
+  let flush () =
+    rev_lst := Buffer.contents buff :: !rev_lst;
+    Buffer.clear buff
+  in
+    if String.length s > 0 then
+      begin
+        String.iter
+          (function
+             | '\n' -> flush ()
+             | c -> Buffer.add_char buff c)
+          s;
+        flush ();
+        List.rev !rev_lst
+      end
+    else
+      []
+
+let starts_with ~prefix s =
+  if String.length s >= String.length prefix then
+    String.sub s 0 (String.length prefix) = prefix
+  else
+    false
+
+let extract_backtrace_position str =
+  let prefixes =
+    [
+      "Raised at ";
+      "Re-raised at ";
+      "Raised by primitive operation at ";
+      "Called from ";
+    ]
+  in
+
+  let rec extract_one_line s prefixes =
+    match prefixes with
+      | [] -> None
+      | prefix :: tl ->
+          if starts_with ~prefix s then
+            let prefix_len = String.length prefix in
+            let eol = String.sub s prefix_len (String.length s - prefix_len) in
+            begin
+              if eol = "unknown location" then
+                None
+              else
+                try
+                  Scanf.sscanf eol "file \"%s@\", line %d, characters %d-%d"
+                    (fun fn line _ _ ->
+                       Some (fn, line))
+                with Scanf.Scan_failure msg ->
+                  None
+            end
+          else
+            begin
+              extract_one_line s tl
+            end
+  in
+    List.map
+      (fun s -> extract_one_line s prefixes)
+      (split_lines str)
+
 let cmp_float ?(epsilon = 0.00001) a b =
   abs_float (a -. b) <= epsilon *. (abs_float a) ||
     abs_float (a -. b) <= epsilon *. (abs_float b)

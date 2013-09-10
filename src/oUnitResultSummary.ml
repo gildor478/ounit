@@ -75,7 +75,7 @@ let result_msg =
   function
     | RSuccess -> "Success"
     | RError (msg, _)
-    | RFailure (msg, _)
+    | RFailure (msg, _, _)
     | RSkip msg
     | RTodo msg -> msg
 
@@ -186,7 +186,7 @@ let of_log_events conf events =
                       timestamp_start = default_timestamp;
                       timestamp_end = default_timestamp;
                       log_entries = [];
-                      test_result = RFailure ("Not finished", None);
+                      test_result = RFailure ("Not finished", None, None);
                     }
                 in
                 let alt0 t1 t2 =

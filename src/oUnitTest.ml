@@ -2,8 +2,8 @@
 open OUnitUtils
 
 exception Skip of string
-
 exception Todo of string
+exception OUnit_failure of string
 
 (** See OUnit.mli. *)
 type node = ListItem of int | Label of string
@@ -17,7 +17,7 @@ type backtrace = string option
 (** See OUnit.mli. *)
 type result =
   | RSuccess
-  | RFailure of string * backtrace
+  | RFailure of string * OUnitLogger.position option * backtrace
   | RError of string * backtrace
   | RSkip of string
   | RTodo of string
@@ -89,9 +89,35 @@ let result_full_of_exception ctxt e =
     else
       None
   in
+  let locate_exn () =
+    if Printexc.backtrace_status () then
+      begin
+        let lst =
+          extract_backtrace_position (Printexc.get_backtrace ())
+        in
+        let pos_opt =
+          try
+            List.find
+              (function
+                 | None -> false
+                 | Some (fn, _) ->
+                     not (starts_with ~prefix:"oUnit" (Filename.basename fn)))
+              lst
+          with Not_found ->
+            None
+        in
+          match pos_opt with
+            | Some (filename, line) ->
+                Some {OUnitLogger.filename = filename; line = line}
+            | None ->
+                None
+      end
+    else
+      None
+  in
   let result =
     match e with
-      | Failure s -> RFailure (s, backtrace ())
+      | OUnit_failure s -> RFailure (s, locate_exn (), backtrace ())
       | Skip s -> RSkip s
       | Todo s -> RTodo s
       | s -> RError (Printexc.to_string s, backtrace ())

@@ -71,14 +71,14 @@ let render conf fn events =
 \      <error type='OUnit.Error' message='%s'>%s</error>\n"
                    (xml_escaper msg)
                    (xml_escaper (string_of_failure (msg, backtrace)))
-             | RFailure (msg, backtrace) ->
+             | RFailure (msg, _, backtrace) ->
                  printf "\
 \      <failure type='OUnit.Failure' message='%s'>%s</failure>\n"
                    (xml_escaper msg)
                    (xml_escaper (string_of_failure (msg, backtrace)))
              | RTodo msg ->
                  printf "\
-\      <failure type='OUnit.Failure' message='%s'></failure>\n"
+\      <failure type='OUnit.Todo' message='%s'></failure>\n"
                    (xml_escaper msg)
          end;
          printf "\

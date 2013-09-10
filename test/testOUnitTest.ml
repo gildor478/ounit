@@ -48,11 +48,11 @@ let test_case_decorate ctxt =
     assert_equal_test_result
       [
         [Label "label"; ListItem 1; Label "suite_c"],
-        RFailure("OUnit: fail", None),
+        RFailure("fail", None, None),
         None;
 
         [ListItem 0; Label "suite_c"],
-        RFailure("OUnit: fail", None),
+        RFailure("fail", None, None),
         None;
       ]
       (perform_test
@@ -111,23 +111,23 @@ let test_non_fatal _ =
         None;
 
         [ListItem 1],
-        RFailure("OUnit: fail", None),
+        RFailure("fail", None, None),
         None;
 
         [ListItem 2],
-        RFailure("error", None),
+        RError("Failure(\"error\")", None),
         None;
 
         [ListItem 2],
-        RFailure("OUnit: fail", None),
+        RFailure("fail", None, None),
         None;
 
         [ListItem 3],
-        RFailure("error", None),
+        RError("Failure(\"error\")", None),
         None;
 
         [ListItem 3],
-        RFailure("OUnit: fail", None),
+        RFailure("fail", None, None),
         None;
       ]
       (perform_test

@@ -5,39 +5,39 @@ open OUnit2
 
 let test_assert_raises _ =
   assert_raises
-    (Failure "OUnit: expected: Failure(\"Boo\") but got: Failure(\"Foo\")")
+    (OUnit_failure "expected: Failure(\"Boo\") but got: Failure(\"Foo\")")
     (fun _ -> (assert_raises (Failure "Boo")
                  (fun _ -> raise (Failure "Foo"))));
   assert_raises
-    (Failure
-       "OUnit: A label\nexpected: Failure(\"Boo\") but got: Failure(\"Foo\")")
+    (OUnit_failure
+       "A label\nexpected: Failure(\"Boo\") but got: Failure(\"Foo\")")
     (fun _ -> (assert_raises ~msg:"A label" (Failure "Boo")
                  (fun _ -> raise (Failure "Foo"))));
   assert_raises
-    (Failure
-       "OUnit: expected exception Failure(\"Boo\"), \
+    (OUnit_failure
+       "expected exception Failure(\"Boo\"), \
         but no exception was raised.")
     (fun _ -> (assert_raises (Failure "Boo") (fun _ -> ())));
   assert_raises
-    (Failure "OUnit: A label\nexpected exception Failure(\"Boo\"), \
-              but no exception was raised.")
+    (OUnit_failure "A label\nexpected exception Failure(\"Boo\"), \
+                    but no exception was raised.")
     (fun _ -> (assert_raises ~msg:"A label" (Failure "Boo") (fun _ -> ())))
 
 (* Test the float compare, and use the cmp label *)
 let test_cmp_float _ =
   assert_equal ~cmp: cmp_float 0.0001 0.0001;
   assert_equal ~cmp: (cmp_float ~epsilon: 0.001) 1.0001 1.00001;
-  assert_raises (Failure "OUnit: not equal")
+  assert_raises (OUnit_failure "not equal")
       (fun _ -> assert_equal ~cmp: cmp_float 100.0001 101.001)
 
 let test_assert_string _ =
   assert_string "";
-  assert_raises (Failure "OUnit: A string")
+  assert_raises (OUnit_failure "A string")
     (fun _ -> assert_string "A string")
 
 let test_assert_bool _ =
   assert_bool "true" true;
-  assert_raises (Failure "OUnit: false") (fun _ -> assert_bool "false" false)
+  assert_raises (OUnit_failure "false") (fun _ -> assert_bool "false" false)
 
 let test_case_skip ctxt =
   begin

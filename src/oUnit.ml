@@ -84,7 +84,7 @@ let test_result1_of_test_result path rslt =
     match rslt with
      | OUnitTest.RSuccess ->
          RSuccess path1
-     | OUnitTest.RFailure (str, _) ->
+     | OUnitTest.RFailure (str, _, _) ->
          RFailure (path1, str)
      | OUnitTest.RError (str, _) ->
          RError (path1, str)

@@ -65,20 +65,21 @@ let test_case_paths _ =
 
 let test_assert_raises _ =
   assert_raises
-    (Failure "OUnit: expected: Failure(\"Boo\") but got: Failure(\"Foo\")")
+    (OUnitTest.OUnit_failure
+       "expected: Failure(\"Boo\") but got: Failure(\"Foo\")")
     (fun _ -> (assert_raises (Failure "Boo")
                  (fun _ -> raise (Failure "Foo"))));
   assert_raises
-    (Failure "OUnit: A label\nexpected: Failure(\"Boo\") \
+    (OUnitTest.OUnit_failure "A label\nexpected: Failure(\"Boo\") \
               but got: Failure(\"Foo\")")
     (fun _ -> (assert_raises ~msg:"A label" (Failure "Boo")
                  (fun _ -> raise (Failure "Foo"))));
   assert_raises
-    (Failure "OUnit: expected exception Failure(\"Boo\"), \
+    (OUnitTest.OUnit_failure "expected exception Failure(\"Boo\"), \
               but no exception was raised.")
     (fun _ -> (assert_raises (Failure "Boo") (fun _ -> ())));
   assert_raises
-    (Failure "OUnit: A label\nexpected exception Failure(\"Boo\"), \
+    (OUnitTest.OUnit_failure "A label\nexpected exception Failure(\"Boo\"), \
               but no exception was raised.")
     (fun _ -> (assert_raises ~msg:"A label" (Failure "Boo") (fun _ -> ())))
 
@@ -86,17 +87,17 @@ let test_assert_raises _ =
 let test_cmp_float _ =
   assert_equal ~cmp: cmp_float 0.0001 0.0001;
   assert_equal ~cmp: (cmp_float ~epsilon: 0.001) 1.0001 1.00001;
-  assert_raises (Failure "OUnit: not equal")
+  assert_raises (OUnitTest.OUnit_failure "not equal")
       (fun _ -> assert_equal ~cmp: cmp_float 100.0001 101.001)
 
 let test_assert_string _ =
   assert_string "";
-  assert_raises (Failure "OUnit: A string")
+  assert_raises (OUnitTest.OUnit_failure "A string")
     (fun _ -> assert_string "A string")
 
 let test_assert_bool _ =
   assert_bool "true" true;
-  assert_raises (Failure "OUnit: false")
+  assert_raises (OUnitTest.OUnit_failure "false")
     (fun _ -> assert_bool "false" false)
 
 let test_case_filter () =
@@ -154,8 +155,8 @@ let test_case_decorate () =
        RSuccess [ListItem 0; Label "suite_c"]]
       (perform_test ignore suite_c);
     assert_equal_test_result
-      [RFailure([Label "label"; ListItem 1; Label "suite_c"], "OUnit: fail");
-       RFailure([ListItem 0; Label "suite_c"], "OUnit: fail")]
+      [RFailure([Label "label"; ListItem 1; Label "suite_c"], "fail");
+       RFailure([ListItem 0; Label "suite_c"], "fail")]
        (perform_test ignore
           (test_decorate (fun _ -> (fun () -> assert_failure "fail")) suite_c))
 
@@ -192,8 +193,8 @@ let test_diff () =
     [1; 2; 5; 4]
   in
     assert_raises
-      (Failure "OUnit: expected: 1, 2, 3, 4, 5 but got: 1, 2, 4, 5\n\
-                differences: -3")
+      (OUnitTest.OUnit_failure "expected: 1, 2, 3, 4, 5 but got: 1, 2, 4, 5\n\
+                                differences: -3")
       (fun () ->
          DiffSetInt.assert_equal
            (DiffSetInt.of_list lst_exp)
@@ -201,8 +202,8 @@ let test_diff () =
     DiffSetInt.assert_equal
       (DiffSetInt.of_list lst_exp) (DiffSetInt.of_list lst_exp);
     assert_raises
-      (Failure "OUnit: expected: 1, 2, 3, 4, 5 but got: 1, 2, 5, 4\
-                \ndifferences: element number 2 differ (3 <> 5)")
+      (OUnitTest.OUnit_failure "expected: 1, 2, 3, 4, 5 but got: 1, 2, 5, 4\n\
+                                differences: element number 2 differ (3 <> 5)")
       (fun () ->
          DiffListSimpleInt.assert_equal lst_exp lst_real);
     DiffListSimpleInt.assert_equal lst_exp lst_exp

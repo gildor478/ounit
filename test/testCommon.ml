@@ -13,7 +13,7 @@ let assert_equal_test_result exp res =
      let test_result' =
        match test_result with
          | RSuccess -> RSuccess
-         | RFailure (str, _) -> RFailure (str, None)
+         | RFailure (str, _, _) -> RFailure (str, None, None)
          | RError (str, _) -> RError(str, None)
          | RSkip str -> RSkip str
          | RTodo str -> RTodo str
@@ -40,8 +40,9 @@ let assert_equal_test_result exp res =
                 match test_result with
                   | RSuccess ->
                       "RSuccess"
-                  | RFailure (str, backtrace) ->
-                      spf "RFailure(%S, %s)" str (string_of_backtrace backtrace)
+                  | RFailure (str, pos_opt, backtrace) ->
+                      spf "RFailure(%S, _, %s)"
+                        str (string_of_backtrace backtrace)
                   | RError (str, backtrace) ->
                       spf "RError(%S, %s)" str (string_of_backtrace backtrace)
                   | RSkip str ->

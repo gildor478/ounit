@@ -11,7 +11,7 @@ let todo msg =
   raise (Todo msg)
 
 let assert_failure msg =
-  failwith ("OUnit: " ^ msg)
+  raise (OUnit_failure msg)
 
 let assert_bool msg b =
   if not b then assert_failure msg
