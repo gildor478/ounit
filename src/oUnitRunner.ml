@@ -44,16 +44,21 @@ type runner =
 (* Run all tests, sequential version *)
 let sequential_runner conf logger chooser test_cases =
   let rec iter state =
-    match OUnitState.next_test_case state with
-      | None, state ->
+    match OUnitState.next_test_case logger state with
+      | OUnitState.Finished, state ->
           OUnitState.get_results state
-      | Some test_case, state ->
+      | OUnitState.Next_test_case (test_path, test_fun, worker), state ->
           iter
             (OUnitState.add_test_result
-               (run_one_test conf logger test_case)
-               state)
+               (run_one_test conf logger (test_path, test_fun))
+               worker state)
+      | (OUnitState.Try_again | OUnitState.Not_enough_worker), _ ->
+          assert false
   in
-  iter (OUnitState.create (chooser logger) test_cases)
+  let state =
+    OUnitState.add_worker () (OUnitState.create chooser test_cases)
+  in
+  iter state
 
 (* Plugin interface. *)
 module Plugin =

@@ -112,7 +112,7 @@ let result_path =
 type test_results = test_result list
 
 let list_result1_of_list_result =
-  List.rev_map
+  List.map
     (fun (pth, rslt, _) ->
        test_result1_of_test_result pth rslt)
 

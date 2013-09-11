@@ -12,7 +12,8 @@ open OUnitTest
 open OUnitLogger
 
 (* Plugin initialisation. *)
-open OUnitRunnerProcesses
+let () = 
+  OUnitRunnerProcesses.init ()
 
 (*
  * Types and global states.

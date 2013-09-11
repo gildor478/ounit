@@ -4,14 +4,16 @@
     @author Sylvain Le Gall
   *)
 
-open OUnitState
 open OUnitTest
 
-type chooser = OUnitTest.logger -> OUnitState.t -> (path * test_fun)
+type chooser =
+    OUnitTest.logger -> path list -> OUnitTest.result_list -> path option
 
 (** Most simple heuristic, just pick the first test. *)
-let simple _ state =
-  List.hd state.tests_planned
+let simple _ tests_planned _ =
+  match tests_planned with
+    | hd :: _ -> Some hd
+    | [] -> None
 
 module Plugin =
   OUnitPlugin.Make
@@ -19,7 +21,7 @@ module Plugin =
        type t = chooser
        let name = "chooser"
        let conf_help =
-         "Select a the method to choose tests to run."
+         "Select the method to choose tests to run."
        let default = simple
      end)
 

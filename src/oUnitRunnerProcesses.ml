@@ -9,26 +9,27 @@
 
 open OUnitLogger
 open OUnitTest
+open OUnitState
 open Unix
 
-type message_to_child =
+type message_to_worker =
   | Exit
   | RunTest of path
   | LogPosition of position option
 
-let string_of_message_to_child =
+let string_of_message_to_worker =
   function
     | Exit -> "Exit"
     | RunTest _ -> "RunTest _"
     | LogPosition _ -> "LogPosition _"
 
-type message_from_child =
+type message_from_worker =
   | AckExit
   | Log of OUnitTest.log_event_t
   | TestDone of (OUnitTest.result_full * OUnitTest.result_list)
   | PositionLog
 
-let string_of_message_from_child =
+let string_of_message_from_worker =
   function
     | AckExit -> "AckExit"
     | Log _ -> "Log _"
@@ -122,8 +123,8 @@ let make_channel
       close = close
     }
 
-(* Run a child, react to message receive from parent. *)
-let main_child_loop channel conf map_test_cases =
+(* Run a worker, react to message receive from parent. *)
+let main_worker_loop channel conf map_test_cases =
   let stop = ref false in
   let logger =
     (* TODO: identify the running process in log. *)
@@ -133,7 +134,7 @@ let main_child_loop channel conf map_test_cases =
         ignore
     in
     let fpos () =
-      match base_logger.OUnitLogger.fpos () with
+      match base_logger.fpos () with
         | Some _ as e -> e
         | None ->
             begin
@@ -148,7 +149,7 @@ let main_child_loop channel conf map_test_cases =
                     position
             end
     in
-      {base_logger with OUnitLogger.fpos = fpos}
+      {base_logger with fpos = fpos}
   in
     while not !stop do
       match channel.receive_data () with
@@ -163,29 +164,24 @@ let main_child_loop channel conf map_test_cases =
     done;
     channel.send_data AckExit
 
-type child_state =
-  | Idle
-  | RunningTest of path
-  | Exited
-
-type child =
+type worker =
     {
-      channel: (message_to_child, message_from_child) channel;
-      close_child: unit -> string option;
+      channel: (message_to_worker, message_from_worker) channel;
+      close_worker: unit -> string option;
       select_fd: Unix.file_descr;
-      mutable state: child_state;
+      id: string;
     }
 
-let create_child conf map_test_cases =
+let create_worker conf map_test_cases idx =
   let safe_close fd = try close fd with Unix_error _ -> () in
-  let pipe_read_from_child, pipe_write_to_parent = Unix.pipe () in
-  let pipe_read_from_parent, pipe_write_to_child  = Unix.pipe () in
+  let pipe_read_from_worker, pipe_write_to_parent = Unix.pipe () in
+  let pipe_read_from_parent, pipe_write_to_worker  = Unix.pipe () in
   match Unix.fork () with
     | 0 ->
         (* Child process. *)
         let () =
-          safe_close pipe_read_from_child;
-          safe_close pipe_write_to_child;
+          safe_close pipe_read_from_worker;
+          safe_close pipe_write_to_worker;
           (* Do we really need to close stdin/stdout? *)
           dup2 pipe_read_from_parent stdin;
           dup2 pipe_write_to_parent stdout;
@@ -194,13 +190,13 @@ let create_child conf map_test_cases =
         in
         let channel =
           make_channel
-            "child"
-            string_of_message_to_child
-            string_of_message_from_child
+            "worker"
+            string_of_message_to_worker
+            string_of_message_from_worker
             pipe_read_from_parent
             pipe_write_to_parent
         in
-          main_child_loop channel conf map_test_cases;
+          main_worker_loop channel conf map_test_cases;
           channel.close ();
           safe_close pipe_read_from_parent;
           safe_close pipe_write_to_parent;
@@ -210,16 +206,16 @@ let create_child conf map_test_cases =
         let channel =
           make_channel
             "parent"
-            string_of_message_from_child
-            string_of_message_to_child
-            pipe_read_from_child
-            pipe_write_to_child
+            string_of_message_from_worker
+            string_of_message_to_worker
+            pipe_read_from_worker
+            pipe_write_to_worker
         in
-        let close_child () =
+        let close_worker () =
           channel.close ();
-          safe_close pipe_read_from_child;
-          safe_close pipe_write_to_child;
-          (* TODO: recovery for child going wild and not dying. *)
+          safe_close pipe_read_from_worker;
+          safe_close pipe_write_to_worker;
+          (* TODO: recovery for worker going wild and not dying. *)
           match snd(waitpid [] pid) with
             | WEXITED 0 ->
                 None
@@ -227,11 +223,17 @@ let create_child conf map_test_cases =
                 (* TODO: better message. *)
                 Some "Error"
         in
+        let id =
+          let fqdn =
+            (Unix.gethostbyname (Unix.gethostname ())).Unix.h_name
+          in
+            Printf.sprintf "%s-%02d" fqdn idx
+        in
           {
             channel = channel;
-            close_child = close_child;
-            select_fd = pipe_read_from_child;
-            state = Idle;
+            close_worker = close_worker;
+            select_fd = pipe_read_from_worker;
+            id = id;
           }
 
 let default_timeout = 5.0
@@ -271,92 +273,86 @@ let processes_runner conf logger chooser test_cases =
       test_cases
   in
 
-  let children =
-    Array.to_list
-      (Array.init
-         (shards conf)
-         (fun n ->
-            OUnitLogger.infof logger "Starting child process number %d." n;
-            create_child conf map_test_cases))
-  in
+  let state = OUnitState.create chooser test_cases in
 
-  let state = OUnitState.create (chooser logger) test_cases in
+  let shards = min (shards conf) 1 in
 
-  (* Initial assignement of test to children. *)
-  let state =
-    List.fold_left
-      (fun state child ->
-         match OUnitState.next_test_case state with
-           | Some (test_path, _), state ->
-               child.channel.send_data (RunTest test_path);
-               child.state <- RunningTest test_path;
-               state
-           | None, state ->
-               child.channel.send_data Exit;
-               child.state <- Idle;
-               state)
-      state
-      children
-  in
+  let worker_idx = ref 1 in
 
   let rec iter state =
-    if List.for_all (fun child -> child.state = Exited) children then begin
-      OUnitState.get_results state
-    end else begin
-      let children_fd_lst =
-        List.rev_map (fun worker -> worker.select_fd) children
-      in
-      let children_fd_waiting_lst, _, _ =
-        (* TODO: compute expected next timeout *)
-        Unix.select children_fd_lst [] [] default_timeout
-      in
-      let children_waiting_lst =
-        List.filter
-          (fun children -> List.memq children.select_fd children_fd_waiting_lst)
-          children
-      in
-      let state =
-        (* TODO: timeout. *)
-        List.fold_left
-          (fun state child ->
-             match child.channel.receive_data () with
-               | AckExit ->
-                   child.state <- Exited;
-                   OUnitLogger.infof logger "A child has ended.";
-                   state
-               | Log log_ev ->
-                   OUnitLogger.report logger log_ev;
-                   state
-               | TestDone test_result ->
-                   begin
-                     let next_test_case_opt, state =
-                       OUnitState.next_test_case
-                         (OUnitState.add_test_result test_result state)
-                     in
-                     let () =
-                       match next_test_case_opt with
-                         | Some (test_path, _) ->
-                             child.channel.send_data (RunTest test_path);
-                             child.state <- RunningTest test_path
-                         | None ->
-                             child.channel.send_data Exit;
-                             child.state <- Idle
-                     in
-                       state
-                   end
-               | PositionLog ->
-                   child.channel.send_data
-                     (LogPosition (OUnitLogger.position logger));
-                   state)
-          state
-          children_waiting_lst
-      in
-        iter state
-    end
-  in
+    match OUnitState.next_test_case logger state with
+      | Not_enough_worker, state ->
+          if OUnitState.worker_number state < shards then begin
+            (* Start a worker. *)
+            let () = infof logger "Starting worker number %d." !worker_idx; in
+            let worker = create_worker conf map_test_cases !worker_idx in
+            let () = infof logger "Worker %s started." worker.id in
+            let state = add_worker worker state in
+              incr worker_idx;
+              iter state
+          end else begin
+            iter (wait_loop state)
+          end
 
+      | Try_again, state ->
+          iter (wait_loop state)
+
+      | Next_test_case (test_path, _, worker), state ->
+          worker.channel.send_data (RunTest test_path);
+          iter state
+
+      | Finished, state ->
+          List.iter
+            (fun worker -> worker.channel.send_data Exit)
+            (OUnitState.get_workers state);
+          wait_stopped state;
+          OUnitState.get_results state
+
+  and wait_stopped state =
+    if OUnitState.get_workers state = [] then
+      ()
+    else
+      wait_stopped (wait_loop state)
+
+  and wait_loop state =
+    let workers = get_workers state in
+    let workers_fd_lst =
+      List.rev_map (fun worker -> worker.select_fd) workers
+    in
+    let workers_fd_waiting_lst, _, _ =
+      (* TODO: compute expected next timeout *)
+      Unix.select workers_fd_lst [] [] default_timeout
+    in
+    let workers_waiting_lst =
+      List.filter
+        (fun workers -> List.memq workers.select_fd workers_fd_waiting_lst)
+        workers
+    in
+    let state =
+      (* TODO: timeout. *)
+      List.fold_left
+        (fun state worker ->
+           match worker.channel.receive_data () with
+             | AckExit ->
+                 infof logger "Worker %s has ended." worker.id;
+                 worker.close_worker ();
+                 remove_worker worker state
+             | Log log_ev ->
+                 OUnitLogger.report logger log_ev;
+                 state
+             | TestDone test_result ->
+                 OUnitState.add_test_result test_result worker state
+             | PositionLog ->
+                 worker.channel.send_data
+                   (LogPosition (OUnitLogger.position logger));
+                 state)
+        state
+        workers_waiting_lst
+      in
+        state
+  in
     iter state
 
-let () =
+let init () =
   if Sys.os_type = "Unix" then
     OUnitRunner.register "processes" 100 processes_runner
