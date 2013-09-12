@@ -88,8 +88,8 @@ let render conf fn events =
 \    <system-out>\n";
     List.iter
       (fun log_event ->
-         printf "%s"
-           (xml_escaper (OUnitLoggerStd.format_event conf true log_event)))
+         List.iter (fun s -> printf "%s\n" (xml_escaper s))
+           (OUnitLoggerStd.format_log_event log_event))
       events;
     printf "\
 \    </system-out>

@@ -8,6 +8,23 @@ let ocaml_position pos =
     "File \"%s\", line %d, characters 1-1:"
     pos.filename pos.line
 
+let opt f = function Some v -> f v | None -> () 
+
+let multiline f str = 
+  if String.length str > 0 then
+    let buf = Buffer.create 80 in
+    let flush () = f (Buffer.contents buf); Buffer.clear buf in
+      String.iter
+        (function '\n' -> flush () | c -> Buffer.add_char buf c)
+        str;
+      flush ()
+
+let count results f =
+  List.fold_left
+    (fun count (_, test_result, _) -> 
+       if f test_result then count + 1 else count)
+    0 results
+
 (* TODO: deprecate in 2.1.0. *)
 let results_style_1_X =
   OUnitConf.make_bool
@@ -15,31 +32,12 @@ let results_style_1_X =
     false
     "Use OUnit 1.X results printer (will be deprecated in 2.1.0+)."
 
-let format_event conf verbose log_event =
+let format_display_event conf log_event =
   match log_event.event with
     | GlobalEvent e ->
         begin
           match e with
-            | GConf (k, v) ->
-                if verbose then
-                  Printf.sprintf "%s=%S\n" k v
-                else
-                  ""
-            | GInfo str ->
-                if verbose then
-                  str^"\n"
-                else
-                  ""
-            | GStart ->
-                if verbose then
-                  "Start testing.\n"
-                else
-                  ""
-            | GEnd ->
-                if verbose then
-                  "End testing.\n"
-                else
-                  ""
+            | GConf (_, _) | GInfo _ | GStart | GEnd -> ""
             | GResults (running_time, results, test_case_count) ->
                 let separator1 = String.make (Format.get_margin ()) '=' in
                 let separator2 = String.make (Format.get_margin ()) '-' in
@@ -99,10 +97,7 @@ let format_event conf verbose log_event =
                 let failures, nfailures = filter is_failure in
                 let skips, nskips       = filter is_skip in
                 let todos, ntodos       = filter is_todo in
-
-                  if not verbose then
-                    bprintf "\n";
-
+                  bprintf "\n";
                   print_results errors;
                   print_results failures;
                   bprintf "Ran: %d tests in: %.2f seconds.\n"
@@ -121,7 +116,7 @@ let format_event conf verbose log_event =
                     begin
                       bprintf
                         "FAILED: Cases: %d Tried: %d Errors: %d \
-                              Failures: %d Skip:%d Todo:%d"
+                              Failures: %d Skip:  %d Todo: %d"
                         test_case_count
                         (List.length results)
                         nerrors
@@ -133,55 +128,92 @@ let format_event conf verbose log_event =
                   Buffer.contents buf
         end
 
-    | TestEvent (path, e) ->
+    | TestEvent (_, e) ->
         begin
-          let string_of_result =
-            if verbose then
-              function
-                | RSuccess   -> "ok\n"
-                | RFailure _ -> "FAIL\n"
-                | RError _   -> "ERROR\n"
-                | RSkip _    -> "SKIP\n"
-                | RTodo _    -> "TODO\n"
-            else
-              function
-                | RSuccess   -> "."
-                | RFailure _ -> "F"
-                | RError _   -> "E"
-                | RSkip _    -> "S"
-                | RTodo _    -> "T"
-          in
-            if verbose then
-              match e with
-                | EStart ->
-                    Printf.sprintf "%s start\n" (string_of_path path)
-                | EEnd ->
-                    Printf.sprintf "%s end\n" (string_of_path path)
-                | EResult result ->
-                    string_of_result result
-                | ELog (lvl, str) ->
-                    let prefix =
-                      match lvl with
-                        | `Error -> "E"
-                        | `Warning -> "W"
-                        | `Info -> "I"
-                    in
-                      prefix^": "^str^"\n"
-                | ELogRaw str ->
-                    str
-            else
-              match e with
-                | EStart _ | EEnd _ | ELog _ | ELogRaw _ -> ""
-                | EResult result -> string_of_result result
+          match e with
+            | EStart _ | EEnd _ | ELog _ | ELogRaw _ -> ""
+            | EResult RSuccess -> "."
+            | EResult (RFailure _) -> "F"
+            | EResult (RError _) -> "E"
+            | EResult (RSkip _) -> "S"
+            | EResult (RTodo _) -> "T"
         end
+
+let format_log_event ev = 
+  let rlst = ref [] in
+  let timestamp_str = OUnitUtils.date_iso8601 ~tz:false ev.timestamp in 
+  let spf pre fmt = 
+    Printf.ksprintf
+      (multiline 
+         (fun l -> rlst := (timestamp_str^" "^pre^": "^l) :: !rlst))
+      fmt
+  in
+  let ispf fmt = spf "I" fmt in
+  let wspf fmt = spf "W" fmt in
+  let espf fmt = spf "E" fmt in
+  let format_result path result =
+    let path_str = string_of_path path in
+    match result with 
+    | RError (msg, backtrace_opt) ->
+        espf "%s in test %s." msg path_str;
+        opt (espf "%s") backtrace_opt
+    | RFailure (msg, _, backtrace_opt) ->
+        espf "%s in test %s." msg path_str;
+        opt (espf "%s") backtrace_opt
+    | RTodo msg -> wspf "TODO test %s: %s." path_str msg
+    | RSkip msg -> wspf "Skip test %s: %s." path_str msg
+    | RSuccess -> ispf "Test %s is successful." path_str
+  in
+
+  begin
+    match ev.event with
+      | GlobalEvent e ->
+          begin
+            match e with
+            | GConf (k, v) -> ispf "Configuration %s = %S" k v
+            | GInfo str -> ispf "%s" str
+            | GStart -> ispf "Start testing."
+            | GEnd -> ispf "End testing."
+            | GResults (running_time, results, test_case_count) ->
+                let countr = count results in
+                List.iter
+                  (fun (path, test_result, _) ->
+                     format_result path test_result)
+                  results;
+                (* Print final verdict *)
+                ispf "Ran: %d tests in: %.2f seconds."
+                  (List.length results) running_time;
+                ispf "Cases: %d." test_case_count;
+                ispf "Tried: %d." (List.length results);
+                ispf "Errors: %d." (countr is_error);
+                ispf "Failures: %d." (countr is_failure);
+                ispf "Skip: %d." (countr is_skip);
+                ispf "Todo: %d." (countr is_todo)
+          end
+
+      | TestEvent (path, e) ->
+          begin
+            let path_str = string_of_path path in
+            match e with
+            | EStart -> ispf "Start test %s." path_str
+            | EEnd -> ispf "End test %s." path_str
+            | EResult result -> format_result path result
+            | ELog (`Error, str) -> espf "%s" str
+            | ELog (`Warning, str) -> wspf "%s" str
+            | ELog (`Info, str) -> ispf "%s" str
+            | ELogRaw str -> ispf "%s" str
+          end
+  end;
+  List.rev !rlst
 
 let file_logger conf fn =
   let chn = open_out fn in
   let line = ref 1 in
+
   let fwrite ev =
-    let str =  format_event conf true ev in
-    String.iter (function '\n' -> incr line | _ -> ()) str;
-    output_string chn str;
+    List.iter
+      (fun l -> output_string chn l; output_char chn '\n'; incr line)
+      (format_log_event ev);
     flush chn
   in
   let fpos () =
@@ -210,8 +242,12 @@ let display =
 
 let std_logger conf =
   if display conf then
+    let verbose = verbose conf in
     let fwrite log_ev =
-      print_string (format_event conf (verbose conf) log_ev);
+      if verbose then
+        List.iter print_endline (format_log_event log_ev)
+      else
+        print_string (format_display_event conf log_ev);
       flush stdout
     in
       {
