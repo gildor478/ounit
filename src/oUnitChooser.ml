@@ -22,11 +22,8 @@ module Plugin =
        let name = "chooser"
        let conf_help =
          "Select the method to choose tests to run."
-       let default = simple
+       let default_name = "simple"
+       let default_value = simple
      end)
 
 include Plugin
-
-let () =
-  register "simple" 0 simple
-

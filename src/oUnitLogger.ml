@@ -27,7 +27,7 @@ type ('path, 'result) result_full = ('path * 'result * position option)
 (** Events which occur at the global level. *)
 type ('path, 'result) global_event =
   | GConf of string * string (** Dump a configuration options. *)
-  | GInfo of string
+  | GInfo of string  (* TODO: GInfo -> GLog lvl string *)
   | GStart  (** Start running the tests. *)
   | GEnd    (** Finish running the tests. *)
   | GResults of (float * ('path, 'result) result_full list * int)
@@ -117,6 +117,19 @@ let report logger ev =
 
 let infof logger fmt =
   Printf.ksprintf
+    (* TODO: level *)
+    (fun str -> report logger (GlobalEvent (GInfo str)))
+    fmt
+
+let warningf logger fmt =
+  Printf.ksprintf
+    (* TODO: level *)
+    (fun str -> report logger (GlobalEvent (GInfo str)))
+    fmt
+
+let errorf logger fmt =
+  Printf.ksprintf
+    (* TODO: level *)
     (fun str -> report logger (GlobalEvent (GInfo str)))
     fmt
 

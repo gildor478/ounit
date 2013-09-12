@@ -68,12 +68,8 @@ module Plugin =
        let name = "runner"
        let conf_help =
          "Select a the method to run tests."
-       let default = sequential_runner
-
+       let default_name = "sequential"
+       let default_value = sequential_runner
      end)
 
 include Plugin
-
-let () =
-  register "sequential" 0 sequential_runner
-

@@ -60,6 +60,9 @@ type ('a, 'b) channel =
       close: unit -> unit;
     }
 
+(* Turn on to debug communication. *)
+let debug_communication = true
+
 (* Create functions to handle sending and receiving data over a file descriptor.
  *)
 let make_channel
@@ -72,6 +75,14 @@ let make_channel
     set_nonblock fd_read;
     set_close_on_exec fd_read;
     set_close_on_exec fd_write
+  in
+
+  let debugf fmt = 
+    Printf.ksprintf
+      (fun s ->
+         if debug_communication then
+           prerr_endline ("D("^id^"): "^s))
+      fmt
   in
 
   let chn_write = out_channel_of_descr fd_write in
@@ -96,10 +107,12 @@ let make_channel
 
   let send_data msg =
     let () =
+      debugf "Sending message %S" (string_of_written_message msg);
       Marshal.to_channel chn_write msg [];
       Pervasives.flush chn_write
     in
     let acked = really_read fd_read (String.create (String.length ack)) in
+      debugf "ack read: %S" acked;
       assert(acked = ack);
       ()
   in
@@ -110,7 +123,9 @@ let make_channel
     let data_size = Marshal.data_size (really_read fd_read header_str) 0 in
     let data_str = really_read fd_read (String.create data_size) in
     let msg = Marshal.from_string (header_str ^ data_str) 0 in
+      debugf "Received message %S" (string_of_read_message msg);
       Pervasives.output_string chn_write ack;
+      debugf "ACK sent.";
       Pervasives.flush chn_write;
       msg
   in
@@ -227,7 +242,7 @@ let create_worker conf map_test_cases idx =
           let fqdn =
             (Unix.gethostbyname (Unix.gethostname ())).Unix.h_name
           in
-            Printf.sprintf "%s-%02d" fqdn idx
+            Printf.sprintf "%s#%02d" fqdn idx
         in
           {
             channel = channel;
@@ -337,8 +352,13 @@ let processes_runner conf logger chooser test_cases =
         (fun state worker ->
            match worker.channel.receive_data () with
              | AckExit ->
-                 infof logger "Worker %s has ended." worker.id;
-                 worker.close_worker ();
+                 let msg_opt =
+                   infof logger "Worker %s has ended." worker.id;
+                   worker.close_worker ()
+                 in
+                 OUnitUtils.opt
+                   (errorf logger "Worker return status: %s")
+                   msg_opt;
                  remove_worker worker state
              | Log log_ev ->
                  OUnitLogger.report logger log_ev;

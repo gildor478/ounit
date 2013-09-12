@@ -75,7 +75,12 @@ let run_test_tt conf logger runner chooser test =
     test_results
 
 (* Test-only override. *)
-let run_test_tt_main_conf = ref OUnitConf.load
+let run_test_tt_main_conf =
+  ref (fun ?(preset=[]) ?argv extra_specs ->
+         OUnitConf.load
+           ?argv
+           ~preset:(OUnitChooser.preset (OUnitRunner.preset preset))
+           extra_specs)
 
 (* Call this one to act as your main() function. *)
 let run_test_tt_main ?(exit=Pervasives.exit) suite =
@@ -129,7 +134,7 @@ let run_test_tt_main ?(exit=Pervasives.exit) suite =
         let chooser_name, chooser = OUnitChooser.choice conf in
         let test_results =
           OUnitLogger.infof logger "Runner: %s" runner_name;
-          OUnitLogger.infof logger "Chooser: %s" runner_name;
+          OUnitLogger.infof logger "Chooser: %s" chooser_name;
           run_test_tt conf logger runner chooser nsuite
         in
           if not (OUnitResultSummary.was_successful test_results) then

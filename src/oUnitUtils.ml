@@ -174,3 +174,6 @@ let buildir =
 
 let failwithf fmt =
   Printf.ksprintf failwith fmt
+
+let opt f = function Some v -> f v | None -> ()
+

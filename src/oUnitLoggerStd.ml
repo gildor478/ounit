@@ -8,8 +8,6 @@ let ocaml_position pos =
     "File \"%s\", line %d, characters 1-1:"
     pos.filename pos.line
 
-let opt f = function Some v -> f v | None -> () 
-
 let multiline f str = 
   if String.length str > 0 then
     let buf = Buffer.create 80 in
@@ -156,10 +154,10 @@ let format_log_event ev =
     match result with 
     | RError (msg, backtrace_opt) ->
         espf "%s in test %s." msg path_str;
-        opt (espf "%s") backtrace_opt
+        OUnitUtils.opt (espf "%s") backtrace_opt
     | RFailure (msg, _, backtrace_opt) ->
         espf "%s in test %s." msg path_str;
-        opt (espf "%s") backtrace_opt
+        OUnitUtils.opt (espf "%s") backtrace_opt
     | RTodo msg -> wspf "TODO test %s: %s." path_str msg
     | RSkip msg -> wspf "Skip test %s: %s." path_str msg
     | RSuccess -> ispf "Test %s is successful." path_str
