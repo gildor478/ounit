@@ -172,7 +172,7 @@ let make_enum name get_enums default help =
   in
     fun conf ->
       try
-        List.assoc (get conf) (get_enums ())
+        get conf, List.assoc (get conf) (get_enums ())
       with Not_found ->
         failwithf
           "Enums list for %s has changed during execution." name

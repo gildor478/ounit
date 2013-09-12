@@ -279,6 +279,8 @@ let processes_runner conf logger chooser test_cases =
 
   let worker_idx = ref 1 in
 
+  let () = infof logger "Using %d workers maximum." shards in
+
   let rec iter state =
     match OUnitState.next_test_case logger state with
       | Not_enough_worker, state ->
@@ -306,6 +308,7 @@ let processes_runner conf logger chooser test_cases =
             (fun worker -> worker.channel.send_data Exit)
             (OUnitState.get_workers state);
           wait_stopped state;
+          infof logger "Used %d worker during test execution." !worker_idx;
           OUnitState.get_results state
 
   and wait_stopped state =

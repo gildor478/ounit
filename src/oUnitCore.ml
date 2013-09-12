@@ -20,7 +20,7 @@ let () =
  *)
 
 (* Run all tests, report starts, errors, failures, and return the results *)
-let perform_test conf runner chooser logger test =
+let perform_test conf logger runner chooser test =
   let rec flatten_test path acc =
     function
       | TestCase(f) ->
@@ -42,18 +42,9 @@ let perform_test conf runner chooser logger test =
     runner conf logger chooser test_cases
 
 (* A simple (currently too simple) text based test runner *)
-let run_test_tt conf runner chooser test =
+let run_test_tt conf logger runner chooser test =
   let () =
     Printexc.record_backtrace true
-  in
-
-  let logger =
-    OUnitLogger.combine
-      [
-        OUnitLoggerStd.create conf;
-        OUnitLoggerHTML.create conf;
-        OUnitLoggerJUnit.create conf;
-      ]
   in
 
   let () =
@@ -66,9 +57,7 @@ let run_test_tt conf runner chooser test =
 
   (* Now start the test *)
   let running_time, test_results =
-    time_fun
-      (perform_test conf runner chooser logger)
-      test
+    time_fun (perform_test conf logger runner chooser) test
   in
 
     (* TODO: move into perform test. *)
@@ -127,12 +116,21 @@ let run_test_tt_main ?(exit=Pervasives.exit) suite =
             end
         in
 
+        let logger =
+          OUnitLogger.combine
+            [
+              OUnitLoggerStd.create conf;
+              OUnitLoggerHTML.create conf;
+              OUnitLoggerJUnit.create conf;
+            ]
+        in
+
+        let runner_name, runner = OUnitRunner.choice conf in
+        let chooser_name, chooser = OUnitChooser.choice conf in
         let test_results =
-          run_test_tt
-            conf
-            (OUnitRunner.choice conf)
-            (OUnitChooser.choice conf)
-            nsuite
+          OUnitLogger.infof logger "Runner: %s" runner_name;
+          OUnitLogger.infof logger "Chooser: %s" runner_name;
+          run_test_tt conf logger runner chooser nsuite
         in
           if not (OUnitResultSummary.was_successful test_results) then
             exit 1

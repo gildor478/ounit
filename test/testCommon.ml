@@ -5,7 +5,7 @@ let perform_test test =
   let null_logger = OUnitLogger.null_logger in
   let conf = OUnitConf.default () in
     OUnitCore.perform_test
-      conf OUnitRunner.default OUnitChooser.default null_logger test
+      conf null_logger OUnitRunner.default OUnitChooser.default test
 
 let assert_equal_test_result exp res =
   let norm lst =

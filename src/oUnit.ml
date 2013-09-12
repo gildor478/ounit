@@ -266,9 +266,9 @@ let perform_test logger1 tst =
     list_result1_of_list_result
       (OUnitCore.perform_test
          conf
-         (OUnitRunner.choice conf)
-         (OUnitChooser.choice conf)
          logger
+         (snd (OUnitRunner.choice conf))
+         (snd (OUnitChooser.choice conf))
          (test_of_test1 tst))
 
 let run_test_tt ?verbose test =
@@ -276,8 +276,9 @@ let run_test_tt ?verbose test =
   list_result1_of_list_result
     (OUnitCore.run_test_tt
        conf
-       (OUnitRunner.choice conf)
-       (OUnitChooser.choice conf)
+       (OUnitLoggerStd.create conf)
+       (snd (OUnitRunner.choice conf))
+       (snd (OUnitChooser.choice conf))
        (test_of_test1 test))
 
 let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
@@ -335,8 +336,9 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
         let test_results =
           OUnitCore.run_test_tt
             conf
-            (OUnitRunner.choice conf)
-            (OUnitChooser.choice conf)
+            (OUnitLoggerStd.std_logger conf)
+            (snd (OUnitRunner.choice conf))
+            (snd (OUnitChooser.choice conf))
             nsuite
         in
           list_result1_of_list_result test_results
