@@ -27,7 +27,7 @@ type ('path, 'result) result_full = ('path * 'result * position option)
 (** Events which occur at the global level. *)
 type ('path, 'result) global_event =
   | GConf of string * string (** Dump a configuration options. *)
-  | GInfo of string  (* TODO: GInfo -> GLog lvl string *)
+  | GLog of log_severity * string
   | GStart  (** Start running the tests. *)
   | GEnd    (** Finish running the tests. *)
   | GResults of (float * ('path, 'result) result_full list * int)
@@ -66,10 +66,11 @@ let string_of_event ev =
           begin
             match e with
               | GConf (k, v) -> spf "GConf (%S, %S)" k v
-              | GInfo s      -> spf "GInfo %S" s
-              | GStart       -> "GStart"
-              | GEnd         -> "GEnd"
-              | GResults _   -> "GResults"
+              | GLog (lvl, s) ->
+                  spf "GLog (%s, %S)" (string_of_log_severity lvl) s
+              | GStart -> "GStart"
+              | GEnd -> "GEnd"
+              | GResults _ -> "GResults"
           end
       | TestEvent (path,  e) ->
           begin
@@ -129,19 +130,19 @@ let report logger ev =
 let infof logger fmt =
   Printf.ksprintf
     (* TODO: level *)
-    (fun str -> report logger (GlobalEvent (GInfo str)))
+    (fun str -> report logger (GlobalEvent (GLog (`Info, str))))
     fmt
 
 let warningf logger fmt =
   Printf.ksprintf
     (* TODO: level *)
-    (fun str -> report logger (GlobalEvent (GInfo str)))
+    (fun str -> report logger (GlobalEvent (GLog (`Warning, str))))
     fmt
 
 let errorf logger fmt =
   Printf.ksprintf
     (* TODO: level *)
-    (fun str -> report logger (GlobalEvent (GInfo str)))
+    (fun str -> report logger (GlobalEvent (GLog (`Error, str))))
     fmt
 
 let position logger =

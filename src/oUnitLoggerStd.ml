@@ -35,7 +35,7 @@ let format_display_event conf log_event =
     | GlobalEvent e ->
         begin
           match e with
-            | GConf (_, _) | GInfo _ | GStart | GEnd -> ""
+            | GConf (_, _) | GLog _ | GStart | GEnd -> ""
             | GResults (running_time, results, test_case_count) ->
                 let separator1 = String.make (Format.get_margin ()) '=' in
                 let separator2 = String.make (Format.get_margin ()) '-' in
@@ -170,7 +170,9 @@ let format_log_event ev =
           begin
             match e with
             | GConf (k, v) -> ispf "Configuration %s = %S" k v
-            | GInfo str -> ispf "%s" str
+            | GLog (`Error, str) -> espf "%s" str
+            | GLog (`Warning, str) -> wspf "%s" str
+            | GLog (`Info, str) -> ispf "%s" str
             | GStart -> ispf "Start testing."
             | GEnd -> ispf "End testing."
             | GResults (running_time, results, test_case_count) ->
