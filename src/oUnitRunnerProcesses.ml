@@ -130,7 +130,6 @@ let make_channel
 (* Run a worker, react to message receive from parent. *)
 let main_worker_loop conf channel shard_id map_test_cases =
   let logger =
-    (* TODO: identify the running process in log. *)
     let base_logger =
       OUnitLogger.fun_logger
         (fun {event = log_ev} -> channel.send_data (Log log_ev))
@@ -220,9 +219,12 @@ let create_worker conf map_test_cases idx =
           match snd(waitpid [] pid) with
             | WEXITED 0 ->
                 None
-            | _ ->
-                (* TODO: better message. *)
-                Some "Error"
+            | WEXITED n ->
+                Some (Printf.sprintf "exited with code %d" n)
+            | WSIGNALED n ->
+                Some (Printf.sprintf "killed by signal %d" n)
+            | WSTOPPED n ->
+                Some (Printf.sprintf "stopped by signal %d" n)
         in
           {
             channel = channel;
