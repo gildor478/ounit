@@ -38,16 +38,20 @@ type ('path, 'result) log_event_t =
 
 type ('path, 'result) log_event =
     {
+      shard: string;
       timestamp: float;
       event: ('path, 'result) log_event_t;
     }
 
 type ('path, 'result) logger =
     {
+      lshard: string;
       fwrite: ('path, 'result) log_event -> unit;
-      fpos:   unit -> position option;
+      fpos: unit -> position option;
       fclose: unit -> unit;
     }
+
+let shard_default = OUnitUtils.shardf 0
 
 let string_of_event ev =
   let spf fmt = Printf.sprintf fmt in
@@ -85,6 +89,7 @@ let string_of_event ev =
 
 let null_logger =
   {
+    lshard = shard_default;
     fwrite = ignore;
     fpos   = (fun () -> None);
     fclose = ignore;
@@ -93,6 +98,7 @@ let null_logger =
 
 let fun_logger fwrite fclose =
   {
+    lshard = shard_default;
     fwrite = (fun log_ev -> fwrite log_ev);
     fpos   = (fun () -> None);
     fclose = fclose;
@@ -103,14 +109,19 @@ let post_logger fpost =
   let fwrite ev = data := ev :: !data in
   let fclose () = fpost (List.rev !data) in
     {
+      lshard = shard_default;
       fwrite = fwrite;
       fpos   = (fun () -> None);
       fclose = fclose;
     }
 
+let set_shard shard logger =
+  {logger with lshard = shard}
+
 let report logger ev =
   logger.fwrite
     {
+      shard = logger.lshard;
       timestamp = now ();
       event = ev;
     }
@@ -153,7 +164,11 @@ let combine lst =
       | [] ->
           None
   in
+  let lshard =
+    match lst with hd :: _ -> hd.lshard | [] -> shard_default
+  in
     {
+      lshard = lshard;
       fwrite =
         (fun log_ev ->
            List.iter
@@ -169,10 +184,11 @@ module Test =
 struct
   type 'result t = 'result test_event -> unit
 
-  let create driver path =
+  let create logger path =
     fun ev ->
-      driver.fwrite
+      logger.fwrite
         {
+          shard = logger.lshard;
           timestamp = now ();
           event = TestEvent (path, ev)
         }

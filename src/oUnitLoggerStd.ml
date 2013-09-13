@@ -139,11 +139,12 @@ let format_display_event conf log_event =
 
 let format_log_event ev = 
   let rlst = ref [] in
-  let timestamp_str = OUnitUtils.date_iso8601 ~tz:false ev.timestamp in 
+  let timestamp_str = OUnitUtils.date_iso8601 ev.timestamp in
   let spf pre fmt = 
     Printf.ksprintf
       (multiline 
-         (fun l -> rlst := (timestamp_str^" "^pre^": "^l) :: !rlst))
+         (fun l ->
+            rlst := (timestamp_str^" "^ev.shard^" "^pre^": "^l) :: !rlst))
       fmt
   in
   let ispf fmt = spf "I" fmt in
@@ -223,6 +224,7 @@ let file_logger conf fn =
     close_out chn
   in
     {
+      lshard = shard_default;
       fwrite = fwrite;
       fpos   = fpos;
       fclose = fclose;
@@ -251,6 +253,7 @@ let std_logger conf =
       flush stdout
     in
       {
+        lshard = shard_default;
         fwrite = fwrite;
         fpos   = (fun () -> None);
         fclose = ignore;

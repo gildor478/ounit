@@ -128,7 +128,7 @@ let make_channel
     }
 
 (* Run a worker, react to message receive from parent. *)
-let main_worker_loop conf channel worker_id map_test_cases =
+let main_worker_loop conf channel shard_id map_test_cases =
   let logger =
     (* TODO: identify the running process in log. *)
     let base_logger =
@@ -144,12 +144,12 @@ let main_worker_loop conf channel worker_id map_test_cases =
     let fpos () =
       let pos =
         incr idx;
-        { filename = worker_id; line = !idx }
+        { filename = shard_id; line = !idx }
       in
         channel.send_data (LogFakePosition pos);
         Some pos
     in
-      {base_logger with fpos = fpos}
+      set_shard shard_id {base_logger with fpos = fpos}
   in
   let rec loop () =
     match channel.receive_data () with
@@ -169,14 +169,14 @@ type worker =
       channel: (message_to_worker, message_from_worker) channel;
       close_worker: unit -> string option;
       select_fd: Unix.file_descr;
-      id: string;
+      shard_id: string;
     }
 
 let create_worker conf map_test_cases idx =
   let safe_close fd = try close fd with Unix_error _ -> () in
   let pipe_read_from_worker, pipe_write_to_parent = Unix.pipe () in
   let pipe_read_from_parent, pipe_write_to_worker  = Unix.pipe () in
-  let worker_id = Printf.sprintf "%s#%02d" (OUnitUtils.fqdn ()) idx in
+  let shard_id = OUnitUtils.shardf idx in
   match Unix.fork () with
     | 0 ->
         (* Child process. *)
@@ -197,7 +197,7 @@ let create_worker conf map_test_cases idx =
             pipe_read_from_parent
             pipe_write_to_parent
         in
-          main_worker_loop conf channel worker_id map_test_cases;
+          main_worker_loop conf channel shard_id map_test_cases;
           channel.close ();
           safe_close pipe_read_from_parent;
           safe_close pipe_write_to_parent;
@@ -228,7 +228,7 @@ let create_worker conf map_test_cases idx =
             channel = channel;
             close_worker = close_worker;
             select_fd = pipe_read_from_worker;
-            id = worker_id;
+            shard_id = shard_id;
           }
 
 let default_timeout = 5.0
@@ -300,7 +300,7 @@ let processes_runner conf logger chooser test_cases =
             (* Start a worker. *)
             let () = infof logger "Starting worker number %d." !worker_idx; in
             let worker = create_worker conf map_test_cases !worker_idx in
-            let () = infof logger "Worker %s started." worker.id in
+            let () = infof logger "Worker %s started." worker.shard_id in
             let state = add_worker worker state in
               incr worker_idx;
               iter state
@@ -360,7 +360,7 @@ let processes_runner conf logger chooser test_cases =
      match msg with
        | AckExit ->
            let msg_opt =
-             infof logger "Worker %s has ended." worker.id;
+             infof logger "Worker %s has ended." worker.shard_id;
              worker.close_worker ()
            in
            OUnitUtils.opt
@@ -370,7 +370,7 @@ let processes_runner conf logger chooser test_cases =
 
        | Log log_ev ->
            begin
-             OUnitLogger.report logger log_ev;
+             OUnitLogger.report (set_shard worker.shard_id logger) log_ev;
              state
            end
 
