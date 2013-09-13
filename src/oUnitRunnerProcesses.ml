@@ -212,19 +212,52 @@ let create_worker conf map_test_cases idx =
             pipe_write_to_worker
         in
         let close_worker () =
-          channel.close ();
-          safe_close pipe_read_from_worker;
-          safe_close pipe_write_to_worker;
-          (* TODO: recovery for worker going wild and not dying. *)
-          match snd(waitpid [] pid) with
-            | WEXITED 0 ->
-                None
-            | WEXITED n ->
-                Some (Printf.sprintf "exited with code %d" n)
-            | WSIGNALED n ->
-                Some (Printf.sprintf "killed by signal %d" n)
-            | WSTOPPED n ->
-                Some (Printf.sprintf "stopped by signal %d" n)
+          let rec wait_end timeout =
+            if timeout < 0.0 then begin
+              false, None
+            end else begin
+              let pid, status = waitpid [WNOHANG] pid in
+              if pid = 0 then begin
+                (* Wait 0.1 seconds and continue. *)
+                let _, _, _ = Unix.select [] [] [] 0.1 in
+                  wait_end (timeout -. 0.1)
+              end else begin
+                let msg =
+                  match status with
+                    | WEXITED 0 ->
+                        None
+                    | WEXITED n ->
+                        Some (Printf.sprintf "exited with code %d" n)
+                    | WSIGNALED n ->
+                        Some (Printf.sprintf "killed by signal %d" n)
+                    | WSTOPPED n ->
+                        Some (Printf.sprintf "stopped by signal %d" n)
+                in
+                  true, msg
+              end
+            end
+          in
+
+          let ended, res =
+            channel.close ();
+            safe_close pipe_read_from_worker;
+            safe_close pipe_write_to_worker;
+            (* Recovery for worker going wild and not dying. *)
+            List.fold_left
+              (fun (ended, res) signal ->
+                 if ended then begin
+                   ended, res
+                 end else begin
+                   kill pid signal;
+                   wait_end 5.0
+                 end)
+              (wait_end 5.0)
+              [15 (* SIGTERM *); 9 (* SIGKILL *)]
+          in
+            if ended then
+              res
+            else
+              Some (Printf.sprintf "unable to kill process %d" pid)
         in
           {
             channel = channel;
