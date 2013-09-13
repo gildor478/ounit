@@ -15,26 +15,22 @@ open Unix
 type message_to_worker =
   | Exit
   | RunTest of path
-  | LogPosition of position option
 
 let string_of_message_to_worker =
   function
     | Exit -> "Exit"
     | RunTest _ -> "RunTest _"
-    | LogPosition _ -> "LogPosition _"
 
 type message_from_worker =
   | AckExit
   | Log of OUnitTest.log_event_t
   | TestDone of (OUnitTest.result_full * OUnitTest.result_list)
-  | PositionLog
 
 let string_of_message_from_worker =
   function
     | AckExit -> "AckExit"
     | Log _ -> "Log _"
     | TestDone _ -> "TestDone _"
-    | PositionLog -> "PositionLog"
 
 module MapPath =
   Map.Make
@@ -61,7 +57,7 @@ type ('a, 'b) channel =
     }
 
 (* Turn on to debug communication. *)
-let debug_communication = true
+let debug_communication = false
 
 (* Create functions to handle sending and receiving data over a file descriptor.
  *)
@@ -87,8 +83,6 @@ let make_channel
 
   let chn_write = out_channel_of_descr fd_write in
 
-  let ack = "ACK" in
-
   let really_read fd str =
     let off = ref 0 in
     let read = ref 0 in
@@ -105,30 +99,23 @@ let make_channel
       str
   in
 
-  let send_data msg =
-    let () =
-      debugf "Sending message %S" (string_of_written_message msg);
-      Marshal.to_channel chn_write msg [];
-      Pervasives.flush chn_write
-    in
-    let acked = really_read fd_read (String.create (String.length ack)) in
-      debugf "ack read: %S" acked;
-      assert(acked = ack);
-      ()
-  in
-
   let header_str = String.create Marshal.header_size in
+
+  let send_data msg =
+    debugf "Sending message %S" (string_of_written_message msg);
+    Marshal.to_channel chn_write msg [];
+    Pervasives.flush chn_write;
+    debugf "Message transmitted, continuing."
+  in
 
   let receive_data () =
     let data_size = Marshal.data_size (really_read fd_read header_str) 0 in
     let data_str = really_read fd_read (String.create data_size) in
     let msg = Marshal.from_string (header_str ^ data_str) 0 in
       debugf "Received message %S" (string_of_read_message msg);
-      Pervasives.output_string chn_write ack;
-      debugf "ACK sent.";
-      Pervasives.flush chn_write;
       msg
   in
+
   let close () =
     close_out chn_write;
   in
@@ -143,28 +130,9 @@ let main_worker_loop channel conf map_test_cases =
   let stop = ref false in
   let logger =
     (* TODO: identify the running process in log. *)
-    let base_logger =
-      OUnitLogger.fun_logger
-        (fun {event = log_ev} -> channel.send_data (Log log_ev))
-        ignore
-    in
-    let fpos () =
-      match base_logger.fpos () with
-        | Some _ as e -> e
-        | None ->
-            begin
-              channel.send_data PositionLog;
-              match channel.receive_data () with
-                | Exit ->
-                    stop := true;
-                    None
-                | RunTest _ ->
-                    assert false
-                | LogPosition position ->
-                    position
-            end
-    in
-      {base_logger with fpos = fpos}
+    OUnitLogger.fun_logger
+      (fun {event = log_ev} -> channel.send_data (Log log_ev))
+      ignore
   in
     while not !stop do
       match channel.receive_data () with
@@ -174,8 +142,6 @@ let main_worker_loop channel conf map_test_cases =
             let test_case = MapPath.find test_path map_test_cases in
             let res = OUnitRunner.run_one_test conf logger test_case in
               channel.send_data (TestDone res)
-        | LogPosition _ ->
-            assert false
     done;
     channel.send_data AckExit
 
@@ -290,7 +256,7 @@ let processes_runner conf logger chooser test_cases =
 
   let state = OUnitState.create chooser test_cases in
 
-  let shards = min (shards conf) 1 in
+  let shards = max (shards conf) 1 in
 
   let worker_idx = ref 1 in
 
@@ -319,16 +285,19 @@ let processes_runner conf logger chooser test_cases =
           iter state
 
       | Finished, state ->
-          List.iter
-            (fun worker -> worker.channel.send_data Exit)
-            (OUnitState.get_workers state);
-          wait_stopped state;
-          infof logger "Used %d worker during test execution." !worker_idx;
-          OUnitState.get_results state
+          let state =
+            List.iter
+              (fun worker -> worker.channel.send_data Exit)
+              (OUnitState.get_workers state);
+            wait_stopped state
+          in
+            infof logger "Used %d worker during test execution."
+              (!worker_idx - 1);
+            OUnitState.get_results state
 
   and wait_stopped state =
     if OUnitState.get_workers state = [] then
-      ()
+      state
     else
       wait_stopped (wait_loop state)
 
@@ -350,29 +319,29 @@ let processes_runner conf logger chooser test_cases =
       (* TODO: timeout. *)
       List.fold_left
         (fun state worker ->
-           match worker.channel.receive_data () with
-             | AckExit ->
-                 let msg_opt =
-                   infof logger "Worker %s has ended." worker.id;
-                   worker.close_worker ()
-                 in
-                 OUnitUtils.opt
-                   (errorf logger "Worker return status: %s")
-                   msg_opt;
-                 remove_worker worker state
-             | Log log_ev ->
-                 OUnitLogger.report logger log_ev;
-                 state
-             | TestDone test_result ->
-                 OUnitState.add_test_result test_result worker state
-             | PositionLog ->
-                 worker.channel.send_data
-                   (LogPosition (OUnitLogger.position logger));
-                 state)
+           process_message worker (worker.channel.receive_data ()) state)
         state
         workers_waiting_lst
       in
         state
+  and process_message worker msg state =
+     match msg with
+       | AckExit ->
+           let msg_opt =
+             infof logger "Worker %s has ended." worker.id;
+             worker.close_worker ()
+           in
+           OUnitUtils.opt
+             (errorf logger "Worker return status: %s")
+             msg_opt;
+           remove_worker worker state
+       | Log log_ev ->
+           begin
+             OUnitLogger.report logger log_ev;
+             state
+           end
+       | TestDone test_result ->
+           OUnitState.add_test_result test_result worker state
   in
     iter state
 

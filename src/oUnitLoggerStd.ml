@@ -174,6 +174,8 @@ let format_log_event ev =
             | GEnd -> ispf "End testing."
             | GResults (running_time, results, test_case_count) ->
                 let countr = count results in
+                ispf "==============";
+                ispf "Summary:";
                 List.iter
                   (fun (path, test_result, _) ->
                      format_result path test_result)
