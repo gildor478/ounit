@@ -7,8 +7,8 @@ let perform_test test =
     OUnitCore.perform_test
       conf
       null_logger
-      (snd (OUnitRunner.choice conf))
-      (snd (OUnitChooser.choice conf))
+      OUnitRunner.sequential_runner 
+      OUnitChooser.simple
       test
 
 let assert_equal_test_result exp res =
