@@ -177,3 +177,4 @@ let failwithf fmt =
 
 let opt f = function Some v -> f v | None -> ()
 
+let fqdn () = (Unix.gethostbyname (Unix.gethostname ())).Unix.h_name

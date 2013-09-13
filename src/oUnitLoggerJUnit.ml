@@ -40,7 +40,7 @@ let render conf fn events =
     (xml_escaper smr.suite_name)
     (xml_escaper smr.suite_name)
     (xml_escaper (date_iso8601 ~tz:false smr.start_at))
-    (xml_escaper (Unix.gethostbyname (Unix.gethostname ())).Unix.h_name)
+    (xml_escaper (fqdn ()))
     smr.test_case_count
     (smr.failures + smr.todos)
     smr.errors

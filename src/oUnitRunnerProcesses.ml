@@ -24,12 +24,14 @@ let string_of_message_to_worker =
 type message_from_worker =
   | AckExit
   | Log of OUnitTest.log_event_t
+  | LogFakePosition of OUnitLogger.position
   | TestDone of (OUnitTest.result_full * OUnitTest.result_list)
 
 let string_of_message_from_worker =
   function
     | AckExit -> "AckExit"
     | Log _ -> "Log _"
+    | LogFakePosition _ -> "LogFakePosition _"
     | TestDone _ -> "TestDone _"
 
 module MapPath =
@@ -126,24 +128,41 @@ let make_channel
     }
 
 (* Run a worker, react to message receive from parent. *)
-let main_worker_loop channel conf map_test_cases =
-  let stop = ref false in
+let main_worker_loop conf channel worker_id map_test_cases =
   let logger =
     (* TODO: identify the running process in log. *)
-    OUnitLogger.fun_logger
-      (fun {event = log_ev} -> channel.send_data (Log log_ev))
-      ignore
+    let base_logger =
+      OUnitLogger.fun_logger
+        (fun {event = log_ev} -> channel.send_data (Log log_ev))
+        ignore
+    in
+
+    (* Fake position generator, communicate with master so that
+     * master can do the translation of pos.
+     *)
+    let idx = ref 0 in
+    let fpos () =
+      let pos =
+        incr idx;
+        { filename = worker_id; line = !idx }
+      in
+        channel.send_data (LogFakePosition pos);
+        Some pos
+    in
+      {base_logger with fpos = fpos}
   in
-    while not !stop do
-      match channel.receive_data () with
-        | Exit ->
-            stop := true
-        | RunTest test_path ->
-            let test_case = MapPath.find test_path map_test_cases in
-            let res = OUnitRunner.run_one_test conf logger test_case in
-              channel.send_data (TestDone res)
-    done;
-    channel.send_data AckExit
+  let rec loop () =
+    match channel.receive_data () with
+      | Exit ->
+          channel.send_data AckExit
+
+      | RunTest test_path ->
+          let test_case = MapPath.find test_path map_test_cases in
+          let res = OUnitRunner.run_one_test conf logger test_case in
+          channel.send_data (TestDone res);
+          loop ()
+  in
+    loop ()
 
 type worker =
     {
@@ -157,6 +176,7 @@ let create_worker conf map_test_cases idx =
   let safe_close fd = try close fd with Unix_error _ -> () in
   let pipe_read_from_worker, pipe_write_to_parent = Unix.pipe () in
   let pipe_read_from_parent, pipe_write_to_worker  = Unix.pipe () in
+  let worker_id = Printf.sprintf "%s#%02d" (OUnitUtils.fqdn ()) idx in
   match Unix.fork () with
     | 0 ->
         (* Child process. *)
@@ -177,7 +197,7 @@ let create_worker conf map_test_cases idx =
             pipe_read_from_parent
             pipe_write_to_parent
         in
-          main_worker_loop channel conf map_test_cases;
+          main_worker_loop conf channel worker_id map_test_cases;
           channel.close ();
           safe_close pipe_read_from_parent;
           safe_close pipe_write_to_parent;
@@ -204,17 +224,11 @@ let create_worker conf map_test_cases idx =
                 (* TODO: better message. *)
                 Some "Error"
         in
-        let id =
-          let fqdn =
-            (Unix.gethostbyname (Unix.gethostname ())).Unix.h_name
-          in
-            Printf.sprintf "%s#%02d" fqdn idx
-        in
           {
             channel = channel;
             close_worker = close_worker;
             select_fd = pipe_read_from_worker;
-            id = id;
+            id = worker_id;
           }
 
 let default_timeout = 5.0
@@ -261,6 +275,23 @@ let processes_runner conf logger chooser test_cases =
   let worker_idx = ref 1 in
 
   let () = infof logger "Using %d workers maximum." shards in
+
+  let position_of_fake_position = Hashtbl.create 128 in
+
+  let backpatch_log_position (path, result, pos_opt) =
+    let real_pos_opt =
+      match pos_opt with
+        | Some fake_position ->
+            begin
+              try
+                Hashtbl.find position_of_fake_position fake_position
+              with Not_found ->
+                Some fake_position
+            end
+        | None -> None
+    in
+      path, result, real_pos_opt
+  in
 
   let rec iter state =
     match OUnitState.next_test_case logger state with
@@ -324,6 +355,7 @@ let processes_runner conf logger chooser test_cases =
         workers_waiting_lst
       in
         state
+
   and process_message worker msg state =
      match msg with
        | AckExit ->
@@ -335,13 +367,25 @@ let processes_runner conf logger chooser test_cases =
              (errorf logger "Worker return status: %s")
              msg_opt;
            remove_worker worker state
+
        | Log log_ev ->
            begin
              OUnitLogger.report logger log_ev;
              state
            end
+
        | TestDone test_result ->
-           OUnitState.add_test_result test_result worker state
+           OUnitState.add_test_result
+             (backpatch_log_position (fst test_result),
+              List.map backpatch_log_position (snd test_result))
+             worker state
+
+       | LogFakePosition fake_position ->
+           begin
+             Hashtbl.add position_of_fake_position
+               fake_position (OUnitLogger.position logger);
+             state
+           end
   in
     iter state
 
