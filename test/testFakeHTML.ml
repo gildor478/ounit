@@ -34,5 +34,4 @@ let suite =
        failwith "this is a bad message: '\"&<>")
   ]
 
-let _ =
-  run_test_tt_main suite
+let () = run_test_tt_main suite

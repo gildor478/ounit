@@ -12,5 +12,6 @@ let () =
        TestOUnitAssert.tests;
        TestOUnitDiff.tests;
        TestOtherTests.tests;
+       TestRunner.tests;
      ])
 

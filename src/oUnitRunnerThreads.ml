@@ -89,5 +89,5 @@ let threads_runner conf logger chooser test_cases =
     done;
     schedule wait_chan suite_result_chan test_cases
 
-let () =
+let init () =
   OUnitRunner.register "threads" 70 threads_runner

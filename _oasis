@@ -64,16 +64,23 @@ Executable testFakeHTML
   BuildDepends: oUnit
   Install: false
 
+# A fake test that help to test all the runners.
+Executable testFakeRunner
+  Path:   test
+  MainIs: testFakeRunner.ml
+  BuildDepends: oUnit, oUnit.threads
+  Install: false
+
 # The main test.
 Executable test
   Path:   test
   MainIs: test.ml
-  BuildDepends: oUnit, oUnit.advanced
+  BuildDepends: oUnit, oUnit.advanced, str
   Install: false
 
 Test main
-  Command: $test -xmllint $xmllint -testFakeHTML $testfakehtml
-  TestTools: test, testFakeHTML, xmllint
+  Command: $test -xmllint $xmllint -testFakeHTML $testfakehtml -testFakeRunner $testfakerunner
+  TestTools: test, testFakeHTML, testFakeRunner, xmllint
 
 Document "api-ounit"
   Title:       API reference for OUnit
