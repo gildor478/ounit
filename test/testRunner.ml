@@ -104,6 +104,8 @@ let check_standard_results ?(extra_errors=0) test_results =
     }
     test_results
 
+let skip_if_notunix () = skip_if (Sys.os_type <> "Unix") "Only run on Unix."
+
 let tests = 
   "Runner" >:::
   [
@@ -114,12 +116,16 @@ let tests =
 
     "Processes" >::
     (fun ctxt ->
-       let test_results = run_test_fake_runner ctxt "processes" [] in
+       let test_results =
+         skip_if_notunix ();
+         run_test_fake_runner ctxt "processes" []
+       in
          check_standard_results test_results);
 
     "Processes#1" >::
     (fun ctxt ->
        let test_results =
+         skip_if_notunix ();
          run_test_fake_runner ctxt "processes" ["-shards"; "1"]
        in
          check_standard_results test_results);
@@ -127,6 +133,7 @@ let tests =
     "Processes#2" >::
     (fun ctxt ->
        let test_results =
+         skip_if_notunix ();
          run_test_fake_runner ctxt "processes" ["-shards"; "2"]
        in
          check_standard_results test_results);
@@ -134,6 +141,7 @@ let tests =
     "Processes+SIGSEGV" >::
     (fun ctxt ->
        let test_results =
+         skip_if_notunix ();
          run_test_fake_runner ctxt "processes"
            ["-shards"; "2";
             "-sigsegv" ; "true";
