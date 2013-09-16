@@ -90,54 +90,63 @@ let run_test_fake_runner ctxt runner args =
       todo = !todo;
     }
 
+let check_standard_results test_results =
+  assert_equal
+    ~msg:"test results"
+    ~printer:string_of_test_results
+    {
+      cases = 5;
+      tried = 5;
+      errors = 1;
+      failures = 1;
+      skip = 1;
+      todo = 1;
+    }
+    test_results
+
 let tests = 
   "Runner" >:::
   [
     "Sequential" >::
     (fun ctxt ->
        let test_results = run_test_fake_runner ctxt "sequential" [] in
-         assert_equal
-           ~msg:"test results"
-           ~printer:string_of_test_results
-           {
-             cases = 5;
-             tried = 5;
-             errors = 1;
-             failures = 1;
-             skip = 1;
-             todo = 1;
-           }
-           test_results);
+         check_standard_results test_results);
 
     "Processes" >::
     (fun ctxt ->
        let test_results = run_test_fake_runner ctxt "processes" [] in
-         assert_equal
-           ~msg:"test results"
-           ~printer:string_of_test_results
-           {
-             cases = 5;
-             tried = 5;
-             errors = 1;
-             failures = 1;
-             skip = 1;
-             todo = 1;
-           }
-           test_results);
+         check_standard_results test_results);
+
+    "Processes#1" >::
+    (fun ctxt ->
+       let test_results =
+         run_test_fake_runner ctxt "processes" ["-shards"; "1"]
+       in
+         check_standard_results test_results);
+
+    "Processes#2" >::
+    (fun ctxt ->
+       let test_results =
+         run_test_fake_runner ctxt "processes" ["-shards"; "2"]
+       in
+         check_standard_results test_results);
 
     "Threads" >::
     (fun ctxt ->
        let test_results = run_test_fake_runner ctxt "threads" [] in
-         assert_equal
-           ~msg:"test results"
-           ~printer:string_of_test_results
-           {
-             cases = 5;
-             tried = 5;
-             errors = 1;
-             failures = 1;
-             skip = 1;
-             todo = 1;
-           }
-           test_results);
+         check_standard_results test_results);
+
+    "Threads#1" >::
+    (fun ctxt ->
+       let test_results =
+         run_test_fake_runner ctxt "threads" ["-shards"; "1"]
+       in
+         check_standard_results test_results);
+
+    "Threads#2" >::
+    (fun ctxt ->
+       let test_results =
+         run_test_fake_runner ctxt "threads" ["-shards"; "2"]
+       in
+         check_standard_results test_results);
   ]
