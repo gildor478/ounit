@@ -124,6 +124,27 @@ let make_int name default help =
         "i "^help])
     ()
 
+let make_float name default help =
+  make
+    ~name
+    ~parse:
+    (fun str ->
+       try
+         float_of_string str
+       with Failure _ ->
+         raise
+           (Parse_error
+              (Printf.sprintf "%S is not a float." str)))
+    ~print:string_of_float
+    ~default
+    ~help
+    ~fcli:
+    (fun get set ->
+       [cli_name name,
+        Arg.Float set,
+        "f "^help])
+    ()
+
 let make_bool name default help =
   make
     ~name

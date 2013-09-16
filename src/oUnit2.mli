@@ -205,6 +205,7 @@ val conf_make_string: string -> string -> Arg.doc -> test_ctxt -> string
 val conf_make_string_opt:
     string -> string option -> Arg.doc -> test_ctxt -> string option
 val conf_make_int: string -> int -> Arg.doc -> test_ctxt -> int
+val conf_make_float: string -> float -> Arg.doc -> test_ctxt -> float
 val conf_make_bool: string -> bool -> Arg.doc -> test_ctxt -> bool
 
 (** [non_fatal ctxt f] Run [f] but if an exception is raised or an assert fails,

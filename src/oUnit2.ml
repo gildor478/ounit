@@ -44,4 +44,5 @@ let conf_wrap f name default help =
 let conf_make_string = conf_wrap OUnitConf.make_string
 let conf_make_string_opt = conf_wrap OUnitConf.make_string_opt
 let conf_make_int = conf_wrap OUnitConf.make_int
+let conf_make_float = conf_wrap OUnitConf.make_float
 let conf_make_bool = conf_wrap OUnitConf.make_bool
