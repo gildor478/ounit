@@ -129,19 +129,16 @@ let report logger ev =
 
 let infof logger fmt =
   Printf.ksprintf
-    (* TODO: level *)
     (fun str -> report logger (GlobalEvent (GLog (`Info, str))))
     fmt
 
 let warningf logger fmt =
   Printf.ksprintf
-    (* TODO: level *)
     (fun str -> report logger (GlobalEvent (GLog (`Warning, str))))
     fmt
 
 let errorf logger fmt =
   Printf.ksprintf
-    (* TODO: level *)
     (fun str -> report logger (GlobalEvent (GLog (`Error, str))))
     fmt
 

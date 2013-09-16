@@ -72,10 +72,10 @@ let make_channel
         close = close
       }
 
-let create_worker conf map_test_cases shard_id =
+let create_worker conf map_test_cases shard_id master_id =
   let safe_close fd = try close fd with Unix_error _ -> () in
-  let pipe_read_from_worker, pipe_write_to_parent = Unix.pipe () in
-  let pipe_read_from_parent, pipe_write_to_worker  = Unix.pipe () in
+  let pipe_read_from_worker, pipe_write_to_master = Unix.pipe () in
+  let pipe_read_from_master, pipe_write_to_worker  = Unix.pipe () in
   match Unix.fork () with
     | 0 ->
         (* Child process. *)
@@ -83,9 +83,9 @@ let create_worker conf map_test_cases shard_id =
           safe_close pipe_read_from_worker;
           safe_close pipe_write_to_worker;
           (* Do we really need to close stdin/stdout? *)
-          dup2 pipe_read_from_parent stdin;
-          dup2 pipe_write_to_parent stdout;
-          (* stderr remains open and shared with parent. *)
+          dup2 pipe_read_from_master stdin;
+          dup2 pipe_write_to_master stdout;
+          (* stderr remains open and shared with master. *)
           ()
         in
         let channel =
@@ -93,20 +93,20 @@ let create_worker conf map_test_cases shard_id =
             shard_id
             string_of_message_to_worker
             string_of_message_from_worker
-            pipe_read_from_parent
-            pipe_write_to_parent
+            pipe_read_from_master
+            pipe_write_to_master
         in
           main_worker_loop
             conf channel shard_id map_test_cases;
           channel.close ();
-          safe_close pipe_read_from_parent;
-          safe_close pipe_write_to_parent;
+          safe_close pipe_read_from_master;
+          safe_close pipe_write_to_master;
           exit 0
 
     | pid ->
         let channel =
           make_channel
-            shard_id
+            master_id
             string_of_message_from_worker
             string_of_message_to_worker
             pipe_read_from_worker

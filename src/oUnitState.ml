@@ -58,11 +58,17 @@ let remove_worker worker state =
       raise Not_found;
     {state with idle_workers = idle_workers}
 
-let worker_number state =
+let count_worker state =
   List.length state.idle_workers + List.length state.tests_running
+
+let count_tests_running state =
+  List.length state.tests_running
 
 let get_workers state =
   List.rev_append state.idle_workers (List.rev_map snd state.tests_running)
+
+let get_idle_workers state =
+  state.idle_workers
 
 let next_test_case logger state =
   match state.tests_planned, state.idle_workers with

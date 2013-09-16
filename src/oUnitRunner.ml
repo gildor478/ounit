@@ -173,6 +173,7 @@ struct
         in
 
         let receive_data () =
+          let () = debugf "Waiting to receive data." in
           let msg = channel.receive_data () in
             debugf "Received message %S" (string_of_read_message msg);
             msg
@@ -247,6 +248,7 @@ struct
 
     let shards = max (shards conf) 1 in
 
+    let master_id = logger.OUnitLogger.lshard in
     let worker_idx = ref 1 in
 
     let () = infof logger "Using %d workers maximum." shards in
@@ -271,11 +273,13 @@ struct
     let rec iter state =
       match OUnitState.next_test_case logger state with
         | Not_enough_worker, state ->
-            if OUnitState.worker_number state < shards then begin
+            if OUnitState.count_worker state < shards then begin
               (* Start a worker. *)
               let shard_id = OUnitUtils.shardf !worker_idx in
               let () = infof logger "Starting worker number %s." shard_id in
-              let worker = create_worker conf map_test_cases shard_id in
+              let worker =
+                create_worker conf map_test_cases shard_id master_id
+              in
               let () = infof logger "Worker %s started." worker.shard_id in
               let state = add_worker worker state in
                 incr worker_idx;
@@ -292,15 +296,21 @@ struct
             iter state
 
         | Finished, state ->
-            let state =
-              List.iter
-                (fun worker -> worker.channel.send_data Exit)
-                (OUnitState.get_workers state);
-              wait_stopped state
-            in
-              infof logger "Used %d worker during test execution."
-                (!worker_idx - 1);
-              OUnitState.get_results state
+            let count_tests_running = OUnitState.count_tests_running state in
+            if count_tests_running = 0 then begin
+              let state =
+                List.iter
+                  (fun worker -> worker.channel.send_data Exit)
+                  (OUnitState.get_workers state);
+                  wait_stopped state
+                in
+                  infof logger "Used %d worker during test execution."
+                    (!worker_idx - 1);
+                  OUnitState.get_results state
+            end else begin
+              infof logger "Still %d tests running." count_tests_running;
+              iter (wait_loop state)
+            end
 
     and wait_stopped state =
       if OUnitState.get_workers state = [] then
