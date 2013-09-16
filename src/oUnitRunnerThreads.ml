@@ -57,13 +57,20 @@ let create_worker conf map_test_cases shard_id master_id =
   in
 
   let thread_main_worker () =
-      main_worker_loop
-        conf channel_worker shard_id map_test_cases;
+    let at_end () =
       channel_worker.close ();
       Mutex.lock worker_finished_mutex;
       worker_finished := true;
       Condition.broadcast worker_finished_cond;
       Mutex.unlock worker_finished_mutex
+    in
+      try
+        main_worker_loop
+          conf channel_worker shard_id map_test_cases;
+        at_end ()
+      with e ->
+        at_end ();
+        raise e
   in
 
   let thread = Thread.create thread_main_worker () in
@@ -76,6 +83,15 @@ let create_worker conf map_test_cases shard_id master_id =
       string_of_message_to_worker
       worker_to_master
       master_to_worker
+  in
+
+  let is_running () =
+    let res =
+      Mutex.lock worker_finished_mutex;
+      not !worker_finished
+    in
+      Mutex.unlock worker_finished_mutex;
+      res
   in
 
   let close_worker () =
@@ -116,6 +132,7 @@ let create_worker conf map_test_cases shard_id master_id =
       close_worker = close_worker;
       select_fd = select_fd;
       shard_id = shard_id;
+      is_running = is_running;
     }
 
 

@@ -5,6 +5,12 @@
 
 open OUnit2
 
+let sigsegv =
+  conf_make_bool
+    "sigsegv"
+    false
+    "Fail with SIGSEGV."
+
 let suite =
   "TestFakeRunner" >:::
   [
@@ -22,6 +28,11 @@ let suite =
 
     "error" >::
     (fun ctxt -> raise Not_found);
+
+    "SIGSEGV" >::
+    (fun ctxt ->
+       if sigsegv ctxt then
+         Unix.kill (Unix.getpid ()) 11)
   ]
 
 let () = 

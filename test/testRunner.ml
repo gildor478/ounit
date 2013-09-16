@@ -90,14 +90,14 @@ let run_test_fake_runner ctxt runner args =
       todo = !todo;
     }
 
-let check_standard_results test_results =
+let check_standard_results ?(extra_errors=0) test_results =
   assert_equal
     ~msg:"test results"
     ~printer:string_of_test_results
     {
-      cases = 5;
-      tried = 5;
-      errors = 1;
+      cases = 6;
+      tried = 6;
+      errors = 1 + extra_errors;
       failures = 1;
       skip = 1;
       todo = 1;
@@ -130,6 +130,16 @@ let tests =
          run_test_fake_runner ctxt "processes" ["-shards"; "2"]
        in
          check_standard_results test_results);
+
+    "Processes+SIGSEGV" >::
+    (fun ctxt ->
+       let test_results =
+         run_test_fake_runner ctxt "processes"
+           ["-shards"; "2";
+            "-sigsegv" ; "true";
+            "-health-check-interval"; "0.0"]
+       in
+         check_standard_results ~extra_errors:1 test_results);
 
     "Threads" >::
     (fun ctxt ->

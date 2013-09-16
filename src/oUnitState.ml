@@ -43,7 +43,7 @@ let add_test_result (test_result, other_test_results) worker state =
 let add_worker worker state =
   {state with idle_workers = worker :: state.idle_workers}
 
-let remove_worker worker state =
+let remove_idle_worker worker state =
   let found, idle_workers =
     List.fold_left
       (fun (found, lst) worker' ->
@@ -69,6 +69,18 @@ let get_workers state =
 
 let get_idle_workers state =
   state.idle_workers
+
+let is_idle_worker worker state =
+  List.exists (fun worker' -> worker == worker') state.idle_workers
+
+let test_path_of_worker worker state =
+  let path, _ =
+    List.find (fun (_, worker') -> worker == worker') state.tests_running
+  in
+    path
+
+let get_tests_running state =
+  List.map fst state.tests_running
 
 let next_test_case logger state =
   match state.tests_planned, state.idle_workers with

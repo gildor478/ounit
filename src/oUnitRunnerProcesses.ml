@@ -112,42 +112,56 @@ let create_worker conf map_test_cases shard_id master_id =
             pipe_read_from_worker
             pipe_write_to_worker
         in
+
+        let rstatus = ref None in
+
+        let msg_of_process_status status =
+          if status = WEXITED 0 then
+            None
+          else
+            Some (OUnitUtils.string_of_process_status status)
+        in
+
+        let is_running () =
+          match !rstatus with
+            | None ->
+                let pid, status = waitpid [WNOHANG] pid in
+                  if pid <> 0 then begin
+                    rstatus := Some status;
+                    false
+                  end else begin
+                    true
+                  end
+            | Some _ ->
+                false
+        in
+
         let close_worker () =
           let rec wait_end timeout =
             if timeout < 0.0 then begin
               false, None
             end else begin
-              let pid, status = waitpid [WNOHANG] pid in
-              if pid = 0 then begin
-                (* Wait 0.1 seconds and continue. *)
-                let _, _, _ = Unix.select [] [] [] 0.1 in
-                  wait_end (timeout -. 0.1)
-              end else begin
-                let msg =
-                  match status with
-                    | WEXITED 0 ->
-                        None
-                    | WEXITED n ->
-                        Some (Printf.sprintf "exited with code %d" n)
-                    | WSIGNALED n ->
-                        Some (Printf.sprintf "killed by signal %d" n)
-                    | WSTOPPED n ->
-                        Some (Printf.sprintf "stopped by signal %d" n)
-                in
-                  true, msg
-              end
+              let running = is_running () in
+                if running then
+                  (* Wait 0.1 seconds and continue. *)
+                  let _, _, _ = Unix.select [] [] [] 0.1 in
+                    wait_end (timeout -. 0.1)
+                else
+                  match !rstatus with
+                  | Some status -> true, msg_of_process_status status
+                  | None -> true, None
             end
           in
 
-          let ended, res =
+          let ended, msg_opt =
             channel.close ();
             safe_close pipe_read_from_worker;
             safe_close pipe_write_to_worker;
             (* Recovery for worker going wild and not dying. *)
             List.fold_left
-              (fun (ended, res) signal ->
+              (fun (ended, msg_opt) signal ->
                  if ended then begin
-                   ended, res
+                   ended, msg_opt
                  end else begin
                    kill pid signal;
                    wait_end 5.0
@@ -156,7 +170,7 @@ let create_worker conf map_test_cases shard_id master_id =
               [15 (* SIGTERM *); 9 (* SIGKILL *)]
           in
             if ended then
-              res
+              msg_opt
             else
               Some (Printf.sprintf "unable to kill process %d" pid)
         in
@@ -165,6 +179,7 @@ let create_worker conf map_test_cases shard_id master_id =
             close_worker = close_worker;
             select_fd = pipe_read_from_worker;
             shard_id = shard_id;
+            is_running = is_running;
           }
 
 let default_timeout = 5.0

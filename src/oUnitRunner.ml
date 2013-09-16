@@ -99,6 +99,12 @@ let shards =
     !shards
     "Number of shards to use as worker (threads or processes)."
 
+let health_check_interval =
+  OUnitConf.make_float
+    "health_check_interval"
+    1.0
+    "Seconds between checking health of workers."
+
 (** Build worker based runner. *)
 module GenericWorker =
 struct
@@ -230,6 +236,7 @@ struct
         close_worker: unit -> string option;
         select_fd: 'a;
         shard_id: string;
+        is_running: unit -> bool;
       }
 
   (* Run all tests. *)
@@ -254,6 +261,19 @@ struct
     let () = infof logger "Using %d workers maximum." shards in
 
     let position_of_fake_position = Hashtbl.create 128 in
+
+    let last_health_check = ref (OUnitUtils.now ()) in
+    let health_check_interval = health_check_interval conf in
+    let need_health_check () =
+      let now = OUnitUtils.now () in
+      if !last_health_check +. health_check_interval < now then begin
+        prerr_endline "health check";
+        last_health_check := now;
+        true
+      end else begin
+        false
+      end
+    in
 
     let backpatch_log_position (path, result, pos_opt) =
       let real_pos_opt =
@@ -308,7 +328,10 @@ struct
                     (!worker_idx - 1);
                   OUnitState.get_results state
             end else begin
-              infof logger "Still %d tests running." count_tests_running;
+              infof logger "Still %d tests running : %s." count_tests_running
+                (String.concat ", "
+                   (List.map string_of_path
+                      (get_tests_running state)));
               iter (wait_loop state)
             end
 
@@ -319,18 +342,70 @@ struct
         wait_stopped (wait_loop state)
 
     and wait_loop state =
-      let workers_waiting_lst =
-        workers_waiting (get_workers state)
-      in
       let state =
-        (* TODO: timeout. *)
+        if need_health_check () then
+          check_health state
+        else
+          state
+      in
+      let () =
+        infof logger "Tests running: %s."
+          (String.concat ", "
+             (List.map string_of_path (get_tests_running state)))
+      in
+      let workers = get_workers state in
+        if workers <> [] then begin
+          let workers_waiting_lst = workers_waiting workers in
+            (* TODO: timeout. *)
+            List.fold_left
+              (fun state worker ->
+                 process_message worker (worker.channel.receive_data ()) state)
+              state
+              workers_waiting_lst
+        end else begin
+          state
+        end
+
+    and check_health state =
+      let workers_dead =
+        infof logger "Checking health of workers.";
+        List.filter
+          (fun worker -> not (worker.is_running ()))
+          (get_workers state)
+      in
+        if workers_dead <> [] then
+          warningf logger "Found %d dead workers." (List.length workers_dead);
         List.fold_left
-          (fun state worker ->
-             process_message worker (worker.channel.receive_data ()) state)
+          (fun state worker_dead ->
+             if is_idle_worker worker_dead state then begin
+               (* Nevermind. *)
+               let epitaph = worker_dead.close_worker () in
+                 OUnitUtils.opt (fun msg ->
+                                   errorf logger "Idle worker %s is dead: %s"
+                                     worker_dead.shard_id msg) epitaph;
+                 remove_idle_worker worker_dead state
+             end else begin
+               (* Argh, a test failed badly! *)
+               let test_path = test_path_of_worker worker_dead state in
+               let result_msg =
+                 match worker_dead.close_worker () with
+                   | Some msg ->
+                       Printf.sprintf "Worker stops running: %s" msg
+                   | None ->
+                       "Worker stops running for unknown reason."
+               in
+               let result = RError (result_msg, None) in
+               let log_pos = position logger in
+                 report logger (TestEvent (test_path, EResult result));
+                 report logger (TestEvent (test_path, EEnd));
+                 remove_idle_worker
+                   worker_dead
+                   (add_test_result
+                      ((test_path, result, log_pos), [])
+                      worker_dead state)
+             end)
           state
-          workers_waiting_lst
-        in
-          state
+          workers_dead
 
     and process_message worker msg state =
        match msg with
@@ -342,7 +417,7 @@ struct
              OUnitUtils.opt
                (errorf logger "Worker return status: %s")
                msg_opt;
-             remove_worker worker state
+             remove_idle_worker worker state
 
          | Log log_ev ->
              begin
@@ -359,7 +434,7 @@ struct
          | LogFakePosition fake_position ->
              begin
                Hashtbl.add position_of_fake_position
-                 fake_position (OUnitLogger.position logger);
+                 fake_position (position logger);
                state
              end
     in

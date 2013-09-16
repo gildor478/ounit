@@ -1,4 +1,5 @@
 #TESTFLAGS=-only-test "OUnit:1"
+#TESTFLAGS=-verbose true
 
 default: test
 

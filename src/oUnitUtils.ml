@@ -180,3 +180,12 @@ let opt f = function Some v -> f v | None -> ()
 let fqdn () = (Unix.gethostbyname (Unix.gethostname ())).Unix.h_name
 
 let shardf = Printf.sprintf "%s#%02d" (fqdn ())
+
+let string_of_process_status =
+  function
+  | Unix.WEXITED n ->
+      Printf.sprintf "exited with code %d" n
+  | Unix.WSIGNALED n ->
+      Printf.sprintf "killed by signal %d" n
+  | Unix.WSTOPPED n ->
+      Printf.sprintf "stopped by signal %d" n
