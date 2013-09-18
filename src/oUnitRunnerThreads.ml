@@ -106,6 +106,7 @@ let create_worker conf map_test_cases shard_id master_id =
         Mutex.lock worker_finished_mutex
       done;
       if not !worker_finished then begin
+        (* This will fail... because probably not implemented. *)
         Thread.kill thread;
         worker_finished := true;
         Condition.broadcast worker_finished_cond
@@ -136,23 +137,53 @@ let create_worker conf map_test_cases shard_id master_id =
     }
 
 
-let workers_waiting workers =
+let workers_waiting workers timeout =
+  let channel_timeout = Event.new_channel () in
+(* TODO: clean implementation of the timeout.
+ * Timeout not implemented, because it should be killed in most cases and
+ * actually Thread.kill is not implemented for systhreads.
+ * We could do either of this:
+ * - Thread.time_read + mkpipe
+ * - use signal ALARM
+ *
+ * Patch welcome.
+ *
+ * Sylvain Le Gall -- 2013/09/18.
+  let thread_timeout =
+    Thread.create
+      (fun () ->
+         Thread.delay timeout;
+         Event.sync (Event.send channel_timeout None))
+      ()
+  in
+ *)
   let worker_id_ready =
     Event.select
-      (List.rev_map
-         (fun worker -> Event.receive worker.select_fd)
-         workers)
-  in
-    try
-      let worker =
-        List.find
+      (Event.receive channel_timeout
+       ::
+       (List.rev_map
           (fun worker ->
-             worker.shard_id = worker_id_ready)
-          workers
-      in
-        [worker]
-    with Not_found ->
-      assert false
+             Event.wrap
+               (Event.receive worker.select_fd)
+               (fun s -> Some s))
+          workers))
+  in
+    match worker_id_ready with
+      | None ->
+(*           Thread.join thread_timeout; *)
+          []
+      | Some worker_id ->
+(*           Thread.kill thread_timeout; *)
+          try
+            let worker =
+              List.find
+                (fun worker ->
+                   worker.shard_id = worker_id)
+                workers
+            in
+              [worker]
+          with Not_found ->
+            assert false
 
 let init () =
    OUnitRunner.register "threads" 70 (runner create_worker workers_waiting)

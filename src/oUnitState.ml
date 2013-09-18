@@ -10,22 +10,43 @@ type 'worker next_test_case_t =
   | Next_test_case of path * test_fun * 'worker
   | Finished
 
+type time = float
+
+type 'worker test_running =
+    {
+      test_length: test_length;
+      deadline: time;
+      next_health_check: time;
+      worker: 'worker;
+    }
+
 type 'worker t =
     {
-      tests_planned: (path * test_fun) list;
-      tests_running: (path * 'worker) list;
+      tests_planned: (path * (test_length * test_fun)) list;
+      tests_running: (path * ('worker test_running)) list;
       idle_workers: 'worker list;
       results: OUnitTest.result_list;
       chooser: OUnitChooser.chooser;
+      health_check_interval: time;
     }
 
-let create chooser test_cases =
+let health_check_interval =
+  OUnitConf.make_float
+    "health_check_interval"
+    1.0
+    "Seconds between checking health of workers."
+
+let create conf chooser test_cases =
   {
     results = [];
-    tests_planned = test_cases;
+    tests_planned = List.map
+                      (fun (test_path, test_length, test_fun) ->
+                         test_path, (test_length, test_fun))
+                      test_cases;
     tests_running = [];
     idle_workers = [];
     chooser = chooser;
+    health_check_interval = health_check_interval conf;
   }
 
 let filter_out e lst = List.filter (fun (e', _) -> e <> e') lst
@@ -65,19 +86,14 @@ let count_tests_running state =
   List.length state.tests_running
 
 let get_workers state =
-  List.rev_append state.idle_workers (List.rev_map snd state.tests_running)
+  List.rev_append state.idle_workers
+    (List.rev_map (fun (_, {worker = worker}) -> worker)  state.tests_running)
 
 let get_idle_workers state =
   state.idle_workers
 
 let is_idle_worker worker state =
   List.exists (fun worker' -> worker == worker') state.idle_workers
-
-let test_path_of_worker worker state =
-  let path, _ =
-    List.find (fun (_, worker') -> worker == worker') state.tests_running
-  in
-    path
 
 let get_tests_running state =
   List.map fst state.tests_running
@@ -96,11 +112,21 @@ let next_test_case logger state =
             | Some test_path ->
                 begin
                   try
-                    let test_fun = List.assoc test_path state.tests_planned in
+                    let test_length, test_fun =
+                      List.assoc test_path state.tests_planned
+                    in
+                    let now = OUnitUtils.now () in
                     Next_test_case (test_path, test_fun, worker),
                     {state with
                          tests_running =
-                           (test_path, worker) :: state.tests_running;
+                           (test_path,
+                            {
+                              test_length = test_length;
+                              deadline = now +. delay_of_length test_length;
+                              next_health_check =
+                                now +. state.health_check_interval;
+                              worker = worker;
+                            }) :: state.tests_running;
                          tests_planned =
                            filter_out test_path state.tests_planned;
                          idle_workers =
@@ -115,3 +141,62 @@ let next_test_case logger state =
         Not_enough_worker, state
 
 let get_results state = state.results
+
+
+(** Get all the workers that need to be checked for their health. *)
+let get_worker_need_health_check state =
+  let now = OUnitUtils.now () in
+    List.fold_left
+      (fun lst (test_path, test_running) ->
+         if test_running.next_health_check <= now then
+           (test_path, test_running.worker) :: lst
+         else
+           lst)
+      []
+      state.tests_running
+
+(** Update the activity of a worker, this postpone the next health check. *)
+let update_test_activity test_path state =
+  let now = OUnitUtils.now () in
+  let tests_running =
+    List.fold_right
+      (fun (test_path', test_running) lst ->
+         let test_running =
+           if test_path' = test_path then
+             {test_running with
+                  next_health_check = now +. state.health_check_interval}
+           else
+             test_running
+         in
+           (test_path', test_running) :: lst)
+      state.tests_running
+      []
+  in
+    {state with tests_running = tests_running}
+
+(** Get all the workers that are timed out, i.e. that need to be stopped. *)
+let get_worker_timed_out state =
+  let now = OUnitUtils.now () in
+    List.fold_left
+      (fun lst (test_path, test_running) ->
+         if test_running.deadline <= now then
+           (test_path, test_running.test_length, test_running.worker) :: lst
+         else
+           lst)
+      []
+      state.tests_running
+
+(** Compute when is the next time, we should either run health check or timeout
+    a test.
+ *)
+let timeout state =
+  let now = OUnitUtils.now () in
+  let next_event_time =
+    List.fold_left
+      (fun next_event_time (_, test_running) ->
+         min test_running.next_health_check
+           (min test_running.deadline next_event_time))
+      (now +. state.health_check_interval)
+      state.tests_running
+  in
+    max 0.0 (next_event_time -. now)

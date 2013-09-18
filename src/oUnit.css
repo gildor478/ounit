@@ -61,6 +61,11 @@ h2 {
   background-color: #aaf;
 }
 
+.ounit-timeout h2,
+.ounit-results-timeouts .number {
+  background-color: #888;
+}
+
 .ounit-conf h2,
 .ounit-results h2 {
   background-color: #aaa;

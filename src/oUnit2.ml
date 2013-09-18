@@ -7,8 +7,9 @@ let (>:::) = OUnitTest.(>:::)
 
 type test_ctxt = OUnitTest.ctxt
 type test_fun = OUnitTest.test_fun
+type test_length = OUnitTest.test_length
 type test = OUnitTest.test
-let test_case f = TestCase f
+let test_case ?(length=Short) f = TestCase(length, f)
 let test_list lst = TestList lst
 
 type log_severity = OUnitLogger.log_severity

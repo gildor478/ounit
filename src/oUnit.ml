@@ -41,7 +41,7 @@ type test =
 
 let rec test1_of_test =
   function
-    | OUnitTest.TestCase f -> TestCase (fun () -> f (get_test_context ()))
+    | OUnitTest.TestCase (_, f) -> TestCase (fun () -> f (get_test_context ()))
     | OUnitTest.TestList lst -> TestList (List.map test1_of_test lst)
     | OUnitTest.TestLabel (str, tst) -> TestLabel (str, test1_of_test tst)
 
@@ -49,7 +49,8 @@ let rec test_of_test1 =
   function
     | TestCase f ->
         OUnitTest.TestCase
-          (fun ctxt ->
+          (OUnitTest.Short,
+           fun ctxt ->
              set_test_context ctxt;
              f ();
              reset_test_context ())
@@ -92,6 +93,11 @@ let test_result1_of_test_result path rslt =
          RSkip (path1, str)
      | OUnitTest.RTodo str ->
          RTodo (path1, str)
+     | OUnitTest.RTimeout test_length ->
+         RError (path1,
+                 (Printf.sprintf
+                    "timeout after %.1fs."
+                    (OUnitTest.delay_of_length test_length)))
   in
     rslt1
 

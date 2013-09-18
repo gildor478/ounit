@@ -23,8 +23,8 @@ let () =
 let perform_test conf logger runner chooser test =
   let rec flatten_test path acc =
     function
-      | TestCase(f) ->
-          (path, f) :: acc
+      | TestCase(l, f) ->
+          (path, l, f) :: acc
 
       | TestList (tests) ->
           fold_lefti

@@ -95,9 +95,11 @@ let format_display_event conf log_event =
                 let failures, nfailures = filter is_failure in
                 let skips, nskips       = filter is_skip in
                 let todos, ntodos       = filter is_todo in
+                let timeouts, ntimeouts = filter is_timeout in
                   bprintf "\n";
                   print_results errors;
                   print_results failures;
+                  print_results timeouts;
                   bprintf "Ran: %d tests in: %.2f seconds.\n"
                     (List.length results) running_time;
 
@@ -114,13 +116,15 @@ let format_display_event conf log_event =
                     begin
                       bprintf
                         "FAILED: Cases: %d Tried: %d Errors: %d \
-                              Failures: %d Skip:  %d Todo: %d"
+                              Failures: %d Skip:  %d Todo: %d \
+                              Timeouts: %d."
                         test_case_count
                         (List.length results)
                         nerrors
                         nfailures
                         nskips
-                        ntodos;
+                        ntodos
+                        ntimeouts;
                     end;
                   bprintf "\n";
                   Buffer.contents buf
@@ -135,6 +139,7 @@ let format_display_event conf log_event =
             | EResult (RError _) -> "E"
             | EResult (RSkip _) -> "S"
             | EResult (RTodo _) -> "T"
+            | EResult (RTimeout _) -> "~"
         end
 
 let format_log_event ev = 
@@ -153,6 +158,9 @@ let format_log_event ev =
   let format_result path result =
     let path_str = string_of_path path in
     match result with 
+    | RTimeout test_length ->
+        espf "Test %s timed out after %.1fs"
+          path_str (delay_of_length test_length)
     | RError (msg, backtrace_opt) ->
         espf "%s in test %s." msg path_str;
         OUnitUtils.opt (espf "%s") backtrace_opt
@@ -191,7 +199,8 @@ let format_log_event ev =
                 ispf "Errors: %d." (countr is_error);
                 ispf "Failures: %d." (countr is_failure);
                 ispf "Skip: %d." (countr is_skip);
-                ispf "Todo: %d." (countr is_todo)
+                ispf "Todo: %d." (countr is_todo);
+                ispf "Timeout: %d." (countr is_timeout)
           end
 
       | TestEvent (path, e) ->

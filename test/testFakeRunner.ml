@@ -11,6 +11,12 @@ let sigsegv =
     false
     "Fail with SIGSEGV."
 
+let timeout =
+  conf_make_bool
+    "timeout"
+    false
+    "Time out."
+
 let suite =
   "TestFakeRunner" >:::
   [
@@ -32,7 +38,14 @@ let suite =
     "SIGSEGV" >::
     (fun ctxt ->
        if sigsegv ctxt then
-         Unix.kill (Unix.getpid ()) 11)
+         Unix.kill (Unix.getpid ()) 11);
+
+    "Timeout" >:
+    (test_case
+       ~length:(OUnitTest.Custom_length 0.1)
+       (fun ctxt ->
+          if timeout ctxt then
+            Unix.sleep 1))
   ]
 
 let () = 

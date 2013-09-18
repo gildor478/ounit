@@ -3,7 +3,7 @@ open OUnitTest
 open TestCommon
 open OUnit2
 
-let test_case = TestCase (fun ctxt -> ())
+let test_case = TestCase (Short, fun ctxt -> ())
 let labeled_test_case = TestLabel ("label", test_case)
 let suite_a = TestLabel ("suite_a", TestList [test_case])
 let suite_b = TestLabel ("suite_b", TestList [labeled_test_case])
@@ -134,19 +134,21 @@ let test_non_fatal _ =
          (TestList
             [
               (* success *)
-              TestCase ignore;
+              TestCase (Short, ignore);
               (* failure *)
-              TestCase (fun _ -> assert_failure "fail");
+              TestCase (Short, fun _ -> assert_failure "fail");
               (* error + failure *)
               TestCase
-                (fun ctxt ->
+                (Short,
+                 fun ctxt ->
                    OUnitTest.non_fatal ctxt
                      (fun _ ->
                         failwith "error");
                      assert_failure "fail");
               (* failure + error *)
               TestCase
-                (fun ctxt ->
+                (Short,
+                 fun ctxt ->
                    OUnitTest.non_fatal ctxt
                      (fun _ ->
                         assert_failure "fail");

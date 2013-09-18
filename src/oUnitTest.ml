@@ -14,6 +14,14 @@ type path = node list
 (** See OUnit2.mli. *)
 type backtrace = string option
 
+(* The type of length of a test. *)
+type test_length =
+  | Immediate (* < 1s *)
+  | Short  (* < 1min *)
+  | Long  (* < 10min *)
+  | Huge  (* < 30min *)
+  | Custom_length of float
+
 (** See OUnit.mli. *)
 type result =
   | RSuccess
@@ -21,6 +29,7 @@ type result =
   | RError of string * backtrace
   | RSkip of string
   | RTodo of string
+  | RTimeout of test_length
 
 (* See OUnit.mli. *)
 type result_full = (path * result * OUnitLogger.position option)
@@ -43,11 +52,19 @@ type logger = (path, result) OUnitLogger.logger
 
 type test_fun = ctxt -> unit
 
-(* The type of tests *)
+(* The type of tests. *)
 type test =
-  | TestCase of test_fun
+  | TestCase of test_length * test_fun
   | TestList of test list
   | TestLabel of string * test
+
+let delay_of_length =
+  function
+    | Immediate -> 1.0
+    | Short -> 60.0
+    | Long -> 600.0
+    | Huge -> 1800.0
+    | Custom_length f -> f
 
 (** Isolate a function inside a context. All the tear down will run before
     returning.
@@ -124,7 +141,7 @@ let result_full_of_exception ctxt e =
   in
   let position =
     match result with
-      | RSuccess | RSkip _ | RTodo _ ->
+      | RSuccess | RSkip _ | RTodo _ | RTimeout _ ->
           None
       | RFailure _ | RError _ ->
           OUnitLogger.position ctxt.logger
@@ -141,15 +158,15 @@ let non_fatal ctxt f =
     ctxt.non_fatal := result_full_of_exception ctxt e :: !(ctxt.non_fatal)
 
 (* Some shorthands which allows easy test construction *)
-let (>:) s t = TestLabel(s, t)             (* infix *)
-let (>::) s f = TestLabel(s, TestCase(f))  (* infix *)
+let (>:) s t = TestLabel(s, t)  (* infix *)
+let (>::) s f = TestLabel(s, TestCase(Short, f)) (* infix *)
 let (>:::) s l = TestLabel(s, TestList(l)) (* infix *)
 
 (* Utility function to manipulate test *)
 let rec test_decorate g =
   function
-    | TestCase f ->
-        TestCase (g f)
+    | TestCase(l, f) ->
+        TestCase (l, g f)
     | TestList tst_lst ->
         TestList (List.map (test_decorate g) tst_lst)
     | TestLabel (str, tst) ->
@@ -225,12 +242,12 @@ let test_filter ?(skip=false) only test =
     else
       begin
         match tst with
-          | TestCase f ->
+          | TestCase (l, f) ->
               begin
                 if skip then
                   Some
                     (TestCase
-                       (fun ctxt ->
+                       (l, fun ctxt ->
                           raise (Skip "Test disabled")))
                 else
                   None

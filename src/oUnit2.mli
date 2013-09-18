@@ -16,11 +16,14 @@
 (** Context of a test. *)
 type test_ctxt = OUnitTest.ctxt
 
-(** The type of test function *)
+(** The type of test function. *)
 type test_fun = test_ctxt -> unit
 
-(** The type of tests *)
+(** The type of test. *)
 type test = OUnitTest.test
+
+(** The expected length of the test. *)
+type test_length = OUnitTest.test_length
 
 (** {2 Assertions}
 
@@ -165,7 +168,7 @@ val (>::) : string -> test_fun -> test
 val (>:::) : string -> test list -> test
 
 (** Generic function to create a test case. *)
-val test_case : test_fun -> test
+val test_case : ?length:test_length -> test_fun -> test
 
 (** Generic function to create a test list. *)
 val test_list : test list -> test

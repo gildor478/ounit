@@ -35,33 +35,39 @@ type t =
       failures: int;
       skips: int;
       todos: int;
+      timeouts: int;
       successes: int;
     }
 
 let is_success =
   function
     | RSuccess -> true
-    | RFailure _ | RError _  | RSkip _ | RTodo _ -> false
+    | RFailure _ | RError _  | RSkip _ | RTodo _ | RTimeout _ -> false
 
 let is_failure =
   function
     | RFailure _ -> true
-    | RSuccess | RError _  | RSkip _ | RTodo _ -> false
+    | RSuccess | RError _  | RSkip _ | RTodo _ | RTimeout _ -> false
 
 let is_error =
   function
     | RError _ -> true
-    | RSuccess | RFailure _ | RSkip _ | RTodo _ -> false
+    | RSuccess | RFailure _ | RSkip _ | RTodo _ | RTimeout _ -> false
 
 let is_skip =
   function
     | RSkip _ -> true
-    | RSuccess | RFailure _ | RError _  | RTodo _ -> false
+    | RSuccess | RFailure _ | RError _  | RTodo _ | RTimeout _ -> false
 
 let is_todo =
   function
     | RTodo _ -> true
-    | RSuccess | RFailure _ | RError _  | RSkip _ -> false
+    | RSuccess | RFailure _ | RError _  | RSkip _ | RTimeout _ -> false
+
+let is_timeout =
+  function
+    | RTimeout _ -> true
+    | RSuccess | RFailure _ | RError _  | RSkip _ | RTodo _ -> false
 
 let result_flavour =
   function
@@ -70,6 +76,7 @@ let result_flavour =
     | RSuccess -> "Success"
     | RSkip _ -> "Skip"
     | RTodo _ -> "Todo"
+    | RTimeout _ -> "Timeout"
 
 let result_msg =
   function
@@ -78,6 +85,8 @@ let result_msg =
     | RFailure (msg, _, _)
     | RSkip msg
     | RTodo msg -> msg
+    | RTimeout test_length ->
+        Printf.sprintf "Timeout after %.1fs" (delay_of_length test_length)
 
 let worst_cmp result1 result2 =
   let rank =
@@ -87,6 +96,7 @@ let worst_cmp result1 result2 =
       | RTodo _ -> 2
       | RFailure _ -> 3
       | RError _ -> 4
+      | RTimeout _ -> 5
   in
     (rank result1) - (rank result2)
 
@@ -261,11 +271,6 @@ let of_log_events conf events =
       (List.filter (fun (_, test_result, _) -> f test_result)
          global_results)
   in
-  let errors   = count is_error in
-  let failures = count is_failure in
-  let skips    = count is_skip in
-  let todos    = count is_todo in
-  let successes = count is_success in
   let charset = encoding conf in
     {
       suite_name      = suite_name;
@@ -276,9 +281,10 @@ let of_log_events conf events =
       global_results  = global_results;
       test_case_count = test_case_count;
       tests           = tests;
-      errors          = errors;
-      failures        = failures;
-      skips           = skips;
-      todos           = todos;
-      successes       = successes;
+      errors          = count is_error;
+      failures        = count is_failure;
+      skips           = count is_skip;
+      todos           = count is_todo;
+      timeouts        = count is_timeout;
+      successes       = count is_success;
     }

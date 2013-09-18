@@ -80,6 +80,10 @@ let render conf fn events =
                  printf "\
 \      <failure type='OUnit.Todo' message='%s'></failure>\n"
                    (xml_escaper msg)
+             | RTimeout test_length ->
+                 printf "\
+\      <error type='OUnit.Timeout' message='timeout after %.1fs'></error>\n"
+                   (delay_of_length test_length)
          end;
          printf "\
 \    </testcase>\n")

@@ -120,6 +120,7 @@ let render conf dn events =
       printf_non0_result "failures" "Failures" smr.failures;
       printf_non0_result "skips" "Skipped" smr.skips;
       printf_non0_result "todos" "TODO" smr.todos;
+      printf_non0_result "timeouts" "Timed out" smr.successes;
       printf_result "successes" "Successes" smr.successes;
 
       (* Print final verdict *)
@@ -152,6 +153,7 @@ let render conf dn events =
            | RError _    -> "ounit-error", "error"
            | RSkip _     -> "ounit-skip", "skipped"
            | RTodo _     -> "ounit-todo", "TODO"
+           | RTimeout _  -> "ounit-timeout", "timeout"
        in
        let class_severity_opt =
          function
@@ -194,6 +196,9 @@ let render conf dn events =
                printf "Skipped:<br/>%s" (html_escaper str)
            | RTodo str ->
                printf "Todo:<br/>%s" (html_escaper str)
+           | RTimeout test_length ->
+               printf "Timeout after %.1fs<br/>"
+                 (delay_of_length test_length)
        end;
        printf "</div>";
        printf "\

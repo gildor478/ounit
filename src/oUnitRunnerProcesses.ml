@@ -72,6 +72,18 @@ let make_channel
         close = close
       }
 
+let processes_grace_period =
+  OUnitConf.make_float
+    "processes_grace_period"
+    5.0
+    "Delay to wait for a process to stop."
+
+let processes_kill_period =
+  OUnitConf.make_float
+    "processes_kill_period"
+    5.0
+    "Delay to wait for a process to stop after killing it."
+
 let create_worker conf map_test_cases shard_id master_id =
   let safe_close fd = try close fd with Unix_error _ -> () in
   let pipe_read_from_worker, pipe_write_to_master = Unix.pipe () in
@@ -164,9 +176,9 @@ let create_worker conf map_test_cases shard_id master_id =
                    ended, msg_opt
                  end else begin
                    kill pid signal;
-                   wait_end 5.0
+                   wait_end (processes_kill_period conf)
                  end)
-              (wait_end 5.0)
+              (wait_end (processes_grace_period conf))
               [15 (* SIGTERM *); 9 (* SIGKILL *)]
           in
             if ended then
@@ -182,16 +194,13 @@ let create_worker conf map_test_cases shard_id master_id =
             is_running = is_running;
           }
 
-let default_timeout = 5.0
-
 (* Filter running workers waiting data. *)
-let workers_waiting workers =
+let workers_waiting workers timeout =
   let workers_fd_lst =
     List.rev_map (fun worker -> worker.select_fd) workers
   in
   let workers_fd_waiting_lst, _, _ =
-    (* TODO: compute expected next timeout *)
-    Unix.select workers_fd_lst [] [] default_timeout
+    Unix.select workers_fd_lst [] [] timeout
   in
     List.filter
       (fun workers -> List.memq workers.select_fd workers_fd_waiting_lst)

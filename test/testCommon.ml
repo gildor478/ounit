@@ -21,6 +21,7 @@ let assert_equal_test_result exp res =
          | RError (str, _) -> RError(str, None)
          | RSkip str -> RSkip str
          | RTodo str -> RTodo str
+         | RTimeout test_length -> RTimeout test_length
      in
        (path, test_result', pos)
    in
@@ -53,6 +54,8 @@ let assert_equal_test_result exp res =
                       spf "RSkip(%S)" str
                   | RTodo str ->
                       spf "RTodo(%S)" str
+                  | RTimeout _ ->
+                      "RTimeout(_)"
               in
                 Printf.sprintf "%S, %s"
                   (OUnitTest.string_of_path path) test_result_string)
