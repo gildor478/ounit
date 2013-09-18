@@ -54,6 +54,7 @@ val assert_string : string -> unit
     @param foutput run this function on output, it can contains an
                    [assert_equal] to check it
     @param use_stderr redirect [stderr] to [stdout]
+    @param backtrace Set OCAMLRUNPARAM=b
     @param env Unix environment
     @param verbose if a failed, dump stdout/stderr of the process to stderr
   *)
@@ -62,6 +63,7 @@ val assert_command :
     ?sinput:char Stream.t ->
     ?foutput:(char Stream.t -> unit) ->
     ?use_stderr:bool ->
+    ?backtrace:bool ->
     ?env:string array ->
     ctxt:test_ctxt ->
     string -> string list -> unit

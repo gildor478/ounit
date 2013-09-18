@@ -56,6 +56,14 @@ let starts_with ~prefix s =
   else
     false
 
+let start_substr ~prefix s =
+  if starts_with ~prefix s then begin
+    let prefix_len = String.length prefix in
+      true,  String.sub s prefix_len (String.length s - prefix_len)
+  end else begin
+    false, s
+  end
+
 let extract_backtrace_position str =
   let prefixes =
     [
@@ -70,24 +78,19 @@ let extract_backtrace_position str =
     match prefixes with
       | [] -> None
       | prefix :: tl ->
-          if starts_with ~prefix s then
-            let prefix_len = String.length prefix in
-            let eol = String.sub s prefix_len (String.length s - prefix_len) in
-            begin
-              if eol = "unknown location" then
+          let really_starts, eol = start_substr ~prefix s in
+          if really_starts then begin
+            if eol = "unknown location" then
+              None
+            else
+              try
+                Scanf.sscanf eol "file \"%s@\", line %d, characters %d-%d"
+                  (fun fn line _ _ -> Some (fn, line))
+              with Scanf.Scan_failure msg ->
                 None
-              else
-                try
-                  Scanf.sscanf eol "file \"%s@\", line %d, characters %d-%d"
-                    (fun fn line _ _ ->
-                       Some (fn, line))
-                with Scanf.Scan_failure msg ->
-                  None
-            end
-          else
-            begin
-              extract_one_line s tl
-            end
+          end else begin
+            extract_one_line s tl
+          end
   in
     List.map
       (fun s -> extract_one_line s prefixes)

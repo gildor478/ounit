@@ -99,6 +99,7 @@ let assert_command
     ?(sinput=Stream.of_list [])
     ?(foutput=ignore)
     ?(use_stderr=true)
+    ?(backtrace=true)
     ?env
     ~ctxt
     prg args =
@@ -138,6 +139,41 @@ let assert_command
          in
          let args =
            Array.of_list (prg :: args)
+         in
+         let env =
+           let param = "OCAMLRUNPARAM" in
+           let analyse_and_fix env =
+             let arr = Array.copy env in
+             let fixed = ref false in
+             let new_var = ref "" in
+             for i = 0 to (Array.length arr) - 1 do
+               let really_starts, current_value =
+                 OUnitUtils.start_substr ~prefix:(param^"=") arr.(i)
+               in
+                 if really_starts then begin
+                   (* Rewrite the params. *)
+                   if not (String.contains current_value 'b') then begin
+                     arr.(i) <- param^"="^current_value^"b"
+                   end;
+                   new_var := arr.(i);
+                   fixed := true
+                 end
+             done;
+             if !fixed then
+               arr
+             else
+               Array.append arr [|param^"=b"|]
+           in
+           if backtrace then begin
+             (* Analyse of the provided environment. *)
+             match env with
+               | Some env ->
+                   Some (analyse_and_fix env)
+               | None ->
+                   Some (analyse_and_fix (Unix.environment ()))
+           end else begin
+             env
+           end
          in
          let pid =
            OUnitLogger.Test.raw_printf ctxt.test_logger "%s"

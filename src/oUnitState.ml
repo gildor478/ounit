@@ -199,4 +199,4 @@ let timeout state =
       (now +. state.health_check_interval)
       state.tests_running
   in
-    max 0.0 (next_event_time -. now)
+    max 0.1 (next_event_time -. now)
