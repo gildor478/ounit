@@ -69,3 +69,29 @@ let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") test_ctxt =
          Unix.rmdir tmpdn;
          log_delete tmpdn)
     test_ctxt
+
+let chdir_mutex = OUnitShared.Mutex.create OUnitShared.ScopeProcess
+
+let bracket_chdir dir test_ctxt =
+  let () =
+    OUnitLogger.infof test_ctxt.logger "Change directory to %S" dir;
+    OUnitLogger.infof test_ctxt.logger
+      "If blocked at this stage, it means you are trying to chdir inside \
+       another chdir which is forbidden (because of threads)."
+  in
+  let cur_pwd =
+    OUnitShared.Mutex.lock test_ctxt.shared chdir_mutex;
+    Sys.getcwd ()
+  in
+  create
+    (fun test_ctxt -> Unix.chdir dir)
+    (fun () test_ctxt ->
+       Unix.chdir cur_pwd;
+       OUnitShared.Mutex.unlock test_ctxt.shared chdir_mutex)
+    test_ctxt
+
+let with_bracket test_ctxt bracket f =
+  section_ctxt test_ctxt
+    (fun test_ctxt ->
+       let res = bracket test_ctxt in
+         f res test_ctxt)

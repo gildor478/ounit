@@ -13,6 +13,7 @@ let () =
        TestOUnitDiff.tests;
        TestOtherTests.tests;
        TestRunner.tests;
-       TestShared.tests
+       TestShared.tests;
+       TestOUnitBracket.tests;
      ])
 

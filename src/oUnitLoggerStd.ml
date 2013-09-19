@@ -44,44 +44,38 @@ let format_display_event conf log_event =
                 let print_results =
                   List.iter
                     (fun (path, test_result, pos_opt) ->
-                       if results_style_1_X conf then
+                       bprintf "%s\n" separator1;
+                       if results_style_1_X conf then begin
+                         bprintf "%s: %s\n\n"
+                           (result_flavour test_result)
+                           (string_of_path path);
+                       end else begin
+                         bprintf "Error: %s%s\n\n"
+                           (string_of_path path)
+                           (if pos_opt <> None then " (in the log)." else "");
                          begin
-                           bprintf "%s\n%s: %s\n\n%s\n%s\n"
-                             separator1
-                             (result_flavour test_result)
-                             (string_of_path path)
-                             (result_msg test_result)
-                             separator2
-                         end
-                       else
+                           match pos_opt with
+                             | Some pos ->
+                                 bprintf "%s\n" (ocaml_position pos)
+                             | None ->
+                                 ()
+                         end;
                          begin
-                           bprintf "%s\n" separator1;
-                           begin
-                             match pos_opt with
-                               | Some pos ->
-                                   bprintf "%s\n" (ocaml_position pos)
-                               | None ->
-                                   ()
-                           end;
-                           bprintf "Error: %s%s\n\n"
-                             (string_of_path path)
-                             (if pos_opt <> None then " (in the log)." else "");
-                           begin
-                             match test_result with
-                               | RError (_, Some backtrace) ->
-                                   bprintf "%s\n" backtrace
-                               | RFailure (_, Some pos, _) ->
-                                   bprintf "%s\nError: %s (in the code).\n\n"
-                                     (ocaml_position pos)
-                                     (string_of_path path)
-                               | RFailure (_, _, Some backtrace) ->
-                                   bprintf "%s\n" backtrace
-                               | _ ->
-                                   ()
-                           end;
-                           bprintf "%s\n" (result_msg test_result);
-                           bprintf "%s\n" separator2;
-                         end)
+                           match test_result with
+                             | RError (_, Some backtrace) ->
+                                 bprintf "%s\n" backtrace
+                             | RFailure (_, Some pos, _) ->
+                                 bprintf "%s\nError: %s (in the code).\n\n"
+                                   (ocaml_position pos)
+                                   (string_of_path path)
+                             | RFailure (_, _, Some backtrace) ->
+                                 bprintf "%s\n" backtrace
+                             | _ ->
+                                 ()
+                         end;
+                       end;
+                       bprintf "%s\n" (result_msg test_result);
+                       bprintf "%s\n" separator2)
                 in
                 let filter f =
                   let lst =

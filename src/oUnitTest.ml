@@ -72,7 +72,7 @@ let delay_of_length =
     | Huge -> 1800.0
     | Custom_length f -> f
 
-(** Isolate a function inside a context. All the tear down will run before
+(** Isolate a function inside a context. All the added tear down will run before
     returning.
  *)
 let section_ctxt ctxt f =
