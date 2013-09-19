@@ -46,6 +46,7 @@ type ctxt =
       test_logger: result OUnitLogger.Test.t;
       mutable tear_down: (ctxt -> unit) list;
       non_fatal: result_full list ref;
+      non_fatal_mutex: OUnitShared.Mutex.t;
     }
 
 type log_event_t = (path, result) OUnitLogger.log_event_t
@@ -96,6 +97,7 @@ let with_ctxt conf logger shared non_fatal test_path f =
       test_logger = OUnitLogger.Test.create logger test_path;
       tear_down = [];
       non_fatal = non_fatal;
+      non_fatal_mutex = OUnitShared.Mutex.create OUnitShared.ScopeProcess
     }
   in
     section_ctxt ctxt f
@@ -157,7 +159,9 @@ let non_fatal ctxt f =
   try
     section_ctxt ctxt f
   with e ->
-    ctxt.non_fatal := result_full_of_exception ctxt e :: !(ctxt.non_fatal)
+    OUnitShared.Mutex.lock ctxt.shared ctxt.non_fatal_mutex;
+    ctxt.non_fatal := result_full_of_exception ctxt e :: !(ctxt.non_fatal);
+    OUnitShared.Mutex.unlock ctxt.shared ctxt.non_fatal_mutex
 
 (* Some shorthands which allows easy test construction *)
 let (>:) s t = TestLabel(s, t)  (* infix *)
