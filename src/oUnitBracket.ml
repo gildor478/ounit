@@ -8,7 +8,10 @@ let create set_up tear_down test_ctxt =
   let tear_down test_ctxt =
     tear_down fixture test_ctxt
   in
-    test_ctxt.tear_down <- tear_down :: test_ctxt.tear_down;
+    OUnitShared.Mutex.with_lock
+      test_ctxt.shared test_ctxt.tear_down_mutex
+      (fun () ->
+         test_ctxt.tear_down <- tear_down :: test_ctxt.tear_down);
     fixture
 
 let logf logger lvl fmt = OUnitLogger.Test.logf logger lvl fmt

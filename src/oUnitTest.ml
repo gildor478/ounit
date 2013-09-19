@@ -44,7 +44,11 @@ type ctxt =
       shared: OUnitShared.shared;
       path: path;
       test_logger: result OUnitLogger.Test.t;
+      (* TODO: Still a race condition possible, what if another threads
+       * modify anything during the process (e.g. register tear down).
+       *)
       mutable tear_down: (ctxt -> unit) list;
+      tear_down_mutex: OUnitShared.Mutex.t;
       non_fatal: result_full list ref;
       non_fatal_mutex: OUnitShared.Mutex.t;
     }
@@ -72,12 +76,21 @@ let delay_of_length =
     returning.
  *)
 let section_ctxt ctxt f =
-  let old_tear_down = ctxt.tear_down in
-  let clean_exit () =
-    List.iter (fun tear_down -> tear_down ctxt) ctxt.tear_down;
-    ctxt.tear_down <- old_tear_down
+  let old_tear_down =
+    OUnitShared.Mutex.with_lock
+      ctxt.shared ctxt.tear_down_mutex
+      (fun () -> ctxt.tear_down)
   in
-    ctxt.tear_down <- [];
+  let clean_exit () =
+    OUnitShared.Mutex.with_lock
+      ctxt.shared ctxt.tear_down_mutex
+      (fun () ->
+         List.iter (fun tear_down -> tear_down ctxt) ctxt.tear_down;
+         ctxt.tear_down <- old_tear_down)
+  in
+    OUnitShared.Mutex.with_lock
+      ctxt.shared ctxt.tear_down_mutex
+      (fun () -> ctxt.tear_down <- []);
     try
       let res = f ctxt in
         clean_exit ();
@@ -96,8 +109,9 @@ let with_ctxt conf logger shared non_fatal test_path f =
       shared = shared;
       test_logger = OUnitLogger.Test.create logger test_path;
       tear_down = [];
+      tear_down_mutex = OUnitShared.Mutex.create OUnitShared.ScopeProcess;
       non_fatal = non_fatal;
-      non_fatal_mutex = OUnitShared.Mutex.create OUnitShared.ScopeProcess
+      non_fatal_mutex = OUnitShared.Mutex.create OUnitShared.ScopeProcess;
     }
   in
     section_ctxt ctxt f
@@ -159,9 +173,10 @@ let non_fatal ctxt f =
   try
     section_ctxt ctxt f
   with e ->
-    OUnitShared.Mutex.lock ctxt.shared ctxt.non_fatal_mutex;
-    ctxt.non_fatal := result_full_of_exception ctxt e :: !(ctxt.non_fatal);
-    OUnitShared.Mutex.unlock ctxt.shared ctxt.non_fatal_mutex
+    OUnitShared.Mutex.with_lock
+      ctxt.shared ctxt.non_fatal_mutex
+      (fun () ->
+         ctxt.non_fatal := result_full_of_exception ctxt e :: !(ctxt.non_fatal))
 
 (* Some shorthands which allows easy test construction *)
 let (>:) s t = TestLabel(s, t)  (* infix *)

@@ -66,6 +66,19 @@ struct
   let unlock shared (id, scope) =
     (get_scoped shared scope).unlock id
 
+  let with_lock shared mutex f =
+    try
+      let res =
+        lock shared mutex;
+        f ()
+      in
+        unlock shared mutex;
+        res
+    with e ->
+      unlock shared mutex;
+      raise e
+
+
 end
 
 (* A simple shared_noscope that works only for 1 process. *)
