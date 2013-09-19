@@ -55,6 +55,7 @@ val assert_string : string -> unit
                    [assert_equal] to check it
     @param use_stderr redirect [stderr] to [stdout]
     @param backtrace Set OCAMLRUNPARAM=b
+    @param chdir Chdir into a directory before running the command.
     @param env Unix environment
     @param verbose if a failed, dump stdout/stderr of the process to stderr
   *)
@@ -64,6 +65,7 @@ val assert_command :
     ?foutput:(char Stream.t -> unit) ->
     ?use_stderr:bool ->
     ?backtrace:bool ->
+    ?chdir:string ->
     ?env:string array ->
     ctxt:test_ctxt ->
     string -> string list -> unit

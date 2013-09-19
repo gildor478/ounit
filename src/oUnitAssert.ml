@@ -100,6 +100,7 @@ let assert_command
     ?(foutput=ignore)
     ?(use_stderr=true)
     ?(backtrace=true)
+    ?chdir
     ?env
     ~ctxt
     prg args =
@@ -175,6 +176,14 @@ let assert_command
              env
            end
          in
+         let in_chdir f =
+           match chdir with
+             | Some dn ->
+                 with_bracket ctxt (bracket_chdir dn)
+                   (fun () _ -> f ())
+             | None ->
+                 f ()
+         in
          let pid =
            OUnitLogger.Test.raw_printf ctxt.test_logger "%s"
              (buff_format_printf
@@ -183,9 +192,13 @@ let assert_command
            Unix.set_close_on_exec out_write;
            match env with
              | Some e ->
-                 Unix.create_process_env prg args e out_read in_write err
+                 in_chdir
+                   (fun () ->
+                     Unix.create_process_env prg args e out_read in_write err)
              | None ->
-                 Unix.create_process prg args out_read in_write err
+                 in_chdir
+                   (fun () ->
+                      Unix.create_process prg args out_read in_write err)
          in
          let () =
            Unix.close out_read;
