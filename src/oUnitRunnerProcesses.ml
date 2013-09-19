@@ -109,7 +109,7 @@ let create_worker conf map_test_cases shard_id master_id =
             pipe_write_to_master
         in
           main_worker_loop
-            conf channel shard_id map_test_cases;
+            conf ignore channel shard_id map_test_cases;
           channel.close ();
           safe_close pipe_read_from_master;
           safe_close pipe_write_to_master;

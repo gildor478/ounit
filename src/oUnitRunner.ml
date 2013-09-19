@@ -3,11 +3,11 @@ open OUnitTest
 open OUnitLogger
 
 (** Common utilities to run test. *)
-let run_one_test conf logger test_path test_fun =
+let run_one_test conf logger shared test_path test_fun =
   let () = OUnitLogger.report logger (TestEvent (test_path, EStart)) in
   let non_fatal = ref [] in
   let main_result_full =
-    with_ctxt conf logger non_fatal test_path
+    with_ctxt conf logger shared non_fatal test_path
       (fun ctxt ->
          try
            test_fun ctxt;
@@ -42,6 +42,7 @@ type runner =
 
 (* Run all tests, sequential version *)
 let sequential_runner conf logger chooser test_cases =
+  let shared = OUnitShared.create () in
   let rec iter state =
     match OUnitState.next_test_case logger state with
       | OUnitState.Finished, state ->
@@ -49,7 +50,7 @@ let sequential_runner conf logger chooser test_cases =
       | OUnitState.Next_test_case (test_path, test_fun, worker), state ->
           iter
             (OUnitState.add_test_result
-               (run_one_test conf logger test_path test_fun)
+               (run_one_test conf logger shared test_path test_fun)
                worker state)
       | (OUnitState.Try_again | OUnitState.Not_enough_worker), _ ->
           assert false
@@ -105,23 +106,29 @@ struct
 
   type message_to_worker =
     | Exit
+    | AckLock of bool
     | RunTest of path
 
   let string_of_message_to_worker =
     function
       | Exit -> "Exit"
+      | AckLock _ -> "AckLock _"
       | RunTest _ -> "RunTest _"
 
   type message_from_worker =
     | AckExit
     | Log of OUnitTest.log_event_t
     | LogFakePosition of OUnitLogger.position
+    | Lock of int
+    | Unlock of int
     | TestDone of (OUnitTest.result_full * OUnitTest.result_list)
 
   let string_of_message_from_worker =
     function
       | AckExit -> "AckExit"
       | Log _ -> "Log _"
+      | Lock _ -> "Lock _"
+      | Unlock _ -> "Unlock _"
       | LogFakePosition _ -> "LogFakePosition _"
       | TestDone _ -> "TestDone _"
 
@@ -188,7 +195,7 @@ struct
 
 
   (* Run a worker, react to message receive from parent. *)
-  let main_worker_loop conf channel shard_id map_test_cases =
+  let main_worker_loop conf yield channel shard_id map_test_cases =
     let logger =
       let base_logger =
         OUnitLogger.fun_logger
@@ -210,6 +217,42 @@ struct
       in
         set_shard shard_id {base_logger with fpos = fpos}
     in
+
+    let shared =
+      let try_lock id =
+        channel.send_data (Lock id);
+        match channel.receive_data () with
+          | AckLock b ->
+             b
+          | Exit | RunTest _ ->
+              assert false
+      in
+      let rec lock id =
+        if not (try_lock id) then begin
+          yield ();
+          lock id
+        end else begin
+          ()
+        end
+      in
+      let unlock id =
+        channel.send_data (Unlock id);
+      in
+      let global =
+        {
+          OUnitShared.
+          lock = lock;
+          try_lock = try_lock;
+          unlock = unlock;
+        }
+      in
+        {
+          OUnitShared.
+          global = global;
+          process = OUnitShared.noscope_create ();
+        }
+    in
+
     let rec loop () =
       match channel.receive_data () with
         | Exit ->
@@ -219,8 +262,11 @@ struct
             let test_path, _, test_fun =
               MapPath.find test_path map_test_cases
             in
-            let res = run_one_test conf logger test_path test_fun in
+            let res = run_one_test conf logger shared test_path test_fun in
             channel.send_data (TestDone res);
+            loop ()
+
+        | AckLock _ ->
             loop ()
     in
       loop ()
@@ -251,11 +297,14 @@ struct
     let shards = max (shards conf) 1 in
 
     let master_id = logger.OUnitLogger.lshard in
+
     let worker_idx = ref 1 in
 
     let () = infof logger "Using %d workers maximum." shards in
 
     let position_of_fake_position = Hashtbl.create 128 in
+
+    let master_shared = OUnitShared.noscope_create () in
 
     (* Translate fake log position, as sent by the worker into real log position
        as registered by the master.
@@ -294,6 +343,15 @@ struct
 
          | Log log_ev ->
              OUnitLogger.report (set_shard worker.shard_id logger) log_ev;
+             state
+
+         | Lock id ->
+             worker.channel.send_data
+               (AckLock (master_shared.OUnitShared.try_lock id));
+             state
+
+         | Unlock id ->
+             master_shared.OUnitShared.unlock id;
              state
 
          | TestDone test_result ->

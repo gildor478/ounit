@@ -162,9 +162,11 @@ let format_log_event ev =
         espf "Test %s timed out after %.1fs"
           path_str (delay_of_length test_length)
     | RError (msg, backtrace_opt) ->
+        espf "Test %s exited with an error." path_str;
         espf "%s in test %s." msg path_str;
         OUnitUtils.opt (espf "%s") backtrace_opt
     | RFailure (msg, _, backtrace_opt) ->
+        espf "Test %s has failed." path_str;
         espf "%s in test %s." msg path_str;
         OUnitUtils.opt (espf "%s") backtrace_opt
     | RTodo msg -> wspf "TODO test %s: %s." path_str msg

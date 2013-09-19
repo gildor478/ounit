@@ -45,7 +45,8 @@ Library "oUnitAdvanced"
            OUnitRunnerProcesses,
            OUnitCore,
            OUnitLogger,
-           OUnitConf
+           OUnitConf,
+           OUnitShared
   FindlibParent: oUnit
   FindlibName: advanced
 
@@ -57,17 +58,24 @@ Library "oUnitThreads"
   FindlibParent: oUnit
   FindlibName: threads
 
-# A fake test that generate an HTML output.
+# A fake test executable that generates an HTML output.
 Executable testFakeHTML
   Path:   test
   MainIs: testFakeHTML.ml
   BuildDepends: oUnit
   Install: false
 
-# A fake test that help to test all the runners.
+# A fake test executable that helps to test all the runners.
 Executable testFakeRunner
   Path:   test
   MainIs: testFakeRunner.ml
+  BuildDepends: oUnit, oUnit.threads
+  Install: false
+
+# A fake test executable that helps to test shared module with all runners.
+Executable testFakeShared
+  Path:   test
+  MainIs: testFakeShared.ml
   BuildDepends: oUnit, oUnit.threads
   Install: false
 
@@ -79,7 +87,10 @@ Executable test
   Install: false
 
 Test main
-  Command: $test -xmllint $xmllint -testFakeHTML $testfakehtml -testFakeRunner $testfakerunner
+  Command: $test -xmllint $xmllint \
+    -testFakeHTML $testfakehtml \
+    -testFakeRunner $testfakerunner \
+    -testFakeShared $testfakeshared
   TestTools: test, testFakeHTML, testFakeRunner, xmllint
 
 Document "api-ounit"

@@ -41,6 +41,7 @@ type ctxt =
     {
       conf: OUnitConf.conf;
       logger: (path, result) OUnitLogger.logger;
+      shared: OUnitShared.shared;
       path: path;
       test_logger: result OUnitLogger.Test.t;
       mutable tear_down: (ctxt -> unit) list;
@@ -85,12 +86,13 @@ let section_ctxt ctxt f =
       raise e
 
 (** Create a context and run the function. *)
-let with_ctxt conf logger non_fatal test_path f =
+let with_ctxt conf logger shared non_fatal test_path f =
   let ctxt =
     {
       conf = conf;
       logger = logger;
       path = test_path;
+      shared = shared;
       test_logger = OUnitLogger.Test.create logger test_path;
       tear_down = [];
       non_fatal = non_fatal;
