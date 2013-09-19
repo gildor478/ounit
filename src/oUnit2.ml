@@ -43,8 +43,12 @@ let conf_wrap f name default help =
   let get = f name default help in
     fun ctxt -> get ctxt.conf
 
-let conf_make_string = conf_wrap OUnitConf.make_string
-let conf_make_string_opt = conf_wrap OUnitConf.make_string_opt
-let conf_make_int = conf_wrap OUnitConf.make_int
-let conf_make_float = conf_wrap OUnitConf.make_float
-let conf_make_bool = conf_wrap OUnitConf.make_bool
+module Conf =
+struct
+  type 'a conf_t = string -> 'a -> Arg.doc -> test_ctxt -> 'a
+  let make_string = conf_wrap OUnitConf.make_string
+  let make_string_opt = conf_wrap OUnitConf.make_string_opt
+  let make_int = conf_wrap OUnitConf.make_int
+  let make_float = conf_wrap OUnitConf.make_float
+  let make_bool = conf_wrap OUnitConf.make_bool
+end

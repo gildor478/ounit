@@ -6,13 +6,13 @@
 open OUnit2
 
 let sigsegv =
-  conf_make_bool
+  Conf.make_bool
     "sigsegv"
     false
     "Fail with SIGSEGV."
 
 let timeout =
-  conf_make_bool
+  Conf.make_bool
     "timeout"
     false
     "Time out."

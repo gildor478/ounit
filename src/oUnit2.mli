@@ -207,16 +207,56 @@ val logf: test_ctxt -> log_severity -> ('a, unit, string, unit) format4 -> 'a
   *)
 val run_test_tt_main : ?exit:(int -> unit) -> test -> unit
 
-(* TODO: comment. *)
-val conf_make_string: string -> string -> Arg.doc -> test_ctxt -> string
-val conf_make_string_opt:
-    string -> string option -> Arg.doc -> test_ctxt -> string option
-val conf_make_int: string -> int -> Arg.doc -> test_ctxt -> int
-val conf_make_float: string -> float -> Arg.doc -> test_ctxt -> float
-val conf_make_bool: string -> bool -> Arg.doc -> test_ctxt -> bool
-
 (** [non_fatal ctxt f] Run [f] but if an exception is raised or an assert fails,
     don't stop, just register the result. The global test running result will mix
     in the non fatal result to determine the success or failure of the test.
   *)
 val non_fatal: test_ctxt -> (test_ctxt -> unit) -> unit
+
+(** Define command line options, environment variables and file configuration.
+
+    This module helps to define configuration options that are translated to
+    command line options et al.
+
+    The name defined for the variable is:
+    - should be a valid OCaml identifier
+    - kept as is for use in configuration file. (foo_bar = "")
+    - '_' are replaced by '-' and a leading '-' is added for command line
+      (-foo "")
+    - capitalized and prefixed by OUNIT_ for environment (OUNIT_FOO_BAR="")
+  *)
+module Conf:
+sig
+  (** The default type of function that create a configuration option of type
+      'a.
+    *)
+  type 'a conf_t = string -> 'a -> Arg.doc -> test_ctxt -> 'a
+
+  (** [make_string name default help] Create a string configuration
+      option with default value [default] and a short help string.
+      The result of the partial application of the function can be used
+      inside tests to be evaluated to a value.
+
+{[
+let my_option = Conf.make_string "my_option" "the default" "A default option."
+
+let tests =
+  "ATest" >::
+  (fun test_ctxt -> let option_value = my_option test_ctxt in ())
+
+]}
+    *)
+  val make_string: string conf_t
+
+  (** Create a [string option] configuration option. See [!make_string]. *)
+  val make_string_opt: (string option) conf_t
+
+  (** Create an [int] configuration option. See [!make_string]. *)
+  val make_int: int conf_t
+
+  (** Create a [float] configuration option. See [!make_string]. *)
+  val make_float: float conf_t
+
+  (** Create a [bool] configuration option. See [!make_string]. *)
+  val make_bool: bool conf_t
+end

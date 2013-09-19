@@ -2,7 +2,7 @@
 open OUnit2
 
 let testFakeRunner =
-  conf_make_string
+  Conf.make_string
     "testFakeRunner"
     "testFakeRunner"
     "The testFakeRunner executable to run."
