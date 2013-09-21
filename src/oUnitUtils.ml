@@ -192,3 +192,21 @@ let string_of_process_status =
       Printf.sprintf "Killed by signal %d" n
   | Unix.WSTOPPED n ->
       Printf.sprintf "Stopped by signal %d" n
+
+let make_counter () =
+  let data = Hashtbl.create 13 in
+  let all () =
+    Hashtbl.fold
+      (fun k v lst -> (k, v) :: lst)
+      data []
+  in
+  let incr k =
+    let v =
+      try
+        Hashtbl.find data k
+      with Not_found ->
+        0
+    in
+      Hashtbl.replace data k (v + 1)
+  in
+    all, incr

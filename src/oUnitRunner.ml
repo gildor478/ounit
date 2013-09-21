@@ -300,6 +300,13 @@ struct
 
     let worker_idx = ref 1 in
 
+    let test_per_worker, incr_tests_per_worker =
+      OUnitUtils.make_counter ()
+    in
+    let health_check_per_worker, incr_health_check_per_worker =
+      OUnitUtils.make_counter ()
+    in
+
     let () = infof logger "Using %d workers maximum." shards in
 
     let position_of_fake_position = Hashtbl.create 128 in
@@ -396,6 +403,7 @@ struct
     let check_health state =
       List.fold_left
         (fun state (test_path, worker) ->
+           incr_health_check_per_worker worker.shard_id;
            if worker.is_running () then begin
              update_test_activity test_path state
            end else begin
@@ -470,6 +478,7 @@ struct
             iter (wait_test_done state)
 
         | Next_test_case (test_path, _, worker), state ->
+            incr_tests_per_worker worker.shard_id;
             worker.channel.send_data (RunTest test_path);
             iter state
 
@@ -484,6 +493,16 @@ struct
                 in
                   infof logger "Used %d worker during test execution."
                     (!worker_idx - 1);
+                  List.iter
+                    (fun (shard_id, count) ->
+                       infof logger "Run %d tests with shard %s."
+                         count shard_id)
+                    (test_per_worker ());
+                  List.iter
+                    (fun (shard_id, count) ->
+                       infof logger "Check health of shard %s, %d times."
+                         shard_id count)
+                    (health_check_per_worker ());
                   OUnitState.get_results state
             end else begin
               infof logger "Still %d tests running : %s." count_tests_running
