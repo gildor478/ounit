@@ -44,12 +44,12 @@ type runner =
 let sequential_runner conf logger chooser test_cases =
   let shared = OUnitShared.create () in
   let rec iter state =
-    match OUnitState.next_test_case logger state with
+    match OUnitState.next_test_case conf logger state with
       | OUnitState.Finished, state ->
           OUnitState.get_results state
       | OUnitState.Next_test_case (test_path, test_fun, worker), state ->
           iter
-            (OUnitState.add_test_result
+            (OUnitState.test_finished conf
                (run_one_test conf logger shared test_path test_fun)
                worker state)
       | (OUnitState.Try_again | OUnitState.Not_enough_worker), _ ->
@@ -355,7 +355,7 @@ struct
              state
 
          | TestDone test_result ->
-             OUnitState.add_test_result
+             OUnitState.test_finished conf
                (backpatch_log_position (fst test_result),
                 List.map backpatch_log_position (snd test_result))
                worker state
@@ -373,7 +373,7 @@ struct
          report logger (TestEvent (test_path, EEnd));
          remove_idle_worker
            worker
-           (add_test_result
+           (test_finished conf
               ((test_path, result, log_pos), [])
               worker state)
     in
@@ -449,7 +449,7 @@ struct
     in
 
     let rec iter state =
-      match OUnitState.next_test_case logger state with
+      match OUnitState.next_test_case conf logger state with
         | Not_enough_worker, state ->
             if OUnitState.count_worker state < shards then begin
               (* Start a worker. *)

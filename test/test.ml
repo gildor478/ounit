@@ -15,5 +15,6 @@ let () =
        TestRunner.tests;
        TestShared.tests;
        TestOUnitBracket.tests;
+       TestOUnitChooser.tests;
      ])
 

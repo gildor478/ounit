@@ -2,7 +2,9 @@
 (** Manipulate the state of OUnit runner.
   *)
 
+open OUnitLogger
 open OUnitTest
+open OUnitChooser
 
 type 'worker next_test_case_t =
   | Not_enough_worker
@@ -24,9 +26,10 @@ type 'worker t =
     {
       tests_planned: (path * (test_length * test_fun)) list;
       tests_running: (path * ('worker test_running)) list;
+      tests_passed: (OUnitTest.result_full * OUnitTest.result_list) list;
       idle_workers: 'worker list;
-      results: OUnitTest.result_list;
       chooser: OUnitChooser.chooser;
+      cache: OUnitCache.cache;
       health_check_interval: time;
     }
 
@@ -38,7 +41,7 @@ let health_check_interval =
 
 let create conf chooser test_cases =
   {
-    results = [];
+    tests_passed = [];
     tests_planned = List.map
                       (fun (test_path, test_length, test_fun) ->
                          test_path, (test_length, test_fun))
@@ -46,20 +49,40 @@ let create conf chooser test_cases =
     tests_running = [];
     idle_workers = [];
     chooser = chooser;
+    cache = OUnitCache.load conf;
     health_check_interval = health_check_interval conf;
   }
 
 let filter_out e lst = List.filter (fun (e', _) -> e <> e') lst
 
-let add_test_result (test_result, other_test_results) worker state =
-  let (test_path, _, _) = test_result in
-    {
-      state with
-        results = (test_result :: other_test_results) @ state.results;
-        tests_planned = filter_out test_path state.tests_planned;
-        tests_running = filter_out test_path state.tests_running;
-        idle_workers = worker :: state.idle_workers;
-    }
+let maybe_dump_cache conf state =
+  if state.tests_running = [] && state.tests_planned = [] then
+    (* We are finished, all results are in, flush the cache. *)
+    OUnitCache.dump conf
+      (List.fold_left
+         (fun cache (path, test_result, _) ->
+            OUnitCache.add_result path test_result cache)
+         state.cache
+         (List.map fst state.tests_passed));
+  state
+
+let add_test_results conf all_test_results state =
+  let ((test_path, _, _), _) = all_test_results in
+  let state =
+    {state with
+         tests_passed = all_test_results :: state.tests_passed;
+         tests_planned = filter_out test_path state.tests_planned};
+  in
+    maybe_dump_cache conf state
+
+let test_finished conf all_test_results worker state =
+  let ((test_path, _, _), _) = all_test_results in
+  let state =
+    {(add_test_results conf all_test_results state) with
+         tests_running = filter_out test_path state.tests_running;
+         idle_workers = worker :: state.idle_workers}
+  in
+    maybe_dump_cache conf state
 
 let add_worker worker state =
   {state with idle_workers = worker :: state.idle_workers}
@@ -98,7 +121,7 @@ let is_idle_worker worker state =
 let get_tests_running state =
   List.map fst state.tests_running
 
-let next_test_case logger state =
+let rec next_test_case conf logger state =
   match state.tests_planned, state.idle_workers with
     | [], _ ->
         Finished, state
@@ -106,10 +129,16 @@ let next_test_case logger state =
         begin
           let choice =
             state.chooser
-              logger (List.map fst state.tests_planned) state.results
+              {
+                OUnitChooser.
+                tests_planned = List.map fst state.tests_planned;
+                tests_running = List.map fst state.tests_running;
+                tests_passed = List.map fst state.tests_passed;
+                cache = state.cache;
+              }
           in
           match choice with
-            | Some test_path ->
+            | Choose test_path ->
                 begin
                   try
                     let test_length, test_fun =
@@ -134,14 +163,34 @@ let next_test_case logger state =
                   with Not_found ->
                     assert false
                 end
-            | None ->
+
+            | ChooseToPostpone ->
                 Try_again, state
+
+            | ChooseToSkip path ->
+                let skipped_result = RSkip "Skipped by the chooser." in
+                  OUnitLogger.report logger (TestEvent (path, EStart));
+                  OUnitLogger.report
+                    logger (TestEvent (path, EResult skipped_result));
+                  OUnitLogger.report logger (TestEvent (path, EEnd));
+                  next_test_case
+                    conf logger
+                    (add_test_results conf
+                       ((path, skipped_result, None), []) state)
+
+            | NoChoice ->
+                Finished, state
+
         end
     | _, [] ->
         Not_enough_worker, state
 
-let get_results state = state.results
-
+(** Get all the results. *)
+let get_results state =
+  List.fold_right
+    (fun (result, other_results) res ->
+       result :: other_results @ res)
+    state.tests_passed []
 
 (** Get all the workers that need to be checked for their health. *)
 let get_worker_need_health_check state =
