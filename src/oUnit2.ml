@@ -39,6 +39,9 @@ let run_test_tt_main = OUnitCore.run_test_tt_main
 let logf ctxt log_severity fmt =
    OUnitLogger.Test.logf ctxt.test_logger log_severity fmt
 
+let in_testdata_dir ctxt path =
+  OUnitTestData.in_testdata_dir ctxt.conf path
+
 let conf_wrap f name default help =
   let get = f name default help in
     fun ctxt -> get ctxt.conf

@@ -199,6 +199,13 @@ type log_severity = [ `Error | `Warning | `Info ]
   *)
 val logf: test_ctxt -> log_severity -> ('a, unit, string, unit) format4 -> 'a
 
+(** Build a filename for a file that should be located in the test data dir.
+
+    The test data dir, can be defined on the command line (preferably absolute)
+    The default option is to locate it in topsrcdir/test/data.
+  *)
+val in_testdata_dir: test_ctxt -> string list -> string
+
 (** Main version of the text based test runner. It reads the supplied command
     line arguments to set the verbose level and limit the number of test to
     run.

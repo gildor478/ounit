@@ -47,7 +47,8 @@ Library "oUnitAdvanced"
            OUnitLogger,
            OUnitConf,
            OUnitShared,
-           OUnitCache
+           OUnitCache,
+           OUnitTestData
   FindlibParent: oUnit
   FindlibName: advanced
 
