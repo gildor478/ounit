@@ -187,8 +187,8 @@ let shardf = Printf.sprintf "%s#%02d" (fqdn ())
 let string_of_process_status =
   function
   | Unix.WEXITED n ->
-      Printf.sprintf "exited with code %d" n
+      Printf.sprintf "Exited with code %d" n
   | Unix.WSIGNALED n ->
-      Printf.sprintf "killed by signal %d" n
+      Printf.sprintf "Killed by signal %d" n
   | Unix.WSTOPPED n ->
-      Printf.sprintf "stopped by signal %d" n
+      Printf.sprintf "Stopped by signal %d" n

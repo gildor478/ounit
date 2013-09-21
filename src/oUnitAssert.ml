@@ -226,16 +226,6 @@ let assert_command
            in
              wait_intr ()
          in
-         let exit_code_printer =
-           function
-             | Unix.WEXITED n ->
-                 Printf.sprintf "exit code %d" n
-             | Unix.WSTOPPED n ->
-                 Printf.sprintf "stopped by signal %d" n
-             | Unix.WSIGNALED n ->
-                 Printf.sprintf "killed by signal %d" n
-         in
-
            (* Dump process output to stderr *)
            begin
              let chn = open_in fn_out in
@@ -255,7 +245,7 @@ let assert_command
                      (fun fmt ->
                         Format.fprintf fmt
                           "@[Exit status of command '%t'@]" cmd_print))
-             ~printer:exit_code_printer
+             ~printer:string_of_process_status
              exit_code
              real_exit_code;
 
