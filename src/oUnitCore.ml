@@ -151,9 +151,3 @@ let run_test_tt_main ?(exit=Pervasives.exit) suite =
           if not (OUnitResultSummary.was_successful test_results) then
             exit 1
       end
-
-let conf_make name ?arg_string ?alternates ~printer fspec default help =
-  let f =
-    OUnitConf.make name ?arg_string ?alternates ~printer fspec default help
-  in
-    (fun ctxt -> f ctxt.conf)
