@@ -211,7 +211,7 @@ let render conf dn events =
   close_out chn
 
 let output_html_dir =
-  OUnitConf.make_string_opt
+  OUnitConf.make_string_subst_opt
     "output_html_dir"
     None
     "Output directory of the HTML files."

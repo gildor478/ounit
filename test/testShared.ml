@@ -1,11 +1,7 @@
 
 open OUnit2
 
-let testFakeShared =
-  Conf.make_string
-    "testFakeShared"
-    "testFakeShared"
-    "The testFakeShared executable to run."
+let testFakeShared = Conf.make_exec "testFakeShared"
 
 let run_test_fake_shared ctxt runner args =
   let fn, _ = bracket_tmpfile ctxt in

@@ -82,6 +82,12 @@ let run_test_tt_main_conf =
            ~preset:(OUnitChooser.preset (OUnitRunner.preset preset))
            extra_specs)
 
+let suite_name =
+  OUnitConf.make_string
+    "suite_name"
+    "anon"
+    "The name of the test suite running."
+
 (* Call this one to act as your main() function. *)
 let run_test_tt_main ?(exit=Pervasives.exit) suite =
   let only_test = ref [] in
@@ -97,7 +103,12 @@ let run_test_tt_main ?(exit=Pervasives.exit) suite =
       " List tests";
     ]
   in
-  let conf = !run_test_tt_main_conf extra_specs in
+  let preset =
+    match suite with
+      | OUnitTest.TestLabel (suite_name, _) -> ["suite_name", suite_name]
+      | OUnitTest.TestCase _ | OUnitTest.TestList _ -> []
+  in
+  let conf = !run_test_tt_main_conf ~preset extra_specs in
     if !list_test then
       begin
         List.iter

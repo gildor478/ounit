@@ -4,10 +4,10 @@ open OUnitTest
 type cache = OUnitTest.result MapPath.t
 
 let cache_filename =
-  OUnitConf.make_string_opt
+  OUnitConf.make_string_subst_opt
     "cache_filename"
     (* TODO: oUnit-$(name).cache *)
-    (Some (Filename.concat OUnitUtils.buildir "oUnit.cache"))
+    (Some (Filename.concat OUnitUtils.buildir "oUnit-$(suite_name).cache"))
     "Cache file to store previous results."
 
 let default = MapPath.empty

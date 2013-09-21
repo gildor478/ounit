@@ -266,4 +266,7 @@ let tests =
 
   (** Create a [bool] configuration option. See [!make_string]. *)
   val make_bool: bool conf_t
+
+  (** [make_exec execname] Create a option to define an executable. *)
+  val make_exec: string -> test_ctxt -> string
 end

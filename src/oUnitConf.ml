@@ -48,6 +48,25 @@ let cli_name name =
   done;
   cli_name
 
+let subst conf str =
+  let substitutions = Hashtbl.create (Hashtbl.length metaconf) in
+  let () =
+    Hashtbl.iter
+      (fun name metadata ->
+         Hashtbl.add substitutions name (metadata.get_print conf))
+      metaconf
+  in
+  let buff = Buffer.create (String.length str) in
+    Buffer.add_substitute buff
+      (fun var ->
+         try
+           let metadata = Hashtbl.find metaconf var in
+             metadata.get_print conf
+         with Not_found ->
+           failwithf "Unknown substitution variable %S in %S." var str)
+      str;
+    Buffer.contents buff
+
 let make ~name ~parse ~print ~default ~help ~fcli () =
   let () =
     check_variable_name name;
@@ -79,6 +98,11 @@ let make_string name default help =
         "str "^help])
     ()
 
+let make_string_subst name default help =
+  let get = make_string name default help in
+    (fun conf ->
+       subst conf (get conf))
+
 let make_string_opt name default help =
   make
     ~name
@@ -102,6 +126,13 @@ let make_string_opt name default help =
         Arg.Unit (fun () -> set None),
         Printf.sprintf " Reset value of %s." name])
     ()
+
+let make_string_subst_opt name default opt =
+  let get = make_string_opt name default opt in
+    (fun conf ->
+       match get conf with
+         | Some str -> Some (subst conf str)
+         | None -> None)
 
 let make_int name default help =
   make
@@ -197,6 +228,19 @@ let make_enum name get_enums default help =
       with Not_found ->
         failwithf
           "Enums list for %s has changed during execution." name
+
+let make_exec name =
+  let default =
+    let pwd = Sys.getcwd () in
+    let bn = Filename.concat pwd name in
+      if Sys.file_exists (bn^".native") then
+        bn^".native"
+      else if Sys.file_exists (bn^".byte") then
+        bn^".byte"
+      else
+        name
+  in
+    make_string name default (Printf.sprintf "Executable %s." name)
 
 let set ~origin conf name value =
   try

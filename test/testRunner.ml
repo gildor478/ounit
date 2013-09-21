@@ -1,11 +1,7 @@
 
 open OUnit2
 
-let testFakeRunner =
-  Conf.make_string
-    "testFakeRunner"
-    "testFakeRunner"
-    "The testFakeRunner executable to run."
+let testFakeRunner = Conf.make_exec "testFakeRunner"
 
 type test_results = 
     {

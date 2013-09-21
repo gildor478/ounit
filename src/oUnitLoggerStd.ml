@@ -269,9 +269,9 @@ let std_logger conf =
     null_logger
 
 let output_file =
-  OUnitConf.make_string_opt
+  OUnitConf.make_string_subst_opt
     "output_file"
-    (Some (Filename.concat OUnitUtils.buildir "oUnit.log"))
+    (Some (Filename.concat OUnitUtils.buildir "oUnit-$(suite_name).log"))
     "Output verbose log in the given file."
 
 let create conf =

@@ -1,17 +1,9 @@
 
 open OUnit2
 
-let xmllint =
-  Conf.make_string
-    "xmllint"
-    "xmllint"
-    "XML linter program to validate output."
+let xmllint = Conf.make_exec "xmllint"
 
-let testFakeHTML =
-  Conf.make_string
-    "testFakeHTML"
-    "testFakeHTML"
-    "The testFakeHTML executable to run."
+let testFakeHTML = Conf.make_exec "testFakeHTML"
 
 let tests =
   "OtherTests" >:::

@@ -26,7 +26,6 @@ let testdata_dir =
     testdata_default
     "Location of the test data directory (absolute path)."
 
-
 let in_testdata_dir conf path =
   match testdata_dir conf with
     | Some fn -> make_filename fn path

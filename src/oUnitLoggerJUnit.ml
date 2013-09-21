@@ -104,7 +104,7 @@ let render conf fn events =
     close_out chn
 
 let output_junit_file =
-  OUnitConf.make_string_opt
+  OUnitConf.make_string_subst_opt
     "output_junit_file"
     None
     "Output file for JUnit."

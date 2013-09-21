@@ -54,4 +54,7 @@ struct
   let make_int = conf_wrap OUnitConf.make_int
   let make_float = conf_wrap OUnitConf.make_float
   let make_bool = conf_wrap OUnitConf.make_bool
+  let make_exec name =
+    let get = OUnitConf.make_exec name in
+      fun ctxt -> get ctxt.conf
 end

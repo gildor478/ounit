@@ -50,5 +50,24 @@ let tests =
        let conf = load ~argv:[|"foo"; "-conf"; fn|] [] in
          assert_equal ~printer:string_of_int 1 (t.vint conf);
          assert_equal ~printer:(fun s -> s) "abcd ef" (t.vstring conf));
-    (* TODO: test you cannot inject new duplicate values. *)
+
+    "Substitution" >::
+    (fun test_ctxt ->
+       let _ = bracket_ounitconf test_ctxt in
+       let conf = load ~argv:[|"foo"; "-int"; "10"|] [] in
+         assert_equal
+           ~printer:(fun s -> s)
+           "foo-10"
+           (subst conf "foo-$int"));
+
+    "NoDoubleInject" >::
+    (fun test_ctxt ->
+       let _ = bracket_ounitconf test_ctxt in
+         try
+           let _option: conf -> string  = make_string "string" "" "" in
+             assert_failure
+               "Should not be able to inject duplicate configuration \
+                option 'string'."
+         with Failure _ ->
+           ());
   ]
