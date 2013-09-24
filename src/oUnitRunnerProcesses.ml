@@ -53,10 +53,13 @@ let make_channel
   in
 
   let receive_data () =
-    let data_size = Marshal.data_size (really_read fd_read header_str) 0 in
-    let data_str = really_read fd_read (String.create data_size) in
-    let msg = Marshal.from_string (header_str ^ data_str) 0 in
-      msg
+    try 
+      let data_size = Marshal.data_size (really_read fd_read header_str) 0 in
+      let data_str = really_read fd_read (String.create data_size) in
+      let msg = Marshal.from_string (header_str ^ data_str) 0 in
+        msg
+    with Failure(msg) ->
+      OUnitUtils.failwithf "Communication error with worker processes: %s" msg
   in
 
   let close () =
@@ -94,10 +97,7 @@ let create_worker conf map_test_cases shard_id master_id =
         let () =
           safe_close pipe_read_from_worker;
           safe_close pipe_write_to_worker;
-          (* Do we really need to close stdin/stdout? *)
-          dup2 pipe_read_from_master stdin;
-          dup2 pipe_write_to_master stdout;
-          (* stderr remains open and shared with master. *)
+          (* stdin/stdout/stderr remain open and shared with master. *)
           ()
         in
         let channel =
