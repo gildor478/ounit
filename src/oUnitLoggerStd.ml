@@ -50,13 +50,13 @@ let format_display_event conf log_event =
                            (result_flavour test_result)
                            (string_of_path path);
                        end else begin
-                         bprintf "Error: %s%s\n\n"
-                           (string_of_path path)
-                           (if pos_opt <> None then " (in the log)." else "");
+                         bprintf "Error: %s.\n\n" (string_of_path path);
                          begin
                            match pos_opt with
                              | Some pos ->
-                                 bprintf "%s\n" (ocaml_position pos)
+                                 bprintf "%s\nError: %s (in the log).\n\n"
+                                   (ocaml_position pos)
+                                   (string_of_path path)
                              | None ->
                                  ()
                          end;
