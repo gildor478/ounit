@@ -75,12 +75,14 @@ let chdir_mutex = OUnitShared.Mutex.create OUnitShared.ScopeProcess
 let bracket_chdir dir test_ctxt =
   let () =
     OUnitLogger.infof test_ctxt.logger "Change directory to %S" dir;
-    OUnitLogger.infof test_ctxt.logger
-      "If blocked at this stage, it means you are trying to chdir inside \
-       another chdir which is forbidden (because of threads)."
+  in
+  let () =
+    try
+      OUnitShared.Mutex.lock test_ctxt.shared chdir_mutex;
+    with OUnitShared.Lock_failure ->
+      failwith "Trying to do a nested chdir."
   in
   let cur_pwd =
-    OUnitShared.Mutex.lock test_ctxt.shared chdir_mutex;
     Sys.getcwd ()
   in
   create

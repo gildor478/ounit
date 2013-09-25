@@ -1,4 +1,6 @@
 
+exception Lock_failure
+
 type scope = ScopeGlobal | ScopeProcess
 
 type 'a shared_noscope =
@@ -36,7 +38,7 @@ let mutex_create =
 
          let lock () =
            if not (try_lock ()) then
-             assert false
+             raise Lock_failure
          in
 
          let unlock () =
