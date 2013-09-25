@@ -33,6 +33,12 @@ let cmp_float = OUnitUtils.cmp_float
 let bracket = OUnitBracket.create
 let bracket_tmpfile = OUnitBracket.bracket_tmpfile
 let bracket_tmpdir = OUnitBracket.bracket_tmpdir
+let with_bracket_chdir test_ctxt dn f =
+  OUnitBracket.with_bracket test_ctxt
+    (OUnitBracket.bracket_chdir dn)
+    (fun () -> f)
+
+
 let non_fatal = OUnitTest.non_fatal
 let run_test_tt_main = OUnitCore.run_test_tt_main
 

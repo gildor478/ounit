@@ -149,8 +149,8 @@ val bracket_tmpfile:
   ?mode:open_flag list ->
   test_ctxt -> (string * out_channel)
 
-(** [bracket_tmpdir test] Create a temporary dirname. The temporary directory is
-    removed after the test.
+(** [bracket_tmpdir test_ctxt] Create a temporary dirname. The temporary
+    directory is removed after the test.
 
     @param prefix see [Filename.open_temp_file]
     @param suffix see [Filename.open_temp_file]
@@ -159,6 +159,14 @@ val bracket_tmpdir:
   ?prefix:string ->
   ?suffix:string ->
   test_ctxt -> string
+
+(** [with_bracket_chdir test_ctxt dn f] change directory to [dn] during
+    execution of function [f]. In order to [Sys.chdir], we need to take a lock
+    to avoid other tests trying to do change the current directory at the same
+    time. So this bracket is not directly accessible in order to use it only on
+    shorter piece of code.
+  *)
+val with_bracket_chdir: test_ctxt -> string -> (test_ctxt -> 'a) -> 'a
 
 (** {2 Constructing Tests} *)
 
