@@ -66,6 +66,7 @@ Executable testFakeHTML
   MainIs: testFakeHTML.ml
   BuildDepends: oUnit
   Install: false
+  Build$: flag(tests)
 
 # A fake test executable that helps to test all the runners.
 Executable testFakeRunner
@@ -73,6 +74,7 @@ Executable testFakeRunner
   MainIs: testFakeRunner.ml
   BuildDepends: oUnit, oUnit.threads
   Install: false
+  Build$: flag(tests)
 
 # A fake test executable that helps to test shared module with all runners.
 Executable testFakeShared
@@ -80,6 +82,7 @@ Executable testFakeShared
   MainIs: testFakeShared.ml
   BuildDepends: oUnit, oUnit.threads
   Install: false
+  Build$: flag(tests)
 
 # The main test.
 Executable test
@@ -87,6 +90,7 @@ Executable test
   MainIs: test.ml
   BuildDepends: oUnit, oUnit.advanced, str
   Install: false
+  Build$: flag(tests)
 
 Test main
   Command: $test -xmllint $xmllint \
