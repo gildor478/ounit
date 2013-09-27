@@ -320,7 +320,16 @@ let cli_parse ?argv extra_specs conf =
   let specs =
     Hashtbl.fold
       (fun name metadata lst ->
-         metadata.cli conf @ lst)
+         let cli_lst =
+           match metadata.cli conf with
+             | (key, spec, doc) :: tl ->
+                 (key, spec, doc ^
+                  (Printf.sprintf " (default: %s)"
+                     (metadata.get_print conf)))
+                 :: tl
+             | [] -> []
+         in
+           cli_lst @ lst)
       metaconf
       []
   in
