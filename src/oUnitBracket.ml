@@ -35,11 +35,25 @@ let bracket_tmpfile ?(prefix="ounit-") ?(suffix=".txt") ?mode test_ctxt =
 
 
 let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") test_ctxt =
+  let max_attempt = 10 in
+  let rec try_hard_mkdir attempt =
+    if max_attempt = attempt then begin
+      OUnitUtils.failwithf
+        "Unable to create temporary directory after %d attempts."
+        attempt
+    end else begin
+      try
+         let tmpdn = Filename.temp_file prefix suffix in
+         Sys.remove tmpdn;
+         Unix.mkdir tmpdn 0o755;
+         tmpdn
+      with Unix.Unix_error (Unix.EEXIST, "mkdir", _) ->
+        try_hard_mkdir (max_attempt + 1)
+    end
+  in
   create
     (fun test_ctxt ->
-       let tmpdn = Filename.temp_file prefix suffix in
-       Sys.remove tmpdn;
-       Unix.mkdir tmpdn 0o755;
+       let tmpdn = try_hard_mkdir 0 in
        logf test_ctxt.test_logger `Info
          "Create a temporary directory: %S." tmpdn;
        tmpdn)
