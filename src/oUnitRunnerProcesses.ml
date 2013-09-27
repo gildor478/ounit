@@ -87,7 +87,7 @@ let processes_kill_period =
     5.0
     "Delay to wait for a process to stop after killing it."
 
-let create_worker conf map_test_cases shard_id master_id =
+let create_worker conf map_test_cases shard_id master_id worker_log_file =
   let safe_close fd = try close fd with Unix_error _ -> () in
   let pipe_read_from_worker, pipe_write_to_master = Unix.pipe () in
   let pipe_read_from_master, pipe_write_to_worker  = Unix.pipe () in
@@ -109,7 +109,7 @@ let create_worker conf map_test_cases shard_id master_id =
             pipe_write_to_master
         in
           main_worker_loop
-            conf ignore channel shard_id map_test_cases;
+            conf ignore channel shard_id map_test_cases worker_log_file;
           channel.close ();
           safe_close pipe_read_from_master;
           safe_close pipe_write_to_master;

@@ -58,7 +58,7 @@ let tests =
          assert_equal
            ~printer:(fun s -> s)
            "foo-10"
-           (subst conf "foo-$int"));
+           (subst conf [] "foo-$int"));
 
     "NoDoubleInject" >::
     (fun test_ctxt ->

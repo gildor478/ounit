@@ -117,8 +117,6 @@ struct
 
   type message_from_worker =
     | AckExit
-    | Log of OUnitTest.log_event_t
-    | LogFakePosition of OUnitLogger.position
     | Lock of int
     | Unlock of int
     | TestDone of (OUnitTest.result_full * OUnitTest.result_list)
@@ -126,10 +124,8 @@ struct
   let string_of_message_from_worker =
     function
       | AckExit -> "AckExit"
-      | Log _ -> "Log _"
       | Lock _ -> "Lock _"
       | Unlock _ -> "Unlock _"
-      | LogFakePosition _ -> "LogFakePosition _"
       | TestDone _ -> "TestDone _"
 
   module MapPath =
@@ -195,27 +191,13 @@ struct
 
 
   (* Run a worker, react to message receive from parent. *)
-  let main_worker_loop conf yield channel shard_id map_test_cases =
+  let main_worker_loop
+        conf yield channel shard_id map_test_cases worker_log_file =
     let logger =
-      let base_logger =
-        OUnitLogger.fun_logger
-          (fun {event = log_ev} -> channel.send_data (Log log_ev))
-          ignore
-      in
-
-      (* Fake position generator, communicate with master so that
-       * master can do the translation of pos.
-       *)
-      let idx = ref 0 in
-      let fpos () =
-        let pos =
-          incr idx;
-          { filename = shard_id; line = !idx }
-        in
-          channel.send_data (LogFakePosition pos);
-          Some pos
-      in
-        set_shard shard_id {base_logger with fpos = fpos}
+      if worker_log_file then
+        OUnitLoggerStd.create conf shard_id
+      else
+        OUnitLoggerStd.std_logger conf shard_id
     in
 
     let shared =
@@ -307,33 +289,20 @@ struct
       OUnitUtils.make_counter ()
     in
 
-    let () = infof logger "Using %d workers maximum." shards in
+    let () = infof logger "Using %d workers maximum." shards; in
 
-    let position_of_fake_position = Hashtbl.create 128 in
+    let worker_log_file =
+      if not (OUnitLoggerStd.is_output_file_shard_dependent conf) then begin
+        warningf logger
+          "-output-file doesn't include $(shard_id), \
+           shards won't have file log.";
+        false
+      end else begin
+        true
+      end
+    in
 
     let master_shared = OUnitShared.noscope_create () in
-
-    (* Translate fake log position, as sent by the worker into real log position
-       as registered by the master.
-     *)
-    let backpatch_log_position (path, result, pos_opt) =
-      (* TODO: this totally inaccurate because the synchronisation is not
-       * garantee, patch directly when we receive patchable result and avoid
-       * LogFakePosition.
-       *)
-      let real_pos_opt =
-        match pos_opt with
-          | Some fake_position ->
-              begin
-                try
-                  Hashtbl.find position_of_fake_position fake_position
-                with Not_found ->
-                  Some fake_position
-              end
-          | None -> None
-      in
-        path, result, real_pos_opt
-    in
 
     (* Act depending on the received message. *)
     let process_message worker msg state =
@@ -348,10 +317,6 @@ struct
                msg_opt;
              remove_idle_worker worker state
 
-         | Log log_ev ->
-             OUnitLogger.report (set_shard worker.shard_id logger) log_ev;
-             state
-
          | Lock id ->
              worker.channel.send_data
                (AckLock (master_shared.OUnitShared.try_lock id));
@@ -362,15 +327,7 @@ struct
              state
 
          | TestDone test_result ->
-             OUnitState.test_finished conf
-               (backpatch_log_position (fst test_result),
-                List.map backpatch_log_position (snd test_result))
-               worker state
-
-         | LogFakePosition fake_position ->
-             Hashtbl.add position_of_fake_position
-               fake_position (position logger);
-             state
+             OUnitState.test_finished conf test_result worker state
     in
 
     (* Report a worker dead and unregister it. *)
@@ -464,7 +421,8 @@ struct
               let shard_id = OUnitUtils.shardf !worker_idx in
               let () = infof logger "Starting worker number %s." shard_id in
               let worker =
-                create_worker conf map_test_cases shard_id master_id
+                create_worker
+                  conf map_test_cases shard_id master_id worker_log_file
               in
               let () = infof logger "Worker %s started." worker.shard_id in
               let state = add_worker worker state in

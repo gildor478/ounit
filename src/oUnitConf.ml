@@ -48,20 +48,21 @@ let cli_name name =
   done;
   cli_name
 
-let subst conf str =
+let subst conf extra_subst str =
   let substitutions = Hashtbl.create (Hashtbl.length metaconf) in
   let () =
+    (* Fill the substitutions table. *)
     Hashtbl.iter
       (fun name metadata ->
          Hashtbl.add substitutions name (metadata.get_print conf))
-      metaconf
+      metaconf;
+    List.iter (fun (k, v) -> Hashtbl.add substitutions k v) extra_subst
   in
   let buff = Buffer.create (String.length str) in
     Buffer.add_substitute buff
       (fun var ->
          try
-           let metadata = Hashtbl.find metaconf var in
-             metadata.get_print conf
+           Hashtbl.find substitutions var
          with Not_found ->
            failwithf "Unknown substitution variable %S in %S." var str)
       str;
@@ -100,8 +101,8 @@ let make_string name default help =
 
 let make_string_subst name default help =
   let get = make_string name default help in
-    (fun conf ->
-       subst conf (get conf))
+    (fun ?(extra_subst=[]) conf ->
+       subst conf extra_subst (get conf))
 
 let make_string_opt name default help =
   make
@@ -129,9 +130,9 @@ let make_string_opt name default help =
 
 let make_string_subst_opt name default opt =
   let get = make_string_opt name default opt in
-    (fun conf ->
+    (fun ?(extra_subst=[]) conf ->
        match get conf with
-         | Some str -> Some (subst conf str)
+         | Some str -> Some (subst conf extra_subst str)
          | None -> None)
 
 let make_int name default help =
@@ -346,7 +347,7 @@ let cli_parse ?argv extra_specs conf =
       ("usage: " ^ Sys.argv.(0) ^ " options*")
 
 let default ?(preset=[]) () =
-  let conf = OUnitPropList.create () in
+  let conf =  OUnitPropList.create () in
     List.iter
       (fun (name, value) ->
          set ~origin:"Preset by program." conf name value)

@@ -145,7 +145,8 @@ let assert_command
         ctxt with
             OUnitTest.test_logger =
               OUnitLogger.Test.create
-                (OUnitLoggerStd.std_logger conf') ctxt.OUnitTest.path;
+                (OUnitLoggerStd.std_logger conf' OUnitLogger.shard_default)
+                ctxt.OUnitTest.path;
       }
   in
     OUnitAssert.assert_command
@@ -282,7 +283,7 @@ let run_test_tt ?verbose test =
   list_result1_of_list_result
     (OUnitCore.run_test_tt
        conf
-       (OUnitLoggerStd.create conf)
+       (OUnitLoggerStd.create conf OUnitLogger.shard_default)
        (snd (OUnitRunner.choice conf))
        (snd (OUnitChooser.choice conf))
        (test_of_test1 test))
@@ -342,7 +343,7 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
         let test_results =
           OUnitCore.run_test_tt
             conf
-            (OUnitLoggerStd.std_logger conf)
+            (OUnitLoggerStd.std_logger conf OUnitLogger.shard_default)
             (snd (OUnitRunner.choice conf))
             (snd (OUnitChooser.choice conf))
             nsuite

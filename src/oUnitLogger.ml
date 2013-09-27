@@ -116,9 +116,6 @@ let post_logger fpost =
       fclose = fclose;
     }
 
-let set_shard shard logger =
-  {logger with lshard = shard}
-
 let report logger ev =
   logger.fwrite
     {

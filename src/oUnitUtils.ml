@@ -182,7 +182,7 @@ let opt f = function Some v -> f v | None -> ()
 
 let fqdn () = (Unix.gethostbyname (Unix.gethostname ())).Unix.h_name
 
-let shardf = Printf.sprintf "%s#%02d" (fqdn ())
+let shardf = Printf.sprintf "%s#%02d" (Unix.gethostname ())
 
 let string_of_process_status =
   function

@@ -36,7 +36,7 @@ let make_channel
         close = ignore;
       }
 
-let create_worker conf map_test_cases shard_id master_id =
+let create_worker conf map_test_cases shard_id master_id worker_log_file =
   (* Threads will get message from master by there. *)
   let master_to_worker = Event.new_channel () in
   (* Threads will send message to master by there. *)
@@ -66,11 +66,8 @@ let create_worker conf map_test_cases shard_id master_id =
     in
       try
         main_worker_loop
-          conf
-          Thread.yield
-          channel_worker
-          shard_id
-          map_test_cases;
+          conf Thread.yield channel_worker shard_id map_test_cases
+          worker_log_file;
         at_end ()
       with e ->
         at_end ();

@@ -135,7 +135,7 @@ let run_test_tt_main ?(exit=Pervasives.exit) suite =
         let logger =
           OUnitLogger.combine
             [
-              OUnitLoggerStd.create conf;
+              OUnitLoggerStd.create conf shard_default;
               OUnitLoggerHTML.create conf;
               OUnitLoggerJUnit.create conf;
             ]

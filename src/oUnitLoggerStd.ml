@@ -214,7 +214,7 @@ let format_log_event ev =
   end;
   List.rev !rlst
 
-let file_logger conf fn =
+let file_logger conf shard_id fn =
   let chn = open_out fn in
   let line = ref 1 in
 
@@ -231,7 +231,7 @@ let file_logger conf fn =
     close_out chn
   in
     {
-      lshard = shard_default;
+      lshard = shard_id;
       fwrite = fwrite;
       fpos   = fpos;
       fclose = fclose;
@@ -249,7 +249,7 @@ let display =
     true
     "Output logs on screen."
 
-let std_logger conf =
+let std_logger conf shard_id =
   if display conf then
     let verbose = verbose conf in
     let fwrite log_ev =
@@ -260,7 +260,7 @@ let std_logger conf =
       flush stdout
     in
       {
-        lshard = shard_default;
+        lshard = shard_id;
         fwrite = fwrite;
         fpos   = (fun () -> None);
         fclose = ignore;
@@ -271,17 +271,22 @@ let std_logger conf =
 let output_file =
   OUnitConf.make_string_subst_opt
     "output_file"
-    (Some (Filename.concat OUnitUtils.buildir "oUnit-$(suite_name).log"))
+    (Some (Filename.concat
+             OUnitUtils.buildir
+             "oUnit-$(suite_name)-$(shard_id).log"))
     "Output verbose log in the given file."
 
-let create conf =
-  let std_logger=
-    std_logger conf
-  in
+let is_output_file_shard_dependent conf =
+  let fn1 = output_file ~extra_subst:["shard_id", "foo"] conf in
+  let fn2 = output_file ~extra_subst:["shard_id", "bar"] conf in
+    fn1 <> fn2
+
+let create conf shard_id =
+  let std_logger = std_logger conf shard_id in
   let file_logger =
-    match output_file conf with
+    match output_file ~extra_subst:["shard_id", shard_id] conf with
       | Some fn ->
-          file_logger conf fn
+          file_logger conf shard_id fn
       | None ->
           null_logger
   in
