@@ -72,6 +72,9 @@ let delay_of_length =
     | Huge -> 1800.0
     | Custom_length f -> f
 
+let get_shard_id test_ctxt =
+  test_ctxt.logger.OUnitLogger.lshard
+
 (** Isolate a function inside a context. All the added tear down will run before
     returning.
  *)

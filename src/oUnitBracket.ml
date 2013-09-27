@@ -19,11 +19,10 @@ let logf logger lvl fmt = OUnitLogger.Test.logf logger lvl fmt
 let bracket_tmpfile ?(prefix="ounit-") ?(suffix=".txt") ?mode test_ctxt =
   create
     (fun test_ctxt ->
-       let (fn, chn) =
-         Filename.open_temp_file ?mode prefix suffix
-       in
-         logf test_ctxt.test_logger `Info "Created a temporary file: %S." fn;
-         (fn, chn))
+       let suffix = "-"^(OUnitTest.get_shard_id test_ctxt)^suffix in
+       let (fn, chn) = Filename.open_temp_file ?mode prefix suffix in
+       logf test_ctxt.test_logger `Info "Created a temporary file: %S." fn;
+       (fn, chn))
     (fun (fn, chn) test_ctxt ->
        (try close_out chn with _ -> ());
        try
@@ -43,10 +42,11 @@ let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") test_ctxt =
         attempt
     end else begin
       try
-         let tmpdn = Filename.temp_file prefix suffix in
-         Sys.remove tmpdn;
-         Unix.mkdir tmpdn 0o755;
-         tmpdn
+        let suffix = "-"^(OUnitTest.get_shard_id test_ctxt)^suffix in
+        let tmpdn = Filename.temp_file prefix suffix in
+        Sys.remove tmpdn;
+        Unix.mkdir tmpdn 0o755;
+        tmpdn
       with Unix.Unix_error (Unix.EEXIST, "mkdir", _) ->
         try_hard_mkdir (max_attempt + 1)
     end
@@ -62,25 +62,24 @@ let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") test_ctxt =
          logf test_ctxt.test_logger `Info
            "Delete in a temporary directory: %S." fn
        in
+       let safe_run f a = try f a with _ -> () in
        let rec rmdir fn =
          Array.iter
            (fun bn ->
               let fn' = Filename.concat fn bn in
-                if Sys.is_directory fn' then
-                  begin
-                    rmdir fn';
-                    Unix.rmdir fn';
-                    log_delete fn'
-                  end
-                else
-                  begin
-                    Sys.remove fn';
-                    log_delete fn'
-                  end)
-           (Sys.readdir fn)
+              let is_dir = try Sys.is_directory fn' with _ -> false in
+                if is_dir then begin
+                  rmdir fn';
+                  safe_run Unix.rmdir fn';
+                  log_delete fn'
+                end else begin
+                  safe_run Sys.remove fn';
+                  log_delete fn'
+                end)
+           (try Sys.readdir fn with _ -> [||])
        in
          rmdir tmpdn;
-         Unix.rmdir tmpdn;
+         safe_run Unix.rmdir tmpdn;
          log_delete tmpdn)
     test_ctxt
 
