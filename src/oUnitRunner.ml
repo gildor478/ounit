@@ -118,6 +118,7 @@ struct
 
   type message_from_worker =
     | AckExit
+    | Log of OUnitTest.log_event_t
     | Lock of int
     | Unlock of int
     | TestDone of (OUnitTest.result_full * OUnitTest.result_list)
@@ -125,6 +126,7 @@ struct
   let string_of_message_from_worker =
     function
       | AckExit -> "AckExit"
+      | Log _ -> "Log _"
       | Lock _ -> "Lock _"
       | Unlock _ -> "Unlock _"
       | TestDone _ -> "TestDone _"
@@ -195,10 +197,19 @@ struct
   let main_worker_loop
         conf yield channel shard_id map_test_cases worker_log_file =
     let logger =
-      if worker_log_file then
-        OUnitLoggerStd.create conf shard_id
-      else
-        OUnitLoggerStd.std_logger conf shard_id
+      let master_logger =
+        set_shard shard_id
+          (OUnitLogger.fun_logger
+             (fun {event = log_ev} -> channel.send_data (Log log_ev))
+             ignore)
+      in
+      let base_logger =
+        if worker_log_file then
+          OUnitLoggerStd.create_file_logger conf shard_id
+        else
+          OUnitLogger.null_logger
+      in
+        OUnitLogger.combine [base_logger; master_logger]
     in
 
     let shared =
@@ -317,6 +328,10 @@ struct
                (errorf logger "Worker return status: %s")
                msg_opt;
              remove_idle_worker worker state
+
+         | Log log_ev ->
+             OUnitLogger.report (set_shard worker.shard_id logger) log_ev;
+             state
 
          | Lock id ->
              worker.channel.send_data

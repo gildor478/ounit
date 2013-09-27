@@ -1,5 +1,6 @@
 
 open OUnit2
+open OUnitUtils
 
 let xmllint = Conf.make_exec "xmllint"
 
@@ -19,12 +20,30 @@ let tests =
        in
        let html_dir = "log-html" in
        let junit_xml = Filename.concat html_dir "junit.xml" in
+       let index_html = Filename.concat html_dir "index.html" in
        let link_to_source bn =
          Sys.remove (Filename.concat html_dir bn);
          Unix.symlink
            (Filename.concat (Sys.getcwd ()) (Filename.concat "src" bn))
            (Filename.concat html_dir bn)
        in
+
+       let grep_wc fn f =
+         let count = ref 0 in
+         let chn = open_in fn in
+         let () =
+           try
+             while true do
+               let line = input_line chn in
+                 if f line then
+                   incr count
+             done;
+           with End_of_file ->
+             close_in chn
+         in
+           !count
+       in
+
          if not (Sys.file_exists html_dir) then
            Unix.mkdir html_dir 0o750;
          assert_command
@@ -34,13 +53,31 @@ let tests =
            ["-output-file"; Filename.concat html_dir "fake-html.log";
             "-output-html-dir"; html_dir;
             "-output-junit-file"; junit_xml];
+         assert_equal
+           ~msg:"Number of test case in junit.xml."
+           ~printer:string_of_int
+           6
+           (grep_wc junit_xml
+              (fun line -> starts_with ~prefix:"<testcase" (trim line)));
+         assert_equal
+           ~msg:"Number of test case in index.html."
+           ~printer:string_of_int
+           6
+           (grep_wc index_html
+              (fun line ->
+                 starts_with ~prefix:"<div class='ounit-test" (trim line)));
+
          (* Fixing some files to use source version of it. *)
          List.iter link_to_source ["oUnit.js"; "oUnit.css"];
          assert_command
            ~ctxt
            (xmllint ctxt)
            ["--noout"; "--nonet"; "--schema"; "test/JUnit.xsd"; junit_xml];
-         (* TODO: css validation and xhtml validation. *)
+         assert_command
+           ~ctxt
+           (xmllint ctxt)
+           ["--noout"; "--nonet"; "--html"; index_html];
+         (* TODO: css validation. *)
          ());
 
       "BacktraceProcessing" >::

@@ -281,13 +281,14 @@ let is_output_file_shard_dependent conf =
   let fn2 = output_file ~extra_subst:["shard_id", "bar"] conf in
     fn1 <> fn2
 
+let create_file_logger conf shard_id =
+  match output_file ~extra_subst:["shard_id", shard_id] conf with
+    | Some fn ->
+        file_logger conf shard_id fn
+    | None ->
+        null_logger
+
 let create conf shard_id =
   let std_logger = std_logger conf shard_id in
-  let file_logger =
-    match output_file ~extra_subst:["shard_id", shard_id] conf with
-      | Some fn ->
-          file_logger conf shard_id fn
-      | None ->
-          null_logger
-  in
+  let file_logger = create_file_logger conf shard_id in
     combine [std_logger; file_logger]

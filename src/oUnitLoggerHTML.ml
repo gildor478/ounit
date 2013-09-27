@@ -98,9 +98,9 @@ let render conf dn events =
   begin
     let printf_result clss label num =
       printf
-        "<div class='ounit-results-%s'>\
-           %s: <span class='number'>%d</span>\
-         </div>"
+        "<div class='ounit-results-%s'>\n\
+           %s: <span class='number'>%d</span>\n\
+         </div>\n"
         clss label num
     in
     let printf_non0_result clss label num =
@@ -120,7 +120,7 @@ let render conf dn events =
       printf_non0_result "failures" "Failures" smr.failures;
       printf_non0_result "skips" "Skipped" smr.skips;
       printf_non0_result "todos" "TODO" smr.todos;
-      printf_non0_result "timeouts" "Timed out" smr.successes;
+      printf_non0_result "timeouts" "Timed out" smr.timeouts;
       printf_result "successes" "Successes" smr.successes;
 
       (* Print final verdict *)
