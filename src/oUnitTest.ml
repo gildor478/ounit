@@ -169,6 +169,12 @@ let result_full_of_exception ctxt e =
   in
     ctxt.path, result, position
 
+let report_result_full ctxt result_full =
+  let test_path, result, _ = result_full in
+    OUnitLogger.report ctxt.logger
+      (OUnitLogger.TestEvent (test_path, OUnitLogger.EResult result));
+    result_full
+
 (** Isolate a function inside a context, just as [!section_ctxt] but don't
     propagate a failure, register it for later.
   *)
@@ -176,10 +182,13 @@ let non_fatal ctxt f =
   try
     section_ctxt ctxt f
   with e ->
+    let result_full =
+      report_result_full ctxt (result_full_of_exception ctxt e)
+    in
     OUnitShared.Mutex.with_lock
       ctxt.shared ctxt.non_fatal_mutex
       (fun () ->
-         ctxt.non_fatal := result_full_of_exception ctxt e :: !(ctxt.non_fatal))
+         ctxt.non_fatal := result_full :: !(ctxt.non_fatal))
 
 (* Some shorthands which allows easy test construction *)
 let (>:) s t = TestLabel(s, t)  (* infix *)

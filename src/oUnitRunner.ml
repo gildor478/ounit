@@ -9,11 +9,14 @@ let run_one_test conf logger shared test_path test_fun =
   let main_result_full =
     with_ctxt conf logger shared non_fatal test_path
       (fun ctxt ->
-         try
-           test_fun ctxt;
-           test_path, RSuccess, None
-         with e ->
-           OUnitTest.result_full_of_exception ctxt e)
+         let result_full =
+           try
+             test_fun ctxt;
+             test_path, RSuccess, None
+           with e ->
+             OUnitTest.result_full_of_exception ctxt e
+         in
+           report_result_full ctxt result_full)
   in
   let result_full, other_result_fulls =
     match main_result_full, List.rev !non_fatal with
@@ -24,8 +27,6 @@ let run_one_test conf logger shared test_path test_fun =
       | _, lst ->
           OUnitResultSummary.worst_result_full main_result_full lst
   in
-  let _, result, _ = result_full in
-    OUnitLogger.report logger (TestEvent (test_path, EResult result));
     OUnitLogger.report logger (TestEvent (test_path, EEnd));
     result_full, other_result_fulls
 
