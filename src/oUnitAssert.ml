@@ -109,20 +109,8 @@ let assert_command
       (fun ctxt ->
          let (fn_out, chn_out) = bracket_tmpfile ctxt in
          let cmd_print fmt =
-           let () =
-             match env with
-               | Some e ->
-                   begin
-                     Format.pp_print_string fmt "env";
-                     Array.iter (Format.fprintf fmt "@ %s") e;
-                     Format.pp_print_space fmt ()
-                   end
-
-               | None ->
-                   ()
-           in
-             Format.pp_print_string fmt prg;
-             List.iter (Format.fprintf fmt "@ %s") args
+           Format.pp_print_string fmt prg;
+           List.iter (Format.fprintf fmt "@ %s") args
          in
 
          (* Start the process *)
@@ -176,19 +164,30 @@ let assert_command
              env
            end
          in
-         let in_chdir f =
+         let command_chdir, in_chdir =
            match chdir with
              | Some dn ->
-                 with_bracket ctxt (bracket_chdir dn)
-                   (fun () _ -> f ())
+                 dn,
+                 fun f ->
+                   with_bracket ctxt (bracket_chdir dn)
+                     (fun () _ -> f ())
              | None ->
-                 f ()
+                 Sys.getcwd (), fun f -> f ()
          in
          let pid =
-           OUnitLogger.Test.raw_printf ctxt.test_logger "%s"
+           OUnitLogger.Test.logf ctxt.test_logger `Info "%s"
              (buff_format_printf
                 (fun fmt ->
                    Format.fprintf fmt "@[Starting command '%t'@]\n" cmd_print));
+           OUnitLogger.Test.logf ctxt.test_logger `Info "Working directory: %S"
+             command_chdir;
+           OUnitLogger.Test.logf ctxt.test_logger `Info "Environment: ";
+           Array.iter
+             (fun v ->
+                OUnitLogger.Test.logf ctxt.test_logger `Info "%s" v)
+             (match env with
+                | Some e -> e
+                | None -> Unix.environment ());
            Unix.set_close_on_exec out_write;
            match env with
              | Some e ->
