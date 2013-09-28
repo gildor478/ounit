@@ -178,7 +178,7 @@ let assert_command
            OUnitLogger.Test.logf ctxt.test_logger `Info "%s"
              (buff_format_printf
                 (fun fmt ->
-                   Format.fprintf fmt "@[Starting command '%t'@]\n" cmd_print));
+                   Format.fprintf fmt "Starting command '%t'." cmd_print));
            OUnitLogger.Test.logf ctxt.test_logger `Info "Working directory: %S"
              command_chdir;
            OUnitLogger.Test.logf ctxt.test_logger `Info "Environment: ";
