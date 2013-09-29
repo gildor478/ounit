@@ -214,14 +214,6 @@ val logf: test_ctxt -> log_severity -> ('a, unit, string, unit) format4 -> 'a
   *)
 val in_testdata_dir: test_ctxt -> string list -> string
 
-(** Main version of the text based test runner. It reads the supplied command
-    line arguments to set the verbose level and limit the number of test to
-    run.
-
-    @param test the test suite to run.
-  *)
-val run_test_tt_main : ?exit:(int -> unit) -> test -> unit
-
 (** [non_fatal ctxt f] Run [f] but if an exception is raised or an assert fails,
     don't stop, just register the result. The global test running result will mix
     in the non fatal result to determine the success or failure of the test.
@@ -278,3 +270,11 @@ let tests =
   (** [make_exec execname] Create a option to define an executable. *)
   val make_exec: string -> test_ctxt -> string
 end
+
+(** Main version of the text based test runner. It reads the supplied command
+    line arguments to set the verbose level and limit the number of test to
+    run.
+
+    @param test the test suite to run.
+  *)
+val run_test_tt_main : ?exit:(int -> unit) -> test -> unit
