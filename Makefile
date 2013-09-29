@@ -82,3 +82,13 @@ fix-perms:
 	chmod +x doc-dist.sh
 
 .PHONY: fix-perms
+
+headache:
+	find ./ \
+		-name _darcs -prune -false \
+    -o -name _build -prune -false \
+	  -o -name dist -prune -false \
+	  -o -name '*[^~]' -type f \
+	  | xargs headache -h _header -c _headache.config
+
+.PHONY: headache

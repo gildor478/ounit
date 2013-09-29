@@ -3,6 +3,7 @@
 (*                                                                     *)
 (* Copyright (C) 2002-2008 Maas-Maarten Zeeman.                        *)
 (* Copyright (C) 2010 OCamlCore SARL                                   *)
+(* Copyright (C) 2013 Sylvain Le Gall.                                 *)
 (*                                                                     *)
 (* See LICENSE for details.                                            *)
 (***********************************************************************)
