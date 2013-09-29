@@ -107,6 +107,11 @@ doc-dev-dist: doc fix-perms
 
 deploy: doc fix-perms
 	./doc-dist.sh --version $(shell oasis query version)
+	admin-gallu-deploy --verbose \
+		--forge_upload	--forge_group ounit --forge_user gildor-admin \
+		--forge_extra_file "dist/ounit-doc-$(shell oasis query version).tar.gz"
+	admin-gallu-oasis-increment \
+		--setup_run --setup_args "-setup-update dynamic" --use_vcs
 
 .PHONY: deploy
 
