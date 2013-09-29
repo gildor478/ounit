@@ -1,7 +1,31 @@
 ounit-2.0.0
 
+  - major rewrite of all the code!
   - implements a quickfix compatible way of outputing failures, it jumps to
    	the a position in the logfile to help you debug the problem.
+	- better configuration setup: environment variable, command line options,
+	  configuration files (OUnitConf)
+	- improved output of the tests: output HTML report, output JUnit report,
+	  systematic logging to a file (OUnitLogger*)
+	- choose how to run a test: in parallel using processes (auto-detect number
+	  of CPU), concurrently using threads or sequentialy as before.
+	- choose which test to run: just run test in sequence (simple) or run the
+	  tests that failed in the last run first and skip the success if they are
+	  still failing (failfirst) (OUnitChooser)
+	- OUnitBracket: use a registration in the context to make it easier to use
+	- remove all useless functions in the OUnit2 interface
+	- non-fatal section: allow to fail inside non-fatal section without
+	  quitting immediately the whole test
+	- refactor OUnit.ml to still provides the same function but using OUnit2.
+	-  timer that makes tests fail if they take too long (runner = processes)
+	- allow to parametrize filenames so that you can use
+	  OUNIT_OUTPUT_FILE=ounit-$(suite_name)-$(shard_id).log
+		and have $(suite_name) replace by the test suite name
+	- create locks to avoid accessing the same resources within a single process
+	  or the whole application (OUnitShared)
+	- OUnitTestData locate test data, if any.
+	- enforce environment cleanness by checking it before and after the test
+	  (e.g check that Sys.getcwd is the same).
 
 ounit-1.1.2
 
