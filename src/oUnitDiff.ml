@@ -37,7 +37,7 @@ sig
 end
 
 let assert_equal ?msg compare pp_printer pp_diff exp act =
-  OUnit.assert_equal
+  OUnitAssert.assert_equal
     ~cmp:(fun t1 t2 -> (compare t1 t2) = 0)
     ~printer:(fun t ->
                 let buff = Buffer.create 13 in

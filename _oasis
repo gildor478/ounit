@@ -22,8 +22,7 @@ Description:
 Library "oUnit"
   Path: src
   Modules: OUnit,
-           OUnit2,
-           OUnitDiff
+           OUnit2
   BuildDepends: unix, oUnit.advanced
 
 Library "oUnitAdvanced"
@@ -48,7 +47,9 @@ Library "oUnitAdvanced"
            OUnitConf,
            OUnitShared,
            OUnitCache,
-           OUnitTestData
+           OUnitTestData,
+           OUnitCheckEnv,
+           OUnitDiff
   FindlibParent: oUnit
   FindlibName: advanced
 

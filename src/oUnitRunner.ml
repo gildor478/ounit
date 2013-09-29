@@ -9,9 +9,11 @@ let run_one_test conf logger shared test_path test_fun =
   let main_result_full =
     with_ctxt conf logger shared non_fatal test_path
       (fun ctxt ->
+         let check_env = OUnitCheckEnv.create () in
          let result_full =
            try
              test_fun ctxt;
+             OUnitCheckEnv.check ctxt check_env;
              test_path, RSuccess, None
            with e ->
              OUnitTest.result_full_of_exception ctxt e
