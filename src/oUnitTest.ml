@@ -119,6 +119,56 @@ let with_ctxt conf logger shared non_fatal test_path f =
   in
     section_ctxt ctxt f
 
+let standard_modules =
+  [
+    "arg.ml";
+    "arrayLabels.ml";
+    "array.ml";
+    "buffer.ml";
+    "callback.ml";
+    "camlinternalLazy.ml";
+    "camlinternalMod.ml";
+    "camlinternalOO.ml";
+    "char.ml";
+    "complex.ml";
+    "digest.ml";
+    "filename.ml";
+    "format.ml";
+    "gc.ml";
+    "genlex.ml";
+    "hashtbl.ml";
+    "int32.ml";
+    "int64.ml";
+    "lazy.ml";
+    "lexing.ml";
+    "listLabels.ml";
+    "list.ml";
+    "map.ml";
+    "marshal.ml";
+    "moreLabels.ml";
+    "nativeint.ml";
+    "obj.ml";
+    "oo.ml";
+    "parsing.ml";
+    "pervasives.ml";
+    "printexc.ml";
+    "printf.ml";
+    "queue.ml";
+    "random.ml";
+    "scanf.ml";
+    "set.ml";
+    "sort.ml";
+    "stack.ml";
+    "std_exit.ml";
+    "stdLabels.ml";
+    "stream.ml";
+    "stringLabels.ml";
+    "string.ml";
+    "sys.ml";
+    "weak.ml";
+    "unix.ml";
+  ]
+
 (** Transform an exception in a result. *)
 let result_full_of_exception ctxt e =
   let backtrace () =
@@ -139,7 +189,8 @@ let result_full_of_exception ctxt e =
               (function
                  | None -> false
                  | Some (fn, _) ->
-                     not (starts_with ~prefix:"oUnit" (Filename.basename fn)))
+                     not (starts_with ~prefix:"oUnit" (Filename.basename fn)) &&
+                     not (List.mem fn standard_modules))
               lst
           with Not_found ->
             None
