@@ -108,6 +108,8 @@ doc-dev-dist: doc fix-perms
 deploy: doc fix-perms
 	./doc-dist.sh --version $(shell oasis query version)
 	admin-gallu-deploy --verbose \
+		--debian_pkg --debuild --debian_upload \
+		--oasis2debian_args "--library-name ounit" \
 		--forge_upload	--forge_group ounit --forge_user gildor-admin \
 		--forge_extra_file "dist/ounit-doc-$(shell oasis query version).tar.gz"
 	admin-gallu-oasis-increment \
