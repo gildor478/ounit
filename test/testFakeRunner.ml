@@ -79,6 +79,6 @@ let suite =
             Unix.sleep 1))
   ]
 
-let () = 
+let () =
   OUnitThreads.init ();
   run_test_tt_main suite

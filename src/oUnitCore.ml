@@ -35,7 +35,7 @@ open OUnitTest
 open OUnitLogger
 
 (* Plugin initialisation. *)
-let () = 
+let () =
   OUnitRunnerProcesses.init ()
 
 (*

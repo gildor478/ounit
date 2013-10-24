@@ -39,7 +39,7 @@ let perform_test test =
     OUnitCore.perform_test
       conf
       null_logger
-      OUnitRunner.sequential_runner 
+      OUnitRunner.sequential_runner
       OUnitChooser.simple
       test
 

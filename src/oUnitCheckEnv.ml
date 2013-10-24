@@ -42,7 +42,7 @@ type t =
     env: string array;
   }
 
-let create () = 
+let create () =
   {
     pwd = Sys.getcwd ();
     env = Unix.environment ();
@@ -56,25 +56,25 @@ struct
 
   let compare = String.compare
 
-  let pp_print_sep = OUnitDiff.pp_comma_separator 
+  let pp_print_sep = OUnitDiff.pp_comma_separator
 end
 
-module SetEnv = OUnitDiff.SetMake(EnvElement) 
+module SetEnv = OUnitDiff.SetMake(EnvElement)
 
-let check test_ctxt t = 
+let check test_ctxt t =
   let t' = create () in
-    List.iter 
+    List.iter
       (fun f -> non_fatal test_ctxt (fun _ -> f ()))
       [
         (fun () ->
-           assert_equal 
+           assert_equal
              ~msg:"Current working dir (check env)."
              ~printer:(fun s -> s)
              t.pwd
              t'.pwd);
         (fun () ->
            let convert t = SetEnv.of_list (Array.to_list t.env) in
-             SetEnv.assert_equal 
+             SetEnv.assert_equal
                ~msg:"Environment (check env)."
                (convert t)
                (convert t'));

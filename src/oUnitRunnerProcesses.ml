@@ -85,7 +85,7 @@ let make_channel
   in
 
   let receive_data () =
-    try 
+    try
       let data_size = Marshal.data_size (really_read fd_read header_str) 0 in
       let data_str = really_read fd_read (String.create data_size) in
       let msg = Marshal.from_string (header_str ^ data_str) 0 in

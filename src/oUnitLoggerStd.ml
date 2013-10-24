@@ -39,7 +39,7 @@ let ocaml_position pos =
     "File \"%s\", line %d, characters 1-1:"
     pos.filename pos.line
 
-let multiline f str = 
+let multiline f str =
   if String.length str > 0 then
     let buf = Buffer.create 80 in
     let flush () = f (Buffer.contents buf); Buffer.clear buf in
@@ -50,7 +50,7 @@ let multiline f str =
 
 let count results f =
   List.fold_left
-    (fun count (_, test_result, _) -> 
+    (fun count (_, test_result, _) ->
        if f test_result then count + 1 else count)
     0 results
 
@@ -167,12 +167,12 @@ let format_display_event conf log_event =
             | EResult (RTimeout _) -> "~"
         end
 
-let format_log_event ev = 
+let format_log_event ev =
   let rlst = ref [] in
   let timestamp_str = OUnitUtils.date_iso8601 ev.timestamp in
-  let spf pre fmt = 
+  let spf pre fmt =
     Printf.ksprintf
-      (multiline 
+      (multiline
          (fun l ->
             rlst := (timestamp_str^" "^ev.shard^" "^pre^": "^l) :: !rlst))
       fmt
@@ -182,7 +182,7 @@ let format_log_event ev =
   let espf fmt = spf "E" fmt in
   let format_result path result =
     let path_str = string_of_path path in
-    match result with 
+    match result with
     | RTimeout test_length ->
         espf "Test %s timed out after %.1fs"
           path_str (delay_of_length test_length)

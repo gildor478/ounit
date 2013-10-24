@@ -34,7 +34,7 @@ open OUnit2
 
 let testFakeRunner = Conf.make_exec "testFakeRunner"
 
-type test_results = 
+type test_results =
     {
       cases: int;
       tried: int;
@@ -53,19 +53,19 @@ let string_of_test_results test_results =
     test_results.failures test_results.skip test_results.todo
     test_results.timeout
 
-let run_test_fake_runner ctxt runner args = 
+let run_test_fake_runner ctxt runner args =
   let fn, _ = bracket_tmpfile ctxt in
   let () =
-    assert_command 
+    assert_command
       ~ctxt
       ~exit_code:(Unix.WEXITED 1)
       (testFakeRunner ctxt)
       ("-output-file" :: fn :: "-runner" :: runner :: args);
   in
 
-  let mk str = 
+  let mk str =
     let r = ref (-1) in
-    let regex = 
+    let regex =
       Str.regexp (".* I: "^str^": \\([0-9]+\\)\\.$")
     in
       r,
@@ -74,24 +74,24 @@ let run_test_fake_runner ctxt runner args =
           r := int_of_string (Str.matched_group 1 line)
   in
 
-  let cases, fcases = mk "Cases" in 
+  let cases, fcases = mk "Cases" in
   let tried, ftried = mk "Tried" in
   let errors, ferrors = mk "Errors" in
   let failures, ffailures = mk "Failures" in
   let skip, fskip = mk "Skip" in
   let todo, ftodo = mk "Todo" in
   let timeout, ftimeout = mk "Timeout" in
-    
+
   let rrunner = ref "" in
   let runner_regex = Str.regexp (".* I: Runner: \\([a-z]+\\)$") in
-  let frunner line = 
+  let frunner line =
     if Str.string_match runner_regex line 0 then
       rrunner := Str.matched_group 1 line
   in
 
   let chn = open_in fn in
   let () =
-    try 
+    try
       while true do
         let line = input_line chn in
         List.iter
@@ -106,12 +106,12 @@ let run_test_fake_runner ctxt runner args =
       ~printer:(fun s -> s)
       runner
       !rrunner;
-    assert_bool "Cases initialized." (!cases >= 0); 
-    assert_bool "Tried initialized." (!tried >= 0); 
-    assert_bool "Errors initialized." (!errors >= 0); 
-    assert_bool "Failures initialized." (!failures >= 0); 
-    assert_bool "Skip initialized." (!skip >= 0); 
-    assert_bool "Todo initialized." (!todo >= 0); 
+    assert_bool "Cases initialized." (!cases >= 0);
+    assert_bool "Tried initialized." (!tried >= 0);
+    assert_bool "Errors initialized." (!errors >= 0);
+    assert_bool "Failures initialized." (!failures >= 0);
+    assert_bool "Skip initialized." (!skip >= 0);
+    assert_bool "Todo initialized." (!todo >= 0);
     assert_bool "Timeout initialized." (!timeout >= 0);
     {
       cases = !cases;
@@ -140,7 +140,7 @@ let check_standard_results ?(extra_errors=0) ?(extra_timeouts=0) test_results =
 
 let skip_if_notunix () = skip_if (Sys.os_type <> "Unix") "Only run on Unix."
 
-let tests = 
+let tests =
   "Runner" >:::
   [
     "Sequential" >::
