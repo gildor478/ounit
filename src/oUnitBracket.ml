@@ -116,25 +116,22 @@ let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") test_ctxt =
 
 let chdir_mutex = OUnitShared.Mutex.create OUnitShared.ScopeProcess
 
-let bracket_chdir dir test_ctxt =
-  let () =
-    OUnitLogger.infof test_ctxt.logger "Change directory to %S" dir;
-  in
-  let () =
-    try
-      OUnitShared.Mutex.lock test_ctxt.shared chdir_mutex;
-    with OUnitShared.Lock_failure ->
-      failwith "Trying to do a nested chdir."
-  in
-  let cur_pwd =
-    Sys.getcwd ()
-  in
+let bracket_chdir dir =
   create
-    (fun test_ctxt -> Unix.chdir dir)
-    (fun () test_ctxt ->
+    (fun test_ctxt -> 
+       let () =
+         OUnitLogger.infof test_ctxt.logger "Change directory to %S" dir;
+         try
+           OUnitShared.Mutex.lock test_ctxt.shared chdir_mutex;
+         with OUnitShared.Lock_failure ->
+           failwith "Trying to do a nested chdir."
+       in
+       let cur_pwd = Sys.getcwd () in
+         Unix.chdir dir;
+         cur_pwd)
+    (fun cur_pwd test_ctxt ->
        Unix.chdir cur_pwd;
        OUnitShared.Mutex.unlock test_ctxt.shared chdir_mutex)
-    test_ctxt
 
 let with_bracket test_ctxt bracket f =
   section_ctxt test_ctxt
