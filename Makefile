@@ -90,7 +90,7 @@ PRECOMMIT_ARGS= \
 	    --exclude _tags
 
 precommit:
-	 @if command -v OCamlPrecommit > /dev/null; then \
+	 -@if command -v OCamlPrecommit > /dev/null; then \
 	   OCamlPrecommit $(PRECOMMIT_ARGS); \
 	 else \
 	   echo "Skipping precommit checks.";\
@@ -108,12 +108,12 @@ doc-dev-dist: doc fix-perms
 deploy: doc fix-perms
 	./doc-dist.sh --version $(shell oasis query version)
 	admin-gallu-deploy --verbose \
-		--debian_pkg --debuild --debian_upload \
-		--oasis2debian_args "--library-name ounit" \
-		--forge_upload	--forge_group ounit --forge_user gildor-admin \
-		--forge_extra_file "dist/ounit-doc-$(shell oasis query version).tar.gz"
+	  --debian_pkg --debuild --debian_upload \
+	  --oasis2debian_args "--library-name ounit" \
+	  --forge_upload --forge_group ounit --forge_user gildor-admin \
+	  --forge_extra_file "dist/ounit-doc-$(shell oasis query version).tar.gz"
 	admin-gallu-oasis-increment \
-		--setup_run --setup_args "-setup-update dynamic" --use_vcs
+	  --setup_run --setup_args "-setup-update dynamic" --use_vcs
 
 .PHONY: deploy
 
@@ -124,8 +124,8 @@ fix-perms:
 
 headache:
 	find ./ \
-		-name _darcs -prune -false \
-    -o -name _build -prune -false \
+	  -name _darcs -prune -false \
+	  -o -name _build -prune -false \
 	  -o -name dist -prune -false \
 	  -o -name log-html -prune -false \
 	  -o -name '*[^~]' -type f \
