@@ -1,0 +1,7 @@
+/_build/
+/setup.data
+/setup.log
+/dist/
+/test.byte
+/log-html/
+/junit.xml
