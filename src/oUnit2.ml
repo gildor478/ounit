@@ -68,7 +68,7 @@ let bracket_tmpdir = OUnitBracket.bracket_tmpdir
 let with_bracket_chdir test_ctxt dn f =
   OUnitBracket.with_bracket test_ctxt
     (OUnitBracket.bracket_chdir dn)
-    (fun () -> f)
+    (fun _ -> f)
 
 
 let non_fatal = OUnitTest.non_fatal

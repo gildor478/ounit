@@ -57,10 +57,10 @@ let suite =
     "failure" >::
     (fun ctxt -> assert_equal 0 1);
 
-    "todo" >::
+    "skip" >::
     (fun ctxt -> skip_if true "skipped because of me");
 
-    "skip" >::
+    "todo" >::
     (fun ctxt -> todo "need to make this function");
 
     "error" >::

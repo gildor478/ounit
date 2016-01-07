@@ -5,3 +5,6 @@
 /test.byte
 /log-html/
 /junit.xml
+/testFakeHTML.byte
+/testFakeRunner.byte
+/testFakeShared.byte

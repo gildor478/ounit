@@ -59,6 +59,7 @@ let run_test_fake_runner ctxt runner args =
     assert_command
       ~ctxt
       ~exit_code:(Unix.WEXITED 1)
+      ~env:[||]
       (testFakeRunner ctxt)
       ("-output-file" :: fn :: "-runner" :: runner :: args);
   in

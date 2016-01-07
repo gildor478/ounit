@@ -201,7 +201,7 @@ let assert_command
                  dn,
                  fun f ->
                    with_bracket ctxt (bracket_chdir dn)
-                     (fun () _ -> f ())
+                     (fun _ _ -> f ())
              | None ->
                  Sys.getcwd (), fun f -> f ()
          in

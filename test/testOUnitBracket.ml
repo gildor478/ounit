@@ -84,7 +84,7 @@ let tests =
        let () =
          with_bracket
            test_ctxt (bracket_chdir tmpdn)
-           (fun () (test_ctxt : OUnitTest.ctxt) ->
+           (fun _ (test_ctxt : OUnitTest.ctxt) ->
               assert_equal
                 ~printer:(fun s -> s)
                 tmpdn
