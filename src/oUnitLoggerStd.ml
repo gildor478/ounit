@@ -158,7 +158,7 @@ let format_display_event conf log_event =
     | TestEvent (_, e) ->
         begin
           match e with
-            | EStart _ | EEnd _ | ELog _ | ELogRaw _ -> ""
+            | EStart | EEnd | ELog _ | ELogRaw _ -> ""
             | EResult RSuccess -> "."
             | EResult (RFailure _) -> "F"
             | EResult (RError _) -> "E"

@@ -71,13 +71,10 @@ let check_variable_name str =
       str
 
 let cli_name name =
-  let cli_name = "-" ^ name in
-  for i = 1 to String.length name do
-     match cli_name.[i] with
-       | '_' -> cli_name.[i] <- '-'
-       | _ -> ()
-  done;
-  cli_name
+  let replace_underscores str =
+    String.map (fun c -> if c = '_' then '-' else c) str
+  in
+  "-" ^ replace_underscores name
 
 let subst conf extra_subst str =
   let substitutions = Hashtbl.create (Hashtbl.length metaconf) in
@@ -328,7 +325,7 @@ let file_parse conf fn =
 
 let env_parse conf =
   let parse name =
-    let env_name = "OUNIT_" ^ (String.uppercase name) in
+    let env_name = "OUNIT_" ^ (String.uppercase_ascii name) in
     try
       let value = Sys.getenv env_name in
       (* Check and translate double quoted variable. *)

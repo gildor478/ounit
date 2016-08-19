@@ -64,10 +64,10 @@ let make_channel
   let really_read fd str =
     let off = ref 0 in
     let read = ref 0 in
-      while !read < String.length str do
+      while !read < Bytes.length str do
         try
           let one_read =
-            Unix.read fd str !off (String.length str - !off)
+            Unix.read fd str !off (Bytes.length str - !off)
           in
             read := !read + one_read;
             off := !off + one_read
@@ -77,7 +77,7 @@ let make_channel
       str
   in
 
-  let header_str = String.create Marshal.header_size in
+  let header_str = Bytes.create Marshal.header_size in
 
   let send_data msg =
     Marshal.to_channel chn_write msg [];
@@ -87,8 +87,8 @@ let make_channel
   let receive_data () =
     try
       let data_size = Marshal.data_size (really_read fd_read header_str) 0 in
-      let data_str = really_read fd_read (String.create data_size) in
-      let msg = Marshal.from_string (header_str ^ data_str) 0 in
+      let data_str = really_read fd_read (Bytes.create data_size) in
+      let msg = Marshal.from_bytes (Bytes.cat header_str data_str) 0 in
         msg
     with Failure(msg) ->
       OUnitUtils.failwithf "Communication error with worker processes: %s" msg
