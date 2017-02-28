@@ -108,6 +108,7 @@ Document "api-ounit"
   XOCamlbuildPath:      src/
 
 SourceRepository head
-  Type: darcs
-  Location: http://darcs.ocamlcore.org/repos/ounit
-  Browser: http://darcs.ocamlcore.org/cgi-bin/darcsweb.cgi?r=ounit;a=summary
+  Type: git
+  Location: https://github.com/gildor478/ounit.git
+  Branch: master
+  Browser: https://github.com/gildor478/ounit
