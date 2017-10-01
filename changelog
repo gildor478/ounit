@@ -1,3 +1,11 @@
+ounit-2.0.1
+
+  - minor bug fixes
+	- fix safe-string compatibility issuesi, thanks to Christoph Spiel
+	  (Closes: #1760, #1761)
+	- fix some format string errors, thanks to Damien Doligez (Closes: #1422)
+	- fix backward incompatiblity with OUnit v1 (Closes: #1392)
+
 ounit-2.0.0
 
   - major rewrite of all the code!

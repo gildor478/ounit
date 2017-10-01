@@ -132,6 +132,6 @@ headache:
 	  -o -name dist -prune -false \
 	  -o -name log-html -prune -false \
 	  -o -name '*[^~]' -type f \
-	  | xargs headache -h _header -c _headache.config
+	  | xargs /usr/bin/headache -h _header -c _headache.config
 
 .PHONY: headache
