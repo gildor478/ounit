@@ -379,5 +379,8 @@ let run_test_tt_main ?(arg_specs=[]) ?(set_verbose=ignore) suite =
             (snd (OUnitChooser.choice conf))
             nsuite
         in
-          list_result1_of_list_result test_results
+        if not (OUnitResultSummary.was_successful test_results) then
+          exit 1
+        else
+          list_result1_of_list_result test_results;
       end
