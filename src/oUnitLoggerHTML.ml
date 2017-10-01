@@ -198,22 +198,22 @@ let render conf dn events =
     <div class='ounit-test %s'>
       <h2>%s (%s)</h2>
       <div class='ounit-started-at'>Started at: %s</div>
-      <div class='ounit-duration'>Test duration: %0.3fs</div>
+      <div class='ounit-duration'>Test duration: %.3fs</div>
       <div class='ounit-log'>\n"
          class_result
          (html_escaper test_data.test_name)
          (html_escaper text_result)
          (date_iso8601 test_data.timestamp_start)
          (test_data.timestamp_end -. test_data.timestamp_start);
-       printf "<span class='ounit-timestamp'>%0.3fs</span>Start<br/>\n"
+       printf "<span class='ounit-timestamp'>%.3fs</span>Start<br/>\n"
          0.0;
        List.iter (fun (tmstp, svrt, str) ->
                     printf "\
         <span class='%s'>
-          <span class='ounit-timestamp'>%0.3fs</span>%s</span><br/>\n"
+          <span class='ounit-timestamp'>%.3fs</span>%s</span><br/>\n"
                       (class_severity_opt svrt) tmstp (html_escaper str))
          test_data.log_entries;
-       printf "<span class='ounit-timestamp'>%0.3fs</span>End<br/>\n"
+       printf "<span class='ounit-timestamp'>%.3fs</span>End<br/>\n"
          (test_data.timestamp_end -. test_data.timestamp_start);
        printf "<div class='ounit-result'>";
        begin
