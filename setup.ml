@@ -1,11 +1,11 @@
 (* setup.ml generated for the first time by OASIS v0.2.0~alpha1 *)
 
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 9852805d5c19ca1cb6abefde2dcea323) *)
+(* DO NOT EDIT (digest: 4463497d4d76be948c91dd5170c4a49c) *)
 (******************************************************************************)
 (* OASIS: architecture for building OCaml libraries and applications          *)
 (*                                                                            *)
-(* Copyright (C) 2011-2013, Sylvain Le Gall                                   *)
+(* Copyright (C) 2011-2016, Sylvain Le Gall                                   *)
 (* Copyright (C) 2008-2011, OCamlCore SARL                                    *)
 (*                                                                            *)
 (* This library is free software; you can redistribute it and/or modify it    *)
@@ -33,5 +33,7 @@ let () =
 #require "oasis.dynrun";;
 open OASISDynRun;;
 
+let setup_t = BaseCompat.Compat_0_3.adapt_setup_t setup_t
+open BaseCompat.Compat_0_3
 (* OASIS_STOP *)
 let () = setup ();;

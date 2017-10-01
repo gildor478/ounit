@@ -1,7 +1,7 @@
 OASISFormat: 0.3
 OCamlVersion: >= 3.11.0
 Name:        ounit
-Version:     2.0.1
+Version:     2.0.2
 Synopsis:    Unit testing framework
 Authors:     Maas-Maarten Zeeman,
              Sylvain Le Gall
