@@ -1,3 +1,9 @@
+ounit-2.0.3
+
+  - minor bug fixes:
+	  - use Marshal.from_string to be compatible with OCaml <= 4.01.
+		- declare dependency on bytes in _oasis
+
 ounit-2.0.2
 
   - minor bug fixes:

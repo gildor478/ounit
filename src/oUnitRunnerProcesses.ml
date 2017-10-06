@@ -88,7 +88,12 @@ let make_channel
     try
       let data_size = Marshal.data_size (really_read fd_read header_str) 0 in
       let data_str = really_read fd_read (Bytes.create data_size) in
-      let msg = Marshal.from_bytes (Bytes.cat header_str data_str) 0 in
+      let msg =
+        (* TODO: use Marshal.from_bytes when OCaml requirement is > 4.01. *)
+        Marshal.from_string
+          (Bytes.unsafe_to_string (Bytes.cat header_str data_str))
+          0
+      in
         msg
     with Failure(msg) ->
       OUnitUtils.failwithf "Communication error with worker processes: %s" msg
