@@ -1,3 +1,8 @@
+ounit-2.0.2
+
+  - minor bug fixes:
+	  - replace String.uppercase_ascii.
+
 ounit-2.0.1
 
   - minor bug fixes

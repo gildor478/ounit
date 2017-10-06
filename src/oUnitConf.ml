@@ -325,7 +325,14 @@ let file_parse conf fn =
 
 let env_parse conf =
   let parse name =
-    let env_name = "OUNIT_" ^ (String.uppercase_ascii name) in
+    let uppercase_name =
+      String.map
+        (function
+          | 'a' .. 'z' as c -> Char.chr ((Char.code c) + 32)
+          | c -> c)
+        name
+    in
+    let env_name = "OUNIT_" ^ uppercase_name in
     try
       let value = Sys.getenv env_name in
       (* Check and translate double quoted variable. *)
