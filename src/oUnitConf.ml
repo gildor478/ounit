@@ -72,7 +72,13 @@ let check_variable_name str =
 
 let cli_name name =
   let replace_underscores str =
-    String.map (fun c -> if c = '_' then '-' else c) str
+    let b = Buffer.create (String.length str) in
+      String.iter
+        (function
+          | '_' -> Buffer.add_char b '-'
+          | c -> Buffer.add_char b c)
+        str;
+      Buffer.contents b
   in
   "-" ^ replace_underscores name
 
@@ -326,11 +332,14 @@ let file_parse conf fn =
 let env_parse conf =
   let parse name =
     let uppercase_name =
-      String.map
+      let b = Buffer.create (String.length name) in
+      String.iter
         (function
-          | 'a' .. 'z' as c -> Char.chr ((Char.code c) + 32)
-          | c -> c)
-        name
+          | 'a' .. 'z' as c ->
+            Buffer.add_char b (Char.chr ((Char.code c) + 32))
+          | c -> Buffer.add_char b c)
+        name;
+      Buffer.contents b
     in
     let env_name = "OUNIT_" ^ uppercase_name in
     try

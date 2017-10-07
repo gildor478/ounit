@@ -1,3 +1,8 @@
+ounit-2.0.4
+
+  - minor bug fixes:
+	  - replace String.map by Buffer.* to be compatible with OCaml < 4.0.
+
 ounit-2.0.3
 
   - minor bug fixes:
