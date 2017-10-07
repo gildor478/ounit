@@ -191,11 +191,15 @@ let create_worker conf map_test_cases shard_id master_id worker_log_file =
               false, None
             end else begin
               let running = is_running () in
-                if running then
-                  (* Wait 0.1 seconds and continue. *)
-                  let _, _, _ = Unix.select [] [] [] 0.1 in
-                    wait_end (timeout -. 0.1)
-                else
+              if running then
+                begin
+                  begin
+                    try ignore (Unix.select [] [] [] 0.1)
+                    with Unix.Unix_error (Unix.EINTR, "select", "") -> ()
+                  end;
+                  wait_end (timeout -. 0.1)
+                end
+              else
                   match !rstatus with
                   | Some status -> true, msg_of_process_status status
                   | None -> true, None
