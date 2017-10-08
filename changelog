@@ -1,3 +1,8 @@
+ounit-2.0.5
+
+  - Allow to recover from interrupted Unix.select call. This allows to
+	  run more reliably the RunnerProcess with lwt. (Closes: #1363)
+
 ounit-2.0.4
 
   - minor bug fixes:
