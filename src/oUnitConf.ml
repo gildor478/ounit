@@ -336,7 +336,7 @@ let env_parse conf =
       String.iter
         (function
           | 'a' .. 'z' as c ->
-            Buffer.add_char b (Char.chr ((Char.code c) + 32))
+            Buffer.add_char b (Char.chr ((Char.code c) - 32))
           | c -> Buffer.add_char b c)
         name;
       Buffer.contents b
