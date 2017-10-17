@@ -1,3 +1,7 @@
+ounit-2.0.6
+
+  - Fix internal uppercase_name.
+
 ounit-2.0.5
 
   - Allow to recover from interrupted Unix.select call. This allows to
