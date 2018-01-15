@@ -211,7 +211,11 @@ let failwithf fmt =
 
 let opt f = function Some v -> f v | None -> ()
 
-let fqdn () = (Unix.gethostbyname (Unix.gethostname ())).Unix.h_name
+let fqdn () =
+    try
+        (Unix.gethostbyname (Unix.gethostname ())).Unix.h_name
+    with
+        Not_found -> "localhost"
 
 let shardf = Printf.sprintf "%s#%02d" (Unix.gethostname ())
 
