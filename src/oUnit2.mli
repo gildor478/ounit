@@ -144,6 +144,9 @@ val todo : string -> unit
 
 (** Compare floats up to a given relative error.
 
+    In keeping with standard floating point semantics, NaN is not equal to
+    anything: [cmp_float nan nan = false].
+
     @param epsilon if the difference is smaller [epsilon] values are equal
   *)
 val cmp_float : ?epsilon:float -> float -> float -> bool

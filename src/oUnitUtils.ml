@@ -128,8 +128,12 @@ let extract_backtrace_position str =
       (split_lines str)
 
 let cmp_float ?(epsilon = 0.00001) a b =
-  abs_float (a -. b) <= epsilon *. (abs_float a) ||
-    abs_float (a -. b) <= epsilon *. (abs_float b)
+  match classify_float a, classify_float b with
+  | FP_infinite, FP_infinite -> a = b
+  | FP_infinite, _ | _, FP_infinite | FP_nan, _ | _, FP_nan -> false
+  | _, _ ->
+    abs_float (a -. b) <= epsilon *. (abs_float a) ||
+      abs_float (a -. b) <= epsilon *. (abs_float b)
 
 let buff_format_printf f =
   let buff = Buffer.create 13 in
