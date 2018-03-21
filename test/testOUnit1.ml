@@ -111,7 +111,17 @@ let test_cmp_float _ =
   assert_equal ~cmp: cmp_float 0.0001 0.0001;
   assert_equal ~cmp: (cmp_float ~epsilon: 0.001) 1.0001 1.00001;
   assert_raises (OUnitTest.OUnit_failure "not equal")
-      (fun _ -> assert_equal ~cmp: cmp_float 100.0001 101.001)
+    (fun _ -> assert_equal ~cmp: cmp_float 100.0001 101.001);
+  assert_equal ~cmp:cmp_float infinity infinity;
+  assert_equal ~cmp:cmp_float neg_infinity neg_infinity;
+  assert_raises ~msg:"inf <> 0" (OUnitTest.OUnit_failure "not equal")
+    (fun _ -> assert_equal ~cmp: cmp_float infinity 0.0);
+  assert_raises ~msg:"inf <> -inf" (OUnitTest.OUnit_failure "not equal")
+    (fun _ -> assert_equal ~cmp: cmp_float infinity neg_infinity);
+  assert_raises ~msg:"nan <> 0" (OUnitTest.OUnit_failure "not equal")
+    (fun _ -> assert_equal ~cmp: cmp_float nan 0.);
+  assert_raises ~msg:"nan <> nan" (OUnitTest.OUnit_failure "not equal")
+    (fun _ -> assert_equal ~cmp: cmp_float nan nan)
 
 let test_assert_string _ =
   assert_string "";
