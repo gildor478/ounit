@@ -6,7 +6,6 @@ export OCAMLRUNPARAM=b
 ocaml setup.ml -distclean
 ocaml setup.ml -configure \
   --enable-tests \
-  --enable-devel \
   ${CONFIGURE_ARGS}
 ocaml setup.ml -build
 ocaml setup.ml -test ${TEST_ARGS}
