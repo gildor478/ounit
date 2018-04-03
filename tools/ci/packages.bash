@@ -1,0 +1,5 @@
+OPAM_PKGS=()
+OPAM_PKGS+=( "base-bytes")
+OPAM_PKGS+=( "base-unix" )
+OPAM_PKGS+=( "ocamlfind>=1.3.1" )
+OPAM_PKGS+=( "oasis" )

@@ -1,0 +1,24 @@
+language: c
+sudo: false
+addons:
+  apt:
+    sources:
+      - avsm
+    packages:
+      - ocaml
+      - ocaml-native-compilers
+      - opam
+      - texlive-latex-recommended
+branches:
+  except:
+    - opam/unstable
+    - opam/testing
+script: bash -ex ./tools/ci/travis.bash
+env:
+  - OPAM_SWITCH=system
+  - OPAM_SWITCH=4.02.3 # Debian stretch
+  - OPAM_SWITCH=4.05.0 # Debian sid
+  - OPAM_SWITCH=4.06.0 # HEAD
+cache:
+  directories:
+  - $HOME/.opam
