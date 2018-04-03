@@ -9,6 +9,7 @@ addons:
       - ocaml-native-compilers
       - opam
       - texlive-latex-recommended
+      - libxml2-utils
 branches:
   except:
     - opam/unstable
