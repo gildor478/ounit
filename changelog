@@ -1,3 +1,8 @@
+ounit-2.0.8
+
+  - Handle infinity and NaN in cmp_float, thanks to Johannes Kloos
+	  (Closes: #1381)
+
 ounit-2.0.7
 
 	- Prevent OUnitLoggerJUnit to fail when the hostname cannot be found, thanks
