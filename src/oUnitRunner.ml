@@ -118,7 +118,7 @@ let shards =
           while true do
             try
               let line = input_line chn_in in
-                Scanf.sscanf line "cpu cores : %d" (fun i -> shards := i)
+              Scanf.sscanf line "cpu cores : %d" (fun i -> shards := max i 2)
             with Scanf.Scan_failure _ ->
               ()
           done
