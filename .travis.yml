@@ -7,7 +7,7 @@ cache:
     - $HOME/.opam
 env:
   global:
-    - PACKAGE=fileutils EXTRA_DEPS=oasis
+    - PACKAGE=ounit EXTRA_DEPS=oasis
   matrix:
     # Only use an old version for backward compatibility and the latest version.
     - OCAML_VERSION=4.05
