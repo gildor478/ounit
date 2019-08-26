@@ -1,25 +1,17 @@
 language: c
-sudo: false
-addons:
-  apt:
-    sources:
-      - avsm
-    packages:
-      - ocaml
-      - ocaml-native-compilers
-      - opam
-      - texlive-latex-recommended
-      - libxml2-utils
-branches:
-  except:
-    - opam/unstable
-    - opam/testing
-script: bash -ex ./tools/ci/travis.bash
-env:
-  - OPAM_SWITCH=system
-  - OPAM_SWITCH=4.02.3 # Debian stretch
-  - OPAM_SWITCH=4.05.0 # Debian sid
-  - OPAM_SWITCH=4.06.0 # HEAD
+sudo: required
+install: test -e .travis.opam.sh || wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
+script: bash -ex .travis-opam.sh
 cache:
   directories:
-  - $HOME/.opam
+    - $HOME/.opam
+env:
+  global:
+    - PACKAGE=fileutils EXTRA_DEPS=oasis
+  matrix:
+    # Only use an old version for backward compatibility and the latest version.
+    - OCAML_VERSION=4.05
+    - OCAML_VERSION=4.08
+os:
+  - linux
+  - osx
