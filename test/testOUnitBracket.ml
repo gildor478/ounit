@@ -81,17 +81,20 @@ let tests =
     "chdir" >::
     (fun test_ctxt ->
        let tmpdn = bracket_tmpdir test_ctxt in
+       let orgdn = Sys.getcwd () in
        let () =
          with_bracket
            test_ctxt (bracket_chdir tmpdn)
            (fun _ (test_ctxt : OUnitTest.ctxt) ->
-              assert_equal
-                ~printer:(fun s -> s)
-                tmpdn
-                (Sys.getcwd ()))
+              assert_bool
+               (Printf.sprintf
+                 "Expected to have changed to a new directory, but still in %s"
+                 orgdn)
+                (orgdn <> (Sys.getcwd ())))
        in
          assert_bool
-           "Not in temporary directory anymore."
-           (tmpdn <> Sys.getcwd ()));
-
+           (Printf.sprintf
+             "Expected to be back in the original directory, but still in %s"
+             (Sys.getcwd ()))
+           (orgdn = Sys.getcwd ()));
   ]
