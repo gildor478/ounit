@@ -95,15 +95,6 @@ Executable test
   Build$: flag(tests)
 
 Test main
-  Run$: !os_type(Win32)
-  Command: $test -xmllint $xmllint \
-    -testFakeHTML $testfakehtml \
-    -testFakeRunner $testfakerunner \
-    -testFakeShared $testfakeshared
-  TestTools: test, testFakeHTML, testFakeRunner, xmllint
-
-Test main-win32
-  Run$: os_type(Win32)
   Command: $test -testFakeHTML $testfakehtml \
     -testFakeRunner $testfakerunner \
     -testFakeShared $testfakeshared

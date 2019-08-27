@@ -2,21 +2,25 @@ language: c
 sudo: required
 install: test -e .travis.opam.sh || wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
 script: bash -ex .travis-opam.sh
-addons:
-  apt:
-    packages:
-      - texlive-latex-recommended
-      - libxml2-utils
 cache:
   directories:
     - $HOME/.opam
 env:
   global:
     - PACKAGE=ounit EXTRA_DEPS=oasis
-  matrix:
-    # Only use an old version for backward compatibility and the latest version.
-    - OCAML_VERSION=4.05
-    - OCAML_VERSION=4.08
-os:
-  - linux
-  - osx
+matrix:
+  include:
+    - apt:
+        packages:
+          - libxml2-utils
+      os:
+        - linux
+      env:
+        # Use an old version for backward compatibility and the latest version.
+        - OCAML_VERSION=4.05
+        - OCAML_VERSION=4.08
+
+    - os:
+        - osx
+      env:
+        - OCAML_VERSION=4.08

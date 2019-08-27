@@ -47,7 +47,9 @@ let tests =
         *)
        let () =
          skip_if (Sys.os_type = "Win32")
-           "Don't run on Win32."
+           "Don't run on Win32.";
+         skip_if (Sys.command ((xmllint ctxt)^" --version 2> /dev/null") == 127)
+           "xmllint not found.";
        in
        let html_dir = "log-html" in
        let junit_xml = Filename.concat html_dir "junit.xml" in
