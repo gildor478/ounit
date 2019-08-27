@@ -1,4 +1,5 @@
 opam-version: "2.0"
+maintainer: "Sylvain Le Gall <sylvaini+ocaml@le-gall.net>"
 authors: [ "Maas-Maarten Zeeman" "Sylvain Le Gall" ]
 homepage: "http://ounit.forge.ocamlcore.org"
 bug-reports: "https://forge.ocamlcore.org/tracker/?func=browse&group_id=162&atid=730"
