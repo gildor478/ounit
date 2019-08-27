@@ -22,4 +22,3 @@ install: ["ocaml" "setup.ml" "-install"]
 remove: [["ocamlfind" "remove" "oUnit"]]
 synopsis:
   "Unit testing framework loosely based on HUnit. It is similar to JUnit, and other XUnit testing frameworks"
-flags: light-uninstall
