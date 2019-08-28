@@ -55,27 +55,25 @@ let string_of_test_results test_results =
 
 let run_test_fake_runner ctxt runner args =
   let fn, _ = bracket_tmpfile ctxt in
-  let testFakeRunner =
-    let exec = testFakeRunner ctxt in
-    if Sys.os_type == "Win32" then
-      String.mapi (fun _ -> function '/' -> '\\' | c -> c) exec
-    else
-      exec
-  in
-  let () =
-    try
-      let st = Unix.stat testFakeRunner in
-      OUnit2.logf ctxt
-        `Info "File %S has size %d bytes" testFakeRunner st.Unix.st_size
-    with Not_found ->
-      failwith (Printf.sprintf "file %S not found" testFakeRunner)
+  let env =
+    Array.of_list
+      (Array.fold_left
+      (fun lst e ->
+        let prefix = "OUNIT_" in
+        let start = String.sub e  0 (String.length prefix) in
+        if start = prefix then
+          lst
+        else
+          e :: lst)
+      [] (Unix.environment ()))
   in
   let () =
     assert_command
       ~ctxt
       ~exit_code:(Unix.WEXITED 1)
-      testFakeRunner
-      ("-verbose" :: "true" :: "-output-file" :: fn :: "-runner" :: runner :: args);
+      ~env:env
+      (testFakeRunner ctxt)
+      ("-output-file" :: fn :: "-runner" :: runner :: args);
   in
 
   let mk str =

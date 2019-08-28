@@ -136,6 +136,15 @@ let assert_command
     ~ctxt
     prg args =
 
+    begin
+      match env with
+      | Some a when Array.length a = 0 && Sys.os_type = "Win32" ->
+          OUnitLogger.Test.logf ctxt.test_logger `Info "%s"
+          ("Using an empty environment on Windows could cause "^
+           "failure when running command.")
+      | _ -> ()
+    end;
+
     OUnitTest.section_ctxt ctxt
       (fun ctxt ->
          let (fn_out, chn_out) = bracket_tmpfile ctxt in
