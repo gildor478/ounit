@@ -58,7 +58,7 @@ let run_test_fake_runner ctxt runner args =
   let testFakeRunner =
     let exec = testFakeRunner ctxt in
     (* if Sys.os_type == "Win32" then *)
-      String.mapi (fun _ -> function '\\' -> '/' | c -> c) exec
+      String.mapi (fun _ -> function '/' -> '\\' | c -> c) exec
 (*
     else
       exec
@@ -68,7 +68,7 @@ let run_test_fake_runner ctxt runner args =
     try
       let st = Unix.stat testFakeRunner in
       OUnit2.logf ctxt
-        `Info "File %S has size %di bytes" testFakeRunner st.Unix.st_size
+        `Info "File %S has size %d bytes" testFakeRunner st.Unix.st_size
     with Not_found ->
       failwith (Printf.sprintf "file %S not found" testFakeRunner)
   in
@@ -78,7 +78,7 @@ let run_test_fake_runner ctxt runner args =
       ~exit_code:(Unix.WEXITED 1)
       ~env:[||]
       testFakeRunner
-      ("-output-file" :: fn :: "-runner" :: runner :: args);
+      ("-verbose" :: "true" :: "-output-file" :: fn :: "-runner" :: runner :: args);
   in
 
   let mk str =
