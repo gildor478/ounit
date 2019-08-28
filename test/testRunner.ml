@@ -60,10 +60,13 @@ let run_test_fake_runner ctxt runner args =
       (Array.fold_left
       (fun lst e ->
         let prefix = "OUNIT_" in
-        let start = String.sub e  0 (String.length prefix) in
-        if start = prefix then
-          lst
-        else
+        if String.length e >= String.length prefix then begin
+          let start = String.sub e  0 (String.length prefix) in
+          if start = prefix then
+            lst
+          else
+            e :: lst
+        end else
           e :: lst)
       [] (Unix.environment ()))
   in
