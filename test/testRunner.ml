@@ -65,6 +65,14 @@ let run_test_fake_runner ctxt runner args =
 *)
   in
   let () =
+    try
+      let st = Unix.stat testFakeRunner in
+      OUnit2.logf ctxt
+        `Info "File %S has size %di bytes" testFakeRunner st.Unix.st_size
+    with Not_found ->
+      failwith (Printf.sprintf "file %S not found" testFakeRunner)
+  in
+  let () =
     assert_command
       ~ctxt
       ~exit_code:(Unix.WEXITED 1)
