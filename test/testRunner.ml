@@ -57,12 +57,10 @@ let run_test_fake_runner ctxt runner args =
   let fn, _ = bracket_tmpfile ctxt in
   let testFakeRunner =
     let exec = testFakeRunner ctxt in
-    (* if Sys.os_type == "Win32" then *)
+    if Sys.os_type == "Win32" then
       String.mapi (fun _ -> function '/' -> '\\' | c -> c) exec
-(*
     else
       exec
-*)
   in
   let () =
     try
@@ -76,7 +74,6 @@ let run_test_fake_runner ctxt runner args =
     assert_command
       ~ctxt
       ~exit_code:(Unix.WEXITED 1)
-      ~env:[||]
       testFakeRunner
       ("-verbose" :: "true" :: "-output-file" :: fn :: "-runner" :: runner :: args);
   in
