@@ -77,23 +77,6 @@ let render conf events =
        printlf `None "%s" test_data.test_name;
        begin
          match test_data.test_result with
-         | RSuccess    -> printlf successes_color "Success"
-         | RFailure _  -> printlf failures_color  "Failure"
-         | RError _    -> printlf errors_color    "Error"
-         | RSkip _     -> printlf skips_color     "Skip"
-         | RTodo _     -> printlf todos_color     "TODO"
-         | RTimeout _  -> printlf timeouts_color  "Timeout"
-       end;
-       List.iter
-         (fun (tmstp, svrt, str) ->
-            let from_start = tmstp -. test_data.timestamp_start in
-            let color, prefix = severity svrt in
-            printlf color "%04.1fs %s: %s" from_start prefix str)
-         test_data.log_entries;
-        printlf `None "%04.1fs I: End"
-          (test_data.timestamp_end -. test_data.timestamp_start);
-       begin
-         match test_data.test_result with
            | RSuccess ->
              printlf successes_color "Success"
            | RFailure (str, _, backtrace) ->
@@ -118,6 +101,15 @@ let render conf events =
              printlf timeouts_color
                "Timeout %.1fs" (delay_of_length test_length)
        end;
+       printlf `None "Logs:";
+       List.iter
+         (fun (tmstp, svrt, str) ->
+            let color, prefix = severity svrt in
+            printlf color "%04.1fs %s: %s" tmstp prefix str)
+         test_data.log_entries;
+       if List.length test_data.log_entries <> 0 then
+         printlf `None "%04.1fs I: End"
+           (test_data.timestamp_end -. test_data.timestamp_start);
     )
     (List.filter
        (fun test_data -> test_data.test_result <> RSuccess) smr.tests);
