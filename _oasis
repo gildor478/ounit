@@ -36,6 +36,7 @@ Library "oUnitAdvanced"
            OUnitLoggerHTML,
            OUnitLoggerHTMLData,
            OUnitLoggerJUnit,
+           OUnitLoggerCI,
            OUnitAssert,
            OUnitBracket,
            OUnitTest,

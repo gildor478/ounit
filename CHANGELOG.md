@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- New logger for CI, like Travis and AppVeyor, with colored output.
+
 ## [2.0.8]
 
 - Handle infinity and NaN in cmp_float, thanks to Johannes Kloos

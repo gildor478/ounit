@@ -161,6 +161,7 @@ let run_test_tt_main ?(exit=Pervasives.exit) suite =
               OUnitLoggerStd.create conf shard_default;
               OUnitLoggerHTML.create conf;
               OUnitLoggerJUnit.create conf;
+              OUnitLoggerCI.create conf;
             ]
         in
 

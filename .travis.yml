@@ -7,7 +7,7 @@ cache:
     - $HOME/.opam
 env:
   global:
-    - PACKAGE=ounit EXTRA_DEPS=oasis OUNIT_DISPLAY=true OUNIT_VERBOSE=true
+    - PACKAGE=ounit EXTRA_DEPS=oasis OUNIT_CI=true
 matrix:
   include:
     - apt:
