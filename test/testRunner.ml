@@ -31,6 +31,7 @@
 (**************************************************************************)
 
 open OUnit2
+open TestCommon
 
 let testFakeRunner = Conf.make_exec "testFakeRunner"
 
@@ -153,8 +154,6 @@ let check_standard_results ?(extra_errors=0) ?(extra_timeouts=0) test_results =
       timeout = extra_timeouts;
     }
     test_results
-
-let skip_if_notunix () = skip_if (Sys.os_type <> "Unix") "Only run on Unix."
 
 let tests =
   "Runner" >:::

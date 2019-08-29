@@ -31,6 +31,7 @@
 (**************************************************************************)
 
 open OUnit2
+open TestCommon
 
 let testFakeShared = Conf.make_exec "testFakeShared"
 
@@ -51,6 +52,7 @@ let tests =
 
     "Processes" >::
     (fun ctxt ->
+       skip_if_notunix ();
        run_test_fake_shared ctxt "processes" ["-shards"; "2"]);
 
     "Threads" >::

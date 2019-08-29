@@ -94,3 +94,4 @@ let assert_equal_test_result exp res =
            (norm results)))
     exp res
 
+let skip_if_notunix () = skip_if (Sys.os_type <> "Unix") "Only run on Unix."
