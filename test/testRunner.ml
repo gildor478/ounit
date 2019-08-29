@@ -34,6 +34,7 @@ open OUnit2
 open TestCommon
 
 let testFakeRunner = Conf.make_exec "testFakeRunner"
+let fakeBadFinaliser = Conf.make_exec "fakeBadFinaliser"
 
 type test_results =
     {
@@ -53,6 +54,7 @@ let string_of_test_results test_results =
     test_results.cases test_results.tried test_results.errors
     test_results.failures test_results.skip test_results.todo
     test_results.timeout
+
 
 let run_test_fake_runner ctxt runner args =
   let fn, _ = bracket_tmpfile ctxt in
@@ -122,6 +124,7 @@ let run_test_fake_runner ctxt runner args =
       timeout = !timeout;
     }
 
+
 let check_standard_results ?(extra_errors=0) ?(extra_timeouts=0) test_results =
   assert_equal
     ~msg:"test results"
@@ -152,6 +155,31 @@ let tests =
          run_test_fake_runner ctxt "processes" []
        in
          check_standard_results test_results);
+
+    "ProcessesWithBadFinaliser" >::
+    (fun ctxt ->
+       let () = skip_if_notunix () in
+       let finaliser_token = "1234566789" in
+       let fn, _ = bracket_tmpfile ctxt in
+       let () =
+         TestCommonRunner.run_fake_external_prog
+           ~ctxt ~runner:"processes" ~exit_code:(Unix.WEXITED 1)
+           (fakeBadFinaliser ctxt)
+           ["-shards"; "2"; "-finaliser-token"; finaliser_token]
+           fn
+       in
+       let chn = open_in fn in
+       let str = Str.regexp (Str.quote finaliser_token) in
+       let token_found = ref false in
+       try
+         while true do
+           let line = input_line chn in
+           if Str.string_match str line 0 then
+             token_found := true
+         done;
+         assert_bool "Finaliser token found in the logs." !token_found
+       with End_of_file ->
+         close_in chn);
 
     "Processes#1" >::
     (fun ctxt ->

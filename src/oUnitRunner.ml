@@ -33,8 +33,45 @@
 open OUnitTest
 open OUnitLogger
 
+(** Number of shards to use. The way the shards are used depends on the type of
+    runner.
+  *)
+let shards =
+  let shards = ref 2 in
+  if Sys.os_type = "Unix" then begin
+    if Sys.file_exists "/proc/cpuinfo" then begin
+      let chn_in = open_in "/proc/cpuinfo" in
+      let () =
+        try
+          while true do
+            try
+              let line = input_line chn_in in
+              Scanf.sscanf line "cpu cores : %d" (fun i -> shards := max i 2)
+            with Scanf.Scan_failure _ ->
+              ()
+          done
+        with End_of_file ->
+          ()
+      in
+        close_in chn_in
+    end
+  end;
+  OUnitConf.make_int
+    "shards"
+    !shards
+    "Number of shards to use as worker (threads or processes)."
+
+(** Whether or not run a Gc.full_major in between tests. This adds time
+    when running tests, but helps to avoid unexpected error due to finalisation
+    of values allocated during a test.
+  *)
+let run_gc_full_major =
+  OUnitConf.make_bool
+    "run_gc_full_major" true
+    "Run a Gc.full_major in between tests."
+
 (** Common utilities to run test. *)
-let run_one_test conf logger shared test_path test_fun =
+let run_one_test conf logger shared test_path (test_fun: OUnitTest.test_fun) =
   let () = OUnitLogger.report logger (TestEvent (test_path, EStart)) in
   let non_fatal = ref [] in
   let main_result_full =
@@ -45,11 +82,14 @@ let run_one_test conf logger shared test_path test_fun =
            try
              test_fun ctxt;
              OUnitCheckEnv.check ctxt check_env;
+             if run_gc_full_major conf then begin
+               Gc.major ();
+             end;
              test_path, RSuccess, None
            with e ->
              OUnitTest.result_full_of_exception ctxt e
          in
-           report_result_full ctxt result_full)
+         report_result_full ctxt result_full)
   in
   let result_full, other_result_fulls =
     match main_result_full, List.rev !non_fatal with
@@ -105,33 +145,9 @@ module Plugin =
        let default_name = "sequential"
        let default_value = sequential_runner
      end)
-
+(**/**)
 include Plugin
 
-let shards =
-  let shards = ref 2 in
-  if Sys.os_type = "Unix" then begin
-    if Sys.file_exists "/proc/cpuinfo" then begin
-      let chn_in = open_in "/proc/cpuinfo" in
-      let () =
-        try
-          while true do
-            try
-              let line = input_line chn_in in
-              Scanf.sscanf line "cpu cores : %d" (fun i -> shards := max i 2)
-            with Scanf.Scan_failure _ ->
-              ()
-          done
-        with End_of_file ->
-          ()
-      in
-        close_in chn_in
-    end
-  end;
-  OUnitConf.make_int
-    "shards"
-    !shards
-    "Number of shards to use as worker (threads or processes)."
 
 (** Build worker based runner. *)
 module GenericWorker =
