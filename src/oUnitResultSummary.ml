@@ -200,7 +200,7 @@ let of_log_events conf events =
     let finalize t =
       let log_entries =
         List.sort
-          (fun (f1, _, _) (f2, _, _) -> Pervasives.compare f2 f1)
+          (fun (f1, _, _) (f2, _, _) -> Stdlib.compare f2 f1)
           t.log_entries
       in
       let log_entries =
@@ -273,7 +273,7 @@ let of_log_events conf events =
             in
               List.sort
                 (fun t1 t2 ->
-                   Pervasives.compare t1.timestamp_start t2.timestamp_start)
+                   Stdlib.compare t1.timestamp_start t2.timestamp_start)
                 lst
     in
       group_test MapPath.empty events

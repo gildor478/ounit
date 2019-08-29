@@ -57,7 +57,7 @@ let assert_equal_test_result exp res =
      in
        (path, test_result', pos)
    in
-     List.sort Pervasives.compare (List.rev_map norm_one lst)
+     List.sort Stdlib.compare (List.rev_map norm_one lst)
   in
   assert_equal
     ~cmp:

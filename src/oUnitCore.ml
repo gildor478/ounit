@@ -112,7 +112,7 @@ let suite_name =
     "The name of the test suite running."
 
 (* Call this one to act as your main() function. *)
-let run_test_tt_main ?(exit=Pervasives.exit) suite =
+let run_test_tt_main ?(exit=Stdlib.exit) suite =
   let only_test = ref [] in
   let list_test = ref false in
   let extra_specs =

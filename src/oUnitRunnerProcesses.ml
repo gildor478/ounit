@@ -81,7 +81,7 @@ let make_channel
 
   let send_data msg =
     Marshal.to_channel chn_write msg [];
-    Pervasives.flush chn_write
+    Stdlib.flush chn_write
   in
 
   let receive_data () =

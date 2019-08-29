@@ -172,7 +172,7 @@ struct
            match lst1, lst2 with
              | hd1 :: tl1, hd2 :: tl2 ->
                  begin
-                   match Pervasives.compare hd1 hd2 with
+                   match Stdlib.compare hd1 hd2 with
                      | 0 -> compare tl1 tl2
                      | n -> n
                  end

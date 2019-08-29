@@ -308,11 +308,9 @@ module Path =
 struct
   type t = path
 
-  let compare p1 p2 =
-    Pervasives.compare p1 p2
+  let compare p1 p2 = Stdlib.compare p1 p2
 
-  let to_string p =
-    String.concat ":" (List.rev_map string_of_node p)
+  let to_string p = String.concat ":" (List.rev_map string_of_node p)
 end
 
 module MapPath = Map.Make(Path)

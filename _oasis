@@ -52,7 +52,7 @@ Library "oUnitAdvanced"
            OUnitCheckEnv,
            OUnitDiff
   FindlibParent: oUnit
-  BuildDepends: bytes
+  BuildDepends: bytes, stdlib-shims
   FindlibName: advanced
 
 Library "oUnitThreads"

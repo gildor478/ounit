@@ -10,6 +10,7 @@ depends: [
   "ocamlfind" {build}
   "ocamlbuild" {build}
   "base-bytes"
+  "stdlib-shims"
 ]
 build: [
   ["ocaml" "setup.ml" "-configure" "--prefix" prefix]

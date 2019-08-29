@@ -384,7 +384,7 @@ let cli_parse ?argv extra_specs conf =
         Arg.String (file_parse conf),
         "fn Read configuration file."
       ]
-      @ (List.sort Pervasives.compare specs)
+      @ (List.sort Stdlib.compare specs)
       @ extra_specs)
   in
   let arg_parse =
