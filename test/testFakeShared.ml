@@ -40,9 +40,13 @@ open OUnitShared
 let test_mutex ctxt mutex =
   let shared = ctxt.OUnitTest.shared in
     Mutex.lock shared mutex;
-    assert_bool
-      "Cannot acquire a locked mutex."
-      (not (Mutex.try_lock shared mutex));
+    (* On Windows, try_lock will succeed if it has been locked by the thread
+     * itself.
+     *)
+    if Sys.os_type <> "Win32" then
+      assert_bool
+        "Cannot acquire a locked mutex."
+        (not (Mutex.try_lock shared mutex));
     Mutex.unlock shared mutex;
     assert_bool
       "Can acquire an unlocked mutex."
