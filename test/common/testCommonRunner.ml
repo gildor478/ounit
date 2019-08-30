@@ -31,30 +31,23 @@
 (**************************************************************************)
 
 open OUnit2
-open TestCommon
 
-let testFakeShared = Conf.make_exec "testFakeShared"
-
-let run_test_fake_shared ctxt runner args =
-  let fn, _ = bracket_tmpfile ctxt in
-  TestCommonRunner.run_fake_external_prog
-    ~ctxt ~exit_code:(Unix.WEXITED 0) ~runner
-    (testFakeShared ctxt) args fn
-
-let tests =
-  "Shared" >:::
-  [
-    "Sequential" >::
-    (fun ctxt ->
-       run_test_fake_shared ctxt "sequential" []);
-
-    "Processes" >::
-    (fun ctxt ->
-       skip_if_notunix ();
-       run_test_fake_shared ctxt "processes" ["-shards"; "2"]);
-
-    "Threads" >::
-    (fun ctxt ->
-       run_test_fake_shared ctxt "threads" ["-shards"; "2"]);
-  ]
-
+let run_fake_external_prog
+    ~ctxt ?(runner="sequential") ?exit_code prog args fn =
+  let env =
+    Array.of_list
+      (Array.fold_left
+      (fun lst e ->
+        let prefix = "OUNIT_" in
+        if String.length e >= String.length prefix then begin
+          let start = String.sub e  0 (String.length prefix) in
+          if start = prefix then
+            lst
+          else
+            e :: lst
+        end else
+          e :: lst)
+      [] (Unix.environment ()))
+  in
+  assert_command ~ctxt ?exit_code ~env
+    prog ("-output-file" :: fn :: "-runner" :: runner :: args)

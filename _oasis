@@ -87,11 +87,17 @@ Executable testFakeShared
   Install: false
   Build$: flag(tests)
 
+# Common test functions.
+Library testcommon
+  Path: test/common
+  Modules: TestCommonRunner
+  BuildDepends: oUnit, oUnit.advanced
+
 # The main test.
 Executable test
   Path:   test
   MainIs: test.ml
-  BuildDepends: oUnit, oUnit.advanced, str
+  BuildDepends: oUnit, oUnit.advanced, str, testcommon
   Install: false
   Build$: flag(tests)
 

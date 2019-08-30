@@ -56,28 +56,10 @@ let string_of_test_results test_results =
 
 let run_test_fake_runner ctxt runner args =
   let fn, _ = bracket_tmpfile ctxt in
-  let env =
-    Array.of_list
-      (Array.fold_left
-      (fun lst e ->
-        let prefix = "OUNIT_" in
-        if String.length e >= String.length prefix then begin
-          let start = String.sub e  0 (String.length prefix) in
-          if start = prefix then
-            lst
-          else
-            e :: lst
-        end else
-          e :: lst)
-      [] (Unix.environment ()))
-  in
   let () =
-    assert_command
-      ~ctxt
-      ~exit_code:(Unix.WEXITED 1)
-      ~env:env
-      (testFakeRunner ctxt)
-      ("-output-file" :: fn :: "-runner" :: runner :: args);
+    TestCommonRunner.run_fake_external_prog
+      ~ctxt ~exit_code:(Unix.WEXITED 1) ~runner
+      (testFakeRunner ctxt) args fn
   in
 
   let mk str =
