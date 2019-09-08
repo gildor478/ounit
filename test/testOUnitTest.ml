@@ -34,7 +34,7 @@ open OUnitTest
 open TestCommon
 open OUnit2
 
-let test_case = TestCase (Short, fun ctxt -> ())
+let test_case = TestCase (Short, fun _ -> ())
 let labeled_test_case = TestLabel ("label", test_case)
 let suite_a = TestLabel ("suite_a", TestList [test_case])
 let suite_b = TestLabel ("suite_b", TestList [labeled_test_case])
@@ -45,7 +45,7 @@ let rec string_of_paths = function
     [] -> ""
   | h::t -> (string_of_path h) ^ "\n" ^ (string_of_paths t)
 
-let test_case_filter ctxt =
+let test_case_filter _ =
   let assert_test_case_count exp tst_opt =
     match tst_opt with
       | Some tst ->
@@ -64,7 +64,7 @@ let test_case_filter ctxt =
   assert_test_case_count 2 (test_filter ["suite_c:0";"suite_c:1:label"]
                               suite_c)
 
-let test_case_decorate ctxt =
+let test_case_decorate _ =
     assert_equal_test_result
       [
         [Label "label"; ListItem 1; Label "suite_c"],
@@ -88,11 +88,11 @@ let test_case_decorate ctxt =
       ]
       (perform_test
          (test_decorate
-            (fun _ -> (fun ctxt -> assert_failure "fail"))
+            (fun _ -> (fun _ -> assert_failure "fail"))
             suite_c))
 
 (* Test which checks if the test case count function works correctly *)
-let test_case_count ctxt =
+let test_case_count _ =
   let assert_equal ?msg = assert_equal ?msg ~printer:string_of_int in
   assert_equal 0 (test_case_count (TestList []));
   assert_equal 0 (test_case_count (TestLabel("label", TestList [])));
@@ -194,4 +194,3 @@ let tests =
     "test_case_decorate" >:: test_case_decorate;
     "test_non_fatal" >:: test_non_fatal;
   ]
-

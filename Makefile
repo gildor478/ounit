@@ -30,52 +30,31 @@
 #  See LICENSE.txt for details.                                            #
 ############################################################################
 
-#TESTFLAGS=-only-test "OUnit:1"
-#TESTFLAGS=-verbose true
-
 default: test
 
-# OASIS_START
-# DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)
+build:
+	dune build @install
 
-SETUP = ocaml setup.ml
+doc:
+	dune build @doc
 
-build: setup.data
-	$(SETUP) -build $(BUILDFLAGS)
-
-doc: setup.data build
-	$(SETUP) -doc $(DOCFLAGS)
-
-test: setup.data build
-	$(SETUP) -test $(TESTFLAGS)
+test:
+	dune runtest
 
 all:
-	$(SETUP) -all $(ALLFLAGS)
+	dune build @all
+	dune runtest
 
-install: setup.data
-	$(SETUP) -install $(INSTALLFLAGS)
+install:
+	dune install
 
-uninstall: setup.data
-	$(SETUP) -uninstall $(UNINSTALLFLAGS)
-
-reinstall: setup.data
-	$(SETUP) -reinstall $(REINSTALLFLAGS)
+uninstall:
+	dune uninstall
 
 clean:
-	$(SETUP) -clean $(CLEANFLAGS)
+	dune clean
 
-distclean:
-	$(SETUP) -distclean $(DISTCLEANFLAGS)
-
-setup.data:
-	$(SETUP) -configure $(CONFIGUREFLAGS)
-
-configure:
-	$(SETUP) -configure $(CONFIGUREFLAGS)
-
-.PHONY: build doc test all install uninstall reinstall clean distclean configure
-
-# OASIS_STOP
+.PHONY: build doc test all install uninstall clean
 
 doc-test: doc
 	 ocamldoc -g ../ocaml-tmp/odoc-extract-code/odoc_extract_code.cmo \
@@ -84,13 +63,7 @@ doc-test: doc
 
 PRECOMMIT_ARGS= \
 	    --exclude log-html \
-	    --exclude myocamlbuild.ml \
-	    --exclude setup.ml \
-	    --exclude README.txt \
-	    --exclude INSTALL.txt \
-	    --exclude Makefile \
-	    --exclude configure \
-	    --exclude _tags
+	    --exclude Makefile
 
 precommit:
 	 -@if command -v OCamlPrecommit > /dev/null; then \

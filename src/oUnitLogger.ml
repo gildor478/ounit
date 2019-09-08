@@ -104,14 +104,14 @@ let string_of_event ev =
               | GEnd -> "GEnd"
               | GResults _ -> "GResults"
           end
-      | TestEvent (path,  e) ->
+      | TestEvent (_,  e) ->
           begin
             match e with
               | EStart ->
                   "EStart"
               | EEnd ->
                   "EEnd"
-              | EResult result ->
+              | EResult _ ->
                   "EResult (_)"
               | ELog (lvl, str) ->
                   spf "ELog (%s, %S)" (string_of_log_severity lvl) str

@@ -141,7 +141,7 @@ let count_tests_running state =
 
 let get_workers state =
   List.rev_append state.idle_workers
-    (List.rev_map (fun (_, {worker = worker}) -> worker)  state.tests_running)
+    (List.rev_map (fun (_, {worker = worker; _}) -> worker)  state.tests_running)
 
 let get_idle_workers state =
   state.idle_workers

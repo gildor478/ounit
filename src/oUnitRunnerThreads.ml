@@ -54,7 +54,7 @@ let make_channel
     Event.sync (Event.send chan_write msg)
   in
 
-  let receive_data msg =
+  let receive_data _ =
     Event.sync (Event.receive chan_read)
   in
     chan_sync_send_data,
@@ -170,7 +170,7 @@ let create_worker conf map_test_cases shard_id master_id worker_log_file =
     }
 
 
-let workers_waiting workers timeout =
+let workers_waiting workers _ =
   let channel_timeout = Event.new_channel () in
 (* TODO: clean implementation of the timeout.
  * Timeout not implemented, because it should be killed in most cases and

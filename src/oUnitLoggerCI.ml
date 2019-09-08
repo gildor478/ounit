@@ -38,7 +38,6 @@
  *)
 
 open OUnitLogger
-open OUnitUtils
 open OUnitResultSummary
 open OUnitTest
 

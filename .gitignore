@@ -1,11 +1,3 @@
-/_build/
-/setup.data
-/setup.log
-/dist/
-/test.byte
-/log-html/
-/junit.xml
-/testFakeHTML.byte
-/testFakeRunner.byte
-/testFakeShared.byte
-/api-ounit.docdir
+_build/
+*.merlin
+*.install

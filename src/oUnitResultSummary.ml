@@ -177,7 +177,7 @@ let of_log_events conf events =
       function
         | {event =
              GlobalEvent
-               (GResults (running_time, results, test_case_count))} :: _ ->
+               (GResults (running_time, results, test_case_count)); _} :: _ ->
             running_time, results, test_case_count
         | _ :: tl ->
             find_results tl

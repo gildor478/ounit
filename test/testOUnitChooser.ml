@@ -134,7 +134,7 @@ let tests =
   "Chooser" >:::
   [
     "failfirst" >::
-    (fun test_ctxt ->
+    (fun _ ->
        check_choices failfirst
          [test "foo"]
          [choose "foo"];

@@ -355,12 +355,12 @@ let test_filter ?(skip=false) only test =
     else
       begin
         match tst with
-          | TestCase (l, f) ->
+          | TestCase (l, _) ->
               begin
                 if skip then
                   Some
                     (TestCase
-                       (l, fun ctxt ->
+                       (l, fun _ ->
                           raise (Skip "Test disabled")))
                 else
                   None

@@ -1,0 +1,33 @@
+(executable
+  (name data_gen)
+  (modules data_gen))
+
+(rule
+  (target oUnitLoggerHTMLData.ml)
+  (deps data_gen.exe oUnit.css oUnit.js)
+  (action (run ./data_gen.exe)))
+
+(library
+  (name oUnit)
+  (public_name ounit)
+  (modules oUnit oUnit2)
+  (wrapped false)
+  (libraries unix ounit.advanced))
+
+(library
+  (name oUnitAdvanced)
+  (public_name ounit.advanced)
+  (wrapped false)
+  (modules oUnitUtils oUnitPropList oUnitPlugin oUnitChooser oUnitResultSummary
+    oUnitLoggerStd oUnitLoggerHTML oUnitLoggerHTMLData oUnitLoggerJUnit
+    oUnitLoggerCI oUnitAssert oUnitBracket oUnitTest oUnitState oUnitRunner
+    oUnitRunnerProcesses oUnitCore oUnitLogger oUnitConf oUnitShared oUnitCache
+    oUnitTestData oUnitCheckEnv oUnitDiff)
+  (libraries bytes stdlib-shims))
+
+(library
+  (name oUnitThreads)
+  (public_name ounit.threads)
+  (modules oUnitThreads oUnitRunnerThreads)
+  (private_modules oUnitRunnerThreads)
+  (libraries threads oUnit))

@@ -30,7 +30,6 @@
 (* See LICENSE.txt for details.                                           *)
 (**************************************************************************)
 
-open OUnitCore
 open OUnitTest
 
 let (>:) = OUnitTest.(>:)
