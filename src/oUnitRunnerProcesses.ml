@@ -39,9 +39,6 @@
   * concurrent. Moreover we cannot use Unix.fork because it's not portable
   *)
 
-open OUnitLogger
-open OUnitTest
-open OUnitState
 open Unix
 open OUnitRunner.GenericWorker
 

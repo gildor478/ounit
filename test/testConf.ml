@@ -41,13 +41,13 @@ type t =
 
 let bracket_ounitconf =
   bracket
-    (fun ctxt ->
+    (fun _ ->
        (* TODO: we need a lock here. *)
        {
          vint = make_int "int" 0 "";
          vstring = make_string "string" "" "";
        })
-    (fun _ t ->
+    (fun _ _ ->
        Hashtbl.remove metaconf "int";
        Hashtbl.remove metaconf "string";
        (* TODO: release the lock. *)

@@ -44,7 +44,7 @@ module DiffSetInt = OUnitDiff.SetMake(EInt)
 
 module DiffListSimpleInt = OUnitDiff.ListSimpleMake(EInt)
 
-let test_diff ctxt =
+let test_diff _ =
   let lst_exp =
     [1; 2; 3; 4; 5]
   in

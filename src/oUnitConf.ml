@@ -127,7 +127,7 @@ let make_string name default help =
     ~default
     ~help
     ~fcli:
-    (fun get set ->
+    (fun _ set ->
        [cli_name name,
         Arg.String set,
         "str "^help])
@@ -152,7 +152,7 @@ let make_string_opt name default help =
     ~default
     ~help
     ~fcli:
-    (fun get set ->
+    (fun _ set ->
        [cli_name name,
         Arg.String (fun str -> set (Some str)),
         "str "^help;
@@ -184,7 +184,7 @@ let make_int name default help =
     ~default
     ~help
     ~fcli:
-    (fun get set ->
+    (fun _ set ->
        [cli_name name,
         Arg.Int set,
         "i "^help])
@@ -205,7 +205,7 @@ let make_float name default help =
     ~default
     ~help
     ~fcli:
-    (fun get set ->
+    (fun _ set ->
        [cli_name name,
         Arg.Float set,
         "f "^help])
@@ -226,7 +226,7 @@ let make_bool name default help =
     ~default
     ~help
     ~fcli:
-    (fun get set ->
+    (fun _ set ->
        [cli_name name,
         Arg.Bool set,
         "{true|false} "^help])
@@ -251,7 +251,7 @@ let make_enum name get_enums default help =
       ~default
       ~help
       ~fcli:
-      (fun get set ->
+      (fun _ set ->
          [cli_name name,
           Arg.Symbol (List.map fst (get_enums ()), set),
           " "^help])
@@ -363,7 +363,7 @@ let env_parse conf =
 let cli_parse ?argv extra_specs conf =
   let specs =
     Hashtbl.fold
-      (fun name metadata lst ->
+      (fun _ metadata lst ->
          let cli_lst =
            match metadata.cli conf with
              | (key, spec, doc) :: tl ->

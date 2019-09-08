@@ -77,7 +77,7 @@ let assert_equal_test_result exp res =
                 match test_result with
                   | RSuccess ->
                       "RSuccess"
-                  | RFailure (str, pos_opt, backtrace) ->
+                  | RFailure (str, _, backtrace) ->
                       spf "RFailure(%S, _, %s)"
                         str (string_of_backtrace backtrace)
                   | RError (str, backtrace) ->

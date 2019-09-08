@@ -31,7 +31,6 @@
 (**************************************************************************)
 
 open OUnitTest
-open OUnitAssert
 open OUnit2
 
 let test_assert_raises _ =
@@ -70,7 +69,7 @@ let test_assert_bool _ =
   assert_bool "true" true;
   assert_raises (OUnit_failure "false") (fun _ -> assert_bool "false" false)
 
-let test_case_skip ctxt =
+let test_case_skip _ =
   begin
     try
       skip_if false "test"
@@ -79,7 +78,7 @@ let test_case_skip ctxt =
   end;
   assert_raises (Skip "test") (fun _ -> skip_if true "test")
 
-let test_case_todo ctxt =
+let test_case_todo _ =
   assert_raises (Todo "test") (fun _ -> todo "test")
 
 let test_assert_command ctxt =

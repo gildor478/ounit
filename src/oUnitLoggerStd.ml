@@ -119,7 +119,7 @@ let format_display_event conf log_event =
                 let errors, nerrors     = filter is_error in
                 let failures, nfailures = filter is_failure in
                 let skips, nskips       = filter is_skip in
-                let todos, ntodos       = filter is_todo in
+                let _, ntodos       = filter is_todo in
                 let timeouts, ntimeouts = filter is_timeout in
                   bprintf "\n";
                   print_results errors;
@@ -245,7 +245,7 @@ let format_log_event ev =
   end;
   List.rev !rlst
 
-let file_logger conf shard_id fn =
+let file_logger _ shard_id fn =
   let chn = open_out fn in
   let line = ref 1 in
 

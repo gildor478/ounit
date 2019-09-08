@@ -32,12 +32,12 @@
 
 open OUnit2
 
-let test_normal = "Normal" >:: (fun ctxt -> ())
-let test_assert = "Assert" >:: (fun ctxt -> assert_equal 1 1)
-let test_todo = "Todo" >:: (fun ctxt -> todo "test")
-let test_skip = "Skip" >:: (fun ctxt -> skip_if true "to be skipped")
-let test_fail = "Fail" >:: (fun ctxt -> assert_equal 1 2)
-let test_error = "Error" >:: (fun ctxt -> failwith "Not expected")
+let test_normal = "Normal" >:: (fun _ -> ())
+let test_assert = "Assert" >:: (fun _ -> assert_equal 1 1)
+let test_todo = "Todo" >:: (fun _ -> todo "test")
+let test_skip = "Skip" >:: (fun _ -> skip_if true "to be skipped")
+let test_fail = "Fail" >:: (fun _ -> assert_equal 1 2)
+let test_error = "Error" >:: (fun _ -> failwith "Not expected")
 
 let test_ounit2 suite test_ctxt =
   let log_fn, _ = bracket_tmpfile test_ctxt in
@@ -53,7 +53,7 @@ let test_ounit2 suite test_ctxt =
     (* TODO: acquire lock *)
     !OUnitCore.run_test_tt_main_conf
   in
-  let override_conf ?preset ?argv extra_specs =
+  let [@warning "-27"] override_conf ?preset ?argv _ =
     OUnitCore.run_test_tt_main_conf := old_get_conf;
     (* TODO: release lock *)
     conf

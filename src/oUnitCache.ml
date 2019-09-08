@@ -52,7 +52,7 @@ let load conf =
             let cache : cache =
               try
                 Marshal.from_channel chn
-              with e ->
+              with _ ->
                 default
             in
               close_in chn;

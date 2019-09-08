@@ -220,9 +220,9 @@ let render conf dn events =
          (* TODO: use backtrace *)
          match test_data.test_result with
            | RSuccess -> printf "Success."
-           | RFailure (str, _, backtrace) ->
+           | RFailure (str, _, _) ->
                printf "Failure:<br/>%s" (html_escaper str)
-           | RError (str, backtrace) ->
+           | RError (str, _) ->
                printf "Error:<br/>%s" (html_escaper str)
            | RSkip str ->
                printf "Skipped:<br/>%s" (html_escaper str)
