@@ -45,7 +45,33 @@ type t =
 let create () =
   {
     pwd = Sys.getcwd ();
-    env = Unix.environment ();
+    env =
+      let e = Unix.environment () in
+      if Sys.os_type = "Win32" then begin
+        let lst =
+          Array.fold_right
+            (fun v lst ->
+              (* On Win32, sometimes an environment variable like:
+                 "=C:=C:\\foobar" will be added. AFAIU, this is the absolute
+                 location in the drive C: and it helps to resolve relative root
+                 path. For example, "C:" which is relative will translate to
+                 "C:\\foobar" in this case.
+
+                 We don't take this into account because using "chdir" elsewhere
+                 will change this value in the environment.
+
+                 https://devblogs.microsoft.com/oldnewthing/20100506-00/?p=14133
+               *)
+              if OUnitUtils.starts_with ~prefix:"=" v then
+                lst
+              else
+                v :: lst)
+            e []
+        in
+        Array.of_list lst
+      end else begin
+        e
+      end;
   }
 
 module EnvElement =
@@ -68,14 +94,16 @@ let check test_ctxt t =
       [
         (fun () ->
            assert_equal
-             ~msg:"Current working dir (check env)."
+             ~msg:"Check that the current working dir hasn't change during the \
+             test."
              ~printer:(fun s -> s)
              t.pwd
              t'.pwd);
         (fun () ->
            let convert t = SetEnv.of_list (Array.to_list t.env) in
              SetEnv.assert_equal
-               ~msg:"Environment (check env)."
+               ~msg:"Check that the environment variables haven't change during \
+               the test."
                (convert t)
                (convert t'));
       ]
