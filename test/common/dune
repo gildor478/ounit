@@ -1,0 +1,5 @@
+(library
+  (name testcommon)
+  (modules testCommonRunner)
+  (wrapped false)
+  (libraries ounit ounit.advanced))

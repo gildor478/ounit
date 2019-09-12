@@ -5,7 +5,7 @@ environment:
   FORK_USER: ocaml
   FORK_BRANCH: master
   CYG_ROOT: C:\cygwin64
-  EXTRA_DEPS: oasis
+  EXTRA_DEPS: dune
   OUNIT_CI: true
 
 install:

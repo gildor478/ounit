@@ -7,18 +7,14 @@ dev-repo: "git+https://github.com/gildor478/ounit.git"
 doc: ["http://ounit.forge.ocamlcore.org/api-ounit/index.html"]
 depends: [
   "ocaml" {>= "3.11.0"}
-  "ocamlfind" {build}
-  "ocamlbuild" {build}
+  "dune" {build & >= "1.11.0"}
   "base-bytes"
   "stdlib-shims"
 ]
 build: [
-  ["ocaml" "setup.ml" "-configure" "--prefix" prefix]
-  ["ocaml" "setup.ml" "-configure" "--enable-tests"] {with-test}
-  ["ocaml" "setup.ml" "-build"]
-  ["ocaml" "setup.ml" "-doc"] {with-doc}
-  ["ocaml" "setup.ml" "-test"] {with-test}
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name] {with-test}
+  ["dune" "build" "@doc" "-p" name] {with-doc}
 ]
-install: ["ocaml" "setup.ml" "-install"]
 synopsis:
   "Unit testing framework loosely based on HUnit. It is similar to JUnit, and other XUnit testing frameworks"

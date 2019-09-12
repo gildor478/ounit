@@ -43,7 +43,7 @@ let get_test_context,
          | None -> failwith "Function need to be called from inside a test."),
     (fun ctxt ->
        context_opt := Some ctxt),
-    (fun ctxt ->
+    (fun _ ->
        context_opt := None)
 
 type node = ListItem of int | Label of string
@@ -137,14 +137,6 @@ type test_event =
     EStart of path
   | EEnd of path
   | EResult of test_result
-
-let result_path =
-  function
-    | RSuccess path
-    | RError (path, _)
-    | RFailure (path, _)
-    | RSkip (path, _)
-    | RTodo (path, _) -> path
 
 type test_results = test_result list
 
@@ -281,9 +273,9 @@ let perform_test logger1 tst =
   let logger =
     OUnitLogger.fun_logger
       (function
-         | {OUnitLogger.event = OUnitLogger.GlobalEvent _} ->
+        | {OUnitLogger.event = OUnitLogger.GlobalEvent _; _} ->
              ()
-         | {OUnitLogger.event = OUnitLogger.TestEvent (path, test_event)} ->
+         | {OUnitLogger.event = OUnitLogger.TestEvent (path, test_event); _} ->
              begin
                let path1 =
                  path1_of_path path

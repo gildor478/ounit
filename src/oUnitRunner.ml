@@ -233,7 +233,7 @@ struct
       let master_logger =
         set_shard shard_id
           (OUnitLogger.fun_logger
-             (fun {event = log_ev} -> channel.send_data (Log log_ev))
+             (fun {event = log_ev; _} -> channel.send_data (Log log_ev))
              ignore)
       in
       let base_logger =
@@ -433,7 +433,7 @@ struct
     in
 
     (* Main wait loop. *)
-    let rec wait_test_done state =
+    let wait_test_done state =
       let state = (check_health (kill_timeout state)) in
       if get_workers state <> [] then begin
         let workers_waiting_lst =

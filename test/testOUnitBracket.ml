@@ -85,7 +85,7 @@ let tests =
        let () =
          with_bracket
            test_ctxt (bracket_chdir tmpdn)
-           (fun _ (test_ctxt : OUnitTest.ctxt) ->
+           (fun _ (_ : OUnitTest.ctxt) ->
               assert_bool
                (Printf.sprintf
                  "Expected to have changed to a new directory, but still in %s"

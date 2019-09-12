@@ -114,7 +114,7 @@ let tests =
          ());
 
       "BacktraceProcessing" >::
-      (fun ctxt ->
+      (fun _ ->
 
          List.iter
            (fun (str, exp) ->
@@ -152,11 +152,11 @@ let tests =
          let extract_exc e =
            let _, result, _ = OUnitTest.result_full_of_exception ctxt e in
            match result with
-             | OUnitTest.RFailure (str,
+             | OUnitTest.RFailure (_,
                                    Some {OUnitLogger.filename = fn;
                                          line = lineno}, _) ->
                  fn, lineno
-             | e ->
+             | _ ->
                  assert_failure "Should return a position."
          in
 

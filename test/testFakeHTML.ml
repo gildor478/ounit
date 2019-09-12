@@ -41,27 +41,27 @@ let suite =
   "OUnitLoggerHTML" >:::
   [
     "first test" >::
-    (fun ctxt ->
+    (fun _ ->
        assert_equal 0 1);
 
     "second test" >::
-    (fun ctxt ->
+    (fun _ ->
        assert_equal 0 0);
 
     "third test" >::
-    (fun ctxt ->
+    (fun _ ->
        skip_if true "skipped because of me");
 
     "fourth test" >::
-    (fun ctxt ->
+    (fun _ ->
        todo "need to make this function");
 
     "fifth test" >::
-    (fun ctxt ->
+    (fun _ ->
        raise Not_found);
 
     "with symbol" >::
-    (fun ctxt ->
+    (fun _ ->
        failwith "this is a bad message: '\"&<>")
   ]
 
