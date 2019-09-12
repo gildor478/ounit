@@ -35,12 +35,16 @@
   * Run processes that handle running tests. The processes read test, execute
   * it, and communicate back to the master the log.
   *
-  * This need to be done in another process because ocaml Threads are not truly
-  * concurrent. Moreover we cannot use Unix.fork because it's not portable
+  * This need to be done in another process because OCaml Threads are not truly
+  * running in parallel. Moreover we cannot use Unix.fork because it's not
+  * portable
   *)
 
 open Unix
 open OUnitRunner.GenericWorker
+
+
+let unix_fork = ref Unix.fork
 
 (* Create functions to handle sending and receiving data over a file descriptor.
  *)
@@ -125,7 +129,7 @@ let create_worker ~shard_id ~master_id ~worker_log_file conf map_test_cases =
   let safe_close fd = try close fd with Unix_error _ -> () in
   let pipe_read_from_worker, pipe_write_to_master = Unix.pipe () in
   let pipe_read_from_master, pipe_write_to_worker  = Unix.pipe () in
-  match Unix.fork () with
+  match !unix_fork () with
     | 0 ->
         (* Child process. *)
         let () =

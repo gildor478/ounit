@@ -1,0 +1,4 @@
+(test
+  (name test)
+  (package ounit-lwt)
+  (libraries ounit ounit-lwt testcommon))

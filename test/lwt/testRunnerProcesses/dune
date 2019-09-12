@@ -1,0 +1,5 @@
+(test
+  (name testRunnerProcesses)
+  (package ounit-lwt)
+  (libraries ounit lwt lwt.unix ounit-lwt)
+  (action (run %{test} -runner processes)))

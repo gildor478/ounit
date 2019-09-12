@@ -7,27 +7,24 @@ cache:
     - $HOME/.opam
 env:
   global:
-    - PACKAGE=ounit OUNIT_CI=true
+    - PACKAGE=ounit OUNIT_CI=true PINS="ounit:. ounit-lwt:."
 matrix:
   include:
     - apt:
         packages:
           - libxml2-utils
-      os:
-        - linux
-      env:
-        - OCAML_VERSION=4.08
+      os: linux
+      env: OCAML_VERSION=4.08 PACKAGE="ounit"
 
-    - os:
-        - linux
-      env:
-        # Use an old version for backward compatibility.
-        - OCAML_VERSION=4.05
+    - os: linux
+      env: OCAML_VERSION=4.08 PACKAGE="ounit-lwt"
 
-    - os:
-        - osx
-      env:
-        - OCAML_VERSION=4.08
+    # Use oldest possible version for backward compatibility.
+    - os: linux PACKAGE="ounit"
+      env: OCAML_VERSION=4.02
+
+    - os: osx
+      env: OCAML_VERSION=4.08 PACKAGE="ounit"
       cache:
         directories:
           - $HOME/Library/Caches/Homebrew
