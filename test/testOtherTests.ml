@@ -51,9 +51,10 @@ let tests =
          skip_if (Sys.command ((xmllint ctxt)^" --version 2> /dev/null") == 127)
            "xmllint not found.";
        in
-       let html_dir = "log-html" in
+       let html_dir = Filename.concat (Sys.getcwd ()) "log-html" in
        let junit_xml = Filename.concat html_dir "junit.xml" in
        let index_html = Filename.concat html_dir "index.html" in
+       let junit_xsd = Filename.concat (Sys.getcwd ()) "JUnit.xsd" in
        let link_to_source bn =
          Sys.remove (Filename.concat html_dir bn);
          Unix.symlink
@@ -105,7 +106,7 @@ let tests =
          assert_command
            ~ctxt
            (xmllint ctxt)
-           ["--noout"; "--nonet"; "--schema"; "test/JUnit.xsd"; junit_xml];
+           ["--noout"; "--nonet"; "--schema"; junit_xsd; junit_xml];
          assert_command
            ~ctxt
            (xmllint ctxt)

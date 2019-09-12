@@ -23,7 +23,8 @@
 
 (alias
   (name runtest)
-  (deps test.exe testFakeHTML.exe testFakeRunner.exe testFakeShared.exe)
+  (deps
+    test.exe testFakeHTML.exe testFakeRunner.exe testFakeShared.exe JUnit.xsd)
   (action
     (run ./test.exe -testFakeHTML ./testFakeHTML.exe -testFakeRunner
       ./testFakeRunner.exe -testFakeShared ./testFakeShared.exe)))
