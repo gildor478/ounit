@@ -1,5 +1,6 @@
 (library
   (name testcommon)
-  (modules testCommonRunner)
+  (modules testCommonRunner segfault)
+  (c_names segfault)
   (wrapped false)
   (libraries ounit ounit.advanced))

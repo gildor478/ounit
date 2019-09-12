@@ -68,8 +68,9 @@ let suite =
 
     "SIGSEGV" >::
     (fun ctxt ->
-       if sigsegv ctxt then
-         Unix.kill (Unix.getpid ()) 11);
+       if sigsegv ctxt then begin
+         Segfault.cause_segfault ()
+       end);
 
     "Timeout" >:
     (test_case

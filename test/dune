@@ -6,7 +6,7 @@
 (executable
   (name testFakeRunner)
   (modules testFakeRunner)
-  (libraries ounit ounit.threads))
+  (libraries ounit ounit.threads testcommon))
 
 (executable
   (name testFakeShared)
