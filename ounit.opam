@@ -13,8 +13,8 @@ depends: [
 ]
 build: [
   ["dune" "build" "-p" name "-j" jobs]
-  ["dune" "runtest" "-p" name] {with-test}
-  ["dune" "build" "@doc" "-p" name] {with-doc}
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
 ]
 synopsis:
   "Unit testing framework loosely based on HUnit. It is similar to JUnit, and other XUnit testing frameworks"
