@@ -31,9 +31,8 @@
 (**************************************************************************)
 
 (**
-  * Utilities for OUnit
-  *
-  * @author Sylvain Le Gall
+   Utilities for OUnit
+   @author Sylvain Le Gall
   *)
 
 let is_blank =

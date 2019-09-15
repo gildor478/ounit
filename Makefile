@@ -56,11 +56,6 @@ clean:
 
 .PHONY: build doc test all install uninstall clean
 
-doc-test: doc
-	 ocamldoc -g ../ocaml-tmp/odoc-extract-code/odoc_extract_code.cmo \
-	   -load _build/src/oUnit.odoc -intro doc/manual.txt > _build/src/tmp.ml;
-	 ocamlc -c -I _build/src/ _build/src/tmp.ml
-
 PRECOMMIT_ARGS= \
 	    --exclude log-html \
 	    --exclude Makefile
@@ -76,13 +71,7 @@ test: precommit
 
 .PHONY: precommit
 
-doc-dev-dist: doc fix-perms
-	./doc-dist.sh --version dev
-
-.PHONY: doc-dev-dist
-
-deploy: doc fix-perms
-	./doc-dist.sh --version $(shell oasis query version)
+deploy: doc
 	admin-gallu-deploy --verbose \
 	  --forge_upload --forge_group ounit --forge_user gildor-admin \
 	  --forge_extra_file "dist/ounit-doc-$(shell oasis query version).tar.gz"
@@ -90,11 +79,6 @@ deploy: doc fix-perms
 	  --setup_run --setup_args "-setup-update dynamic" --use_vcs
 
 .PHONY: deploy
-
-fix-perms:
-	chmod +x doc-dist.sh
-
-.PHONY: fix-perms
 
 headache:
 	find ./ \
