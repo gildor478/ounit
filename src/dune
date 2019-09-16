@@ -14,6 +14,10 @@
   (wrapped false)
   (libraries unix ounit.advanced))
 
+(documentation
+  (package ounit)
+  (mld_files index))
+
 (library
   (name oUnitAdvanced)
   (public_name ounit.advanced)
