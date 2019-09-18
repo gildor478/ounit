@@ -115,7 +115,7 @@ type runner =
  *)
 
 (* Run all tests, sequential version *)
-let sequential_runner conf logger chooser test_cases =
+let sequential_runner: runner = fun conf logger chooser test_cases ->
   let shared = OUnitShared.create () in
   let rec iter state =
     match OUnitState.next_test_case conf logger state with
@@ -133,6 +133,8 @@ let sequential_runner conf logger chooser test_cases =
     OUnitState.add_worker () (OUnitState.create conf chooser test_cases)
   in
   iter state
+
+(**/**)
 
 (* Plugin interface. *)
 module Plugin =
@@ -197,12 +199,18 @@ struct
              | [], [] -> 0
        end)
 
+
+  type map_test_cases =
+    (OUnitTest.path * OUnitTest.test_length * (OUnitTest.ctxt -> unit)) MapPath.t
+
   type ('a, 'b) channel =
       {
         send_data: 'a -> unit;
         receive_data: unit -> 'b;
         close: unit -> unit;
       }
+
+  type worker_channel = (message_from_worker, message_to_worker) channel
 
   (* Add some extra feature to channel. *)
   let wrap_channel
@@ -244,7 +252,12 @@ struct
 
   (* Run a worker, react to message receive from parent. *)
   let main_worker_loop
-        conf yield channel shard_id map_test_cases worker_log_file =
+        ~yield
+        ~shard_id
+        ~worker_log_file
+        (conf: OUnitConf.conf)
+        (channel: worker_channel)
+        (map_test_cases: map_test_cases) =
     let logger =
       let master_logger =
         set_shard shard_id
@@ -323,10 +336,18 @@ struct
         is_running: unit -> bool;
       }
 
+  type 'a worker_creator =
+    shard_id:string -> master_id:string -> worker_log_file:bool ->
+    OUnitConf.conf -> map_test_cases -> 'a worker
+
+  type 'a workers_waiting_selector =
+    timeout:float -> 'a worker list -> 'a worker list
+
   (* Run all tests. *)
   let runner
-        create_worker workers_waiting
-        conf logger chooser test_cases =
+        (create_worker: 'a worker_creator)
+        (workers_waiting: 'a workers_waiting_selector) : runner =
+    fun (conf: OUnitConf.conf) logger chooser test_cases ->
     let map_test_cases =
       List.fold_left
         (fun mp ((test_path, _, _) as test_case) ->
@@ -457,7 +478,7 @@ struct
             (count_tests_running state)
             (String.concat ", "
                (List.map string_of_path (get_tests_running state)));
-          workers_waiting (get_workers state) (timeout state)
+          workers_waiting ~timeout:(timeout state) (get_workers state) 
         in
           List.fold_left
             (fun state worker ->
@@ -487,7 +508,7 @@ struct
               let () = infof logger "Starting worker number %s." shard_id in
               let worker =
                 create_worker
-                  conf map_test_cases shard_id master_id worker_log_file
+                  ~shard_id ~master_id ~worker_log_file conf map_test_cases
               in
               let () = infof logger "Worker %s started." worker.shard_id in
               let state = add_worker worker state in

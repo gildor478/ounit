@@ -67,11 +67,14 @@ type result_full = (path * result * OUnitLogger.position option)
 
 type result_list = result_full list
 
+type log_event_t = (path, result) OUnitLogger.log_event_t
+type logger = (path, result) OUnitLogger.logger
+
 type ctxt =
     (* TODO: hide this to avoid building a context outside. *)
     {
       conf: OUnitConf.conf;
-      logger: (path, result) OUnitLogger.logger;
+      logger: logger;
       shared: OUnitShared.shared;
       path: path;
       test_logger: result OUnitLogger.Test.t;
@@ -83,9 +86,6 @@ type ctxt =
       non_fatal: result_full list ref;
       non_fatal_mutex: OUnitShared.Mutex.t;
     }
-
-type log_event_t = (path, result) OUnitLogger.log_event_t
-type logger = (path, result) OUnitLogger.logger
 
 type test_fun = ctxt -> unit
 

@@ -32,12 +32,15 @@
 
 (** Standard functions for plugin (register, choose). *)
 
+
+type name = string
+
 module type SETTINGS =
 sig
   type t
-  val name: string
+  val name: name
   val conf_help: string
-  val default_name: string
+  val default_name: name
   val default_value: t
 end
 

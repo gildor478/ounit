@@ -36,6 +36,8 @@ exception Parse_error of string
 
 type conf = OUnitPropList.t
 
+type 'a var = conf -> 'a
+
 type metadata =
     {
       help: string;
@@ -117,7 +119,7 @@ let make ~name ~parse ~print ~default ~help ~fcli () =
        get_print = get_print;
        parse_set = parse_set;
        cli = (fun conf -> fcli (get conf) (set conf))};
-    get
+    (get: 'a var)
 
 let make_string name default help =
   make
