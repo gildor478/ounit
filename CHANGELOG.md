@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - New logger for CI, like Travis and AppVeyor, with colored output.
 
+### Fixed
+- Run garbage collection in between tests to prevent unexpected bugs in GC (e.g
+  finaliser throwing exceptions). (Closes: OF#1766)
+
 ## [2.0.8]
 
 - Handle infinity and NaN in cmp_float, thanks to Johannes Kloos
