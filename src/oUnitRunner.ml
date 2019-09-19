@@ -83,7 +83,7 @@ let run_one_test conf logger shared test_path (test_fun: OUnitTest.test_fun) =
              test_fun ctxt;
              OUnitCheckEnv.check ctxt check_env;
              if run_gc_full_major conf then begin
-               Gc.major ();
+               Gc.full_major ();
              end;
              test_path, RSuccess, None
            with e ->
