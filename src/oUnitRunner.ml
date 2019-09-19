@@ -428,6 +428,14 @@ struct
               worker state)
     in
 
+    let declare_dead_idle_worker worker state =
+      let msg =
+        Printf.sprintf "Worker %s died unexpectedly." worker.shard_id
+      in
+      report logger (GlobalEvent (GLog (`Info, msg)));
+      remove_idle_worker worker state
+    in
+
     (* Kill the worker that has timed out. *)
     let kill_timeout state =
       List.fold_left
@@ -445,25 +453,33 @@ struct
     (* Check that worker are healthy (i.e. still running). *)
     let check_health state =
       List.fold_left
-        (fun state (test_path, worker) ->
+        (fun state (test_path_opt, worker) ->
            incr_health_check_per_worker worker.shard_id;
            if worker.is_running () then begin
-             update_test_activity test_path state
+             match test_path_opt with
+             | Some test_path -> update_test_activity test_path state
+             | None -> state
            end else begin
-             (* Argh, a test failed badly! *)
-             let result_msg =
-               errorf logger
-                 "Worker %s, running test %s is not running anymore."
-                 worker.shard_id (string_of_path test_path);
-               match worker.close_worker () with
-                 | Some msg ->
+             match test_path_opt with
+             | Some test_path ->
+               begin
+                 (* Argh, a test failed badly! *)
+                 let result_msg =
+                   errorf logger
+                     "Worker %s, running test %s is not running anymore."
+                     worker.shard_id (string_of_path test_path);
+                   match worker.close_worker () with
+                   | Some msg ->
                      Printf.sprintf "Worker stops running: %s" msg
-                 | None ->
+                   | None ->
                      "Worker stops running for unknown reason."
-             in
-               declare_dead_worker test_path worker
-                 (RError (result_msg, None))
-                 state
+                 in
+                   declare_dead_worker test_path worker
+                     (RError (result_msg, None))
+                     state
+               end
+             | None ->
+               declare_dead_idle_worker worker state
            end)
         state
         (get_worker_need_health_check state)

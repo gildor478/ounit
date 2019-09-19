@@ -226,14 +226,20 @@ let get_results state =
 (** Get all the workers that need to be checked for their health. *)
 let get_worker_need_health_check state =
   let now = OUnitUtils.now () in
+  let running_workers =
     List.fold_left
       (fun lst (test_path, test_running) ->
          if test_running.next_health_check <= now then
-           (test_path, test_running.worker) :: lst
+           (Some test_path, test_running.worker) :: lst
          else
            lst)
       []
       state.tests_running
+  in
+  let idle_workers =
+    List.map (fun worker -> (None, worker)) state.idle_workers
+  in
+  running_workers @ idle_workers
 
 (** Update the activity of a worker, this postpone the next health check. *)
 let update_test_activity test_path state =
