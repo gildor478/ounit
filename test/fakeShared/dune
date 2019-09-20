@@ -1,0 +1,3 @@
+(executable
+  (name fakeShared)
+  (libraries ounit ounit.threads))

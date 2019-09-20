@@ -1,34 +1,19 @@
 (executable
-  (name testFakeHTML)
-  (modules testFakeHTML)
-  (libraries ounit))
-
-(executable
-  (name testFakeRunner)
-  (modules testFakeRunner)
-  (libraries ounit ounit.threads testcommon))
-
-(executable
-  (name testFakeShared)
-  (modules testFakeShared)
-  (libraries ounit ounit.threads))
-
-(executable
   (name test)
-  (modules
-    test testOUnit1 testOUnit2 testConf testOUnitTest testCommon
-    testOUnitAssert testOUnitDiff testOtherTests testRunner testShared
-    testOUnitBracket testOUnitChooser)
   (libraries ounit ounit.advanced str testcommon))
 
 (alias
   (name runtest)
   (deps
-    test.exe testFakeHTML.exe testFakeRunner.exe testFakeShared.exe JUnit.xsd
-    fakeBadFinaliser/fakeBadFinaliser.exe)
+    test.exe
+    fakeHTML/fakeHTML.exe
+    fakeRunner/fakeRunner.exe
+    fakeShared/fakeShared.exe
+    fakeBadFinaliser/fakeBadFinaliser.exe
+    JUnit.xsd)
   (action
     (run ./test.exe
-      -testFakeHTML ./testFakeHTML.exe
-      -testFakeRunner ./testFakeRunner.exe
-      -testFakeShared ./testFakeShared.exe
+      -fakeHTML ./fakeHTML/fakeHTML.exe
+      -fakeRunner ./fakeRunner/fakeRunner.exe
+      -fakeShared ./fakeShared/fakeShared.exe
       -fakeBadFinaliser ./fakeBadFinaliser/fakeBadFinaliser.exe)))

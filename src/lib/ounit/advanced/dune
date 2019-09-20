@@ -1,0 +1,10 @@
+(rule
+  (target oUnitLoggerHTMLData.ml)
+  (deps ../../../tools/data_gen/data_gen.exe oUnit.css oUnit.js)
+  (action (run ../../../tools/data_gen/data_gen.exe)))
+
+(library
+  (name oUnitAdvanced)
+  (public_name ounit.advanced)
+  (wrapped false)
+  (libraries bytes stdlib-shims))

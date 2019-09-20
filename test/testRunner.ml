@@ -33,7 +33,7 @@
 open OUnit2
 open TestCommon
 
-let testFakeRunner = Conf.make_exec "testFakeRunner"
+let fakeRunner = Conf.make_exec "fakeRunner"
 let fakeBadFinaliser = Conf.make_exec "fakeBadFinaliser"
 
 type test_results =
@@ -61,7 +61,7 @@ let run_test_fake_runner ctxt runner args =
   let () =
     TestCommonRunner.run_fake_external_prog
       ~ctxt ~exit_code:(Unix.WEXITED 1) ~runner
-      (testFakeRunner ctxt) args fn
+      (fakeRunner ctxt) args fn
   in
 
   let mk str =

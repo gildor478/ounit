@@ -35,7 +35,7 @@ open OUnitUtils
 
 let xmllint = Conf.make_exec "xmllint"
 
-let testFakeHTML = Conf.make_exec "testFakeHTML"
+let fakeHTML = Conf.make_exec "fakeHTML"
 
 let tests =
   "OtherTests" >:::
@@ -83,7 +83,7 @@ let tests =
          assert_command
            ~ctxt
            ~exit_code:(Unix.WEXITED 1)
-           (testFakeHTML ctxt)
+           (fakeHTML ctxt)
            ["-output-file"; Filename.concat html_dir "fake-html.log";
             "-output-html-dir"; html_dir;
             "-output-junit-file"; junit_xml];

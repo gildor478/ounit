@@ -33,13 +33,13 @@
 open OUnit2
 open TestCommon
 
-let testFakeShared = Conf.make_exec "testFakeShared"
+let fakeShared = Conf.make_exec "fakeShared"
 
 let run_test_fake_shared ctxt runner args =
   let fn, _ = bracket_tmpfile ctxt in
   TestCommonRunner.run_fake_external_prog
     ~ctxt ~exit_code:(Unix.WEXITED 0) ~runner
-    (testFakeShared ctxt) args fn
+    (fakeShared ctxt) args fn
 
 let tests =
   "Shared" >:::
