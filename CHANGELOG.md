@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - New logger for CI, like Travis and AppVeyor, with colored output.
 
+### Changed
+- assert_command only displays the difference with the initial environment.
+  This avoids to have hundreeds of lines of useless environment variables.
+
 ### Fixed
 - Run garbage collection in between tests to prevent unexpected bugs in GC (e.g
   finaliser throwing exceptions). (Closes: OF#1766)

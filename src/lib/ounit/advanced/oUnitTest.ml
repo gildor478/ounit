@@ -85,6 +85,7 @@ type ctxt =
       tear_down_mutex: OUnitShared.Mutex.t;
       non_fatal: result_full list ref;
       non_fatal_mutex: OUnitShared.Mutex.t;
+      initial_environment: string array;
     }
 
 type test_fun = ctxt -> unit
@@ -146,6 +147,7 @@ let with_ctxt conf logger shared non_fatal test_path f =
       tear_down_mutex = OUnitShared.Mutex.create OUnitShared.ScopeProcess;
       non_fatal = non_fatal;
       non_fatal_mutex = OUnitShared.Mutex.create OUnitShared.ScopeProcess;
+      initial_environment = Unix.environment ();
     }
   in
     section_ctxt ctxt f

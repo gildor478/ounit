@@ -207,3 +207,21 @@ end
 
 let pp_comma_separator fmt () =
   fprintf fmt ",@ "
+
+module EString =
+  struct
+  type t = string
+  let compare = String.compare
+  let pp_printer = Format.pp_print_string
+  let pp_print_sep = pp_comma_separator
+end
+
+module EInt =
+struct
+  type t = int
+  let compare = ( - )
+  let pp_printer = Format.pp_print_int
+  let pp_print_sep = pp_comma_separator
+end
+
+

@@ -133,3 +133,7 @@ module ListSimpleMake : functor (D: DIFF_ELEMENT) -> S
   with type e = D.t and type t = D.t list
 
 val pp_comma_separator : Format.formatter -> unit -> unit
+
+module EString : DIFF_ELEMENT with type t = string
+module EInt : DIFF_ELEMENT with type t = int
+

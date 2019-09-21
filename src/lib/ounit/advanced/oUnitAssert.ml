@@ -136,6 +136,35 @@ let assert_command
     ~ctxt
     prg args =
 
+  let log_environment_diff () =
+    let module SetString = Set.Make(struct
+        type t = string
+        let compare = String.compare
+      end)
+    in
+    let set_of_array a =
+      let ss = ref SetString.empty in
+      for i = 0 to (Array.length a) - 1 do
+        ss := SetString.add (Array.get a i) !ss
+      done;
+      !ss
+    in
+    let current_environment = set_of_array (Unix.environment ()) in
+    let initial_environment = set_of_array ctxt.initial_environment in
+    if SetString.equal current_environment initial_environment then begin
+      OUnitLogger.Test.logf ctxt.test_logger `Info
+        "Environment is the same as original environment.";
+    end else begin
+      OUnitLogger.Test.logf ctxt.test_logger `Info
+        "Environment (diff with original environment):";
+      SetString.iter
+        (fun s -> OUnitLogger.Test.logf ctxt.test_logger `Info "+%s" s)
+        (SetString.diff current_environment initial_environment);
+      SetString.iter
+        (fun s -> OUnitLogger.Test.logf ctxt.test_logger `Info "-%s" s)
+        (SetString.diff current_environment initial_environment);
+    end
+  in
     begin
       match env with
       | Some a when Array.length a = 0 && Sys.os_type = "Win32" ->
@@ -196,10 +225,8 @@ let assert_command
            if backtrace then begin
              (* Analyse of the provided environment. *)
              match env with
-               | Some env ->
-                   Some (analyse_and_fix env)
-               | None ->
-                   Some (analyse_and_fix (Unix.environment ()))
+               | Some env -> Some (analyse_and_fix env)
+               | None -> Some (analyse_and_fix (Unix.environment ()))
            end else begin
              env
            end
@@ -221,13 +248,7 @@ let assert_command
                    Format.fprintf fmt "Starting command '%t'." cmd_print));
            OUnitLogger.Test.logf ctxt.test_logger `Info "Working directory: %S"
              command_chdir;
-           OUnitLogger.Test.logf ctxt.test_logger `Info "Environment: ";
-           Array.iter
-             (fun v ->
-                OUnitLogger.Test.logf ctxt.test_logger `Info "%s" v)
-             (match env with
-                | Some e -> e
-                | None -> Unix.environment ());
+           log_environment_diff ();
            Unix.set_close_on_exec out_write;
            match env with
              | Some e ->
