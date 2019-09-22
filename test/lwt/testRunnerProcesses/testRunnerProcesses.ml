@@ -6,7 +6,7 @@ let test =
      let open Lwt.Infix in
      OUnitLwt.lwt_wrapper
        (fun _ctxt ->
-          Lwt_io.open_file ~mode:Lwt_io.Input "/etc/hostname"
+          Lwt_io.open_file ~mode:Lwt_io.Input "test.txt"
           >>= fun channel ->
           Lwt_io.read_char channel
           >|= fun _ -> ()))
