@@ -72,6 +72,8 @@ test: precommit
 .PHONY: precommit
 
 deploy: doc test
+	dune-release lint
+	git push --all
 	dune-release tag
 	dune-release
 

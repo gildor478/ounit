@@ -17,3 +17,6 @@ build: [
   ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
 ]
 synopsis: "OUnit testing framework (Lwt)"
+description:"""
+This library contains helper functions for building Lwt tests using OUnit.
+"""
