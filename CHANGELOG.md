@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- New logger for CI, like Travis and AppVeyor, with colored output.
+- New logger for CI, like Travis and AppVeyor, with colored output. It is
+  enabled by adding OUNIT_CI=true to environment section of .travis.yml or
+  appveyor.yml.
 - ounit-lwt to build test with OUnit and Lwt. It also allows
   to use the runner "processes" to run test in parallel. (Closes: OF#1765)
 
