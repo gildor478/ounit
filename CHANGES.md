@@ -1,12 +1,4 @@
-# Changelog
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog],
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-[Keep a Changelog]: https://keepachangelog.com/en/1.0.0
-
-## [Unreleased]
+## v2.1.0 - 2019-09-22
 
 ### Added
 - New logger for CI, like Travis and AppVeyor, with colored output. It is
@@ -25,42 +17,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Run garbage collection in between tests to prevent unexpected bugs in GC (e.g
   finaliser throwing exceptions). (Closes: OF#1766)
 
-## [2.0.8]
+## v2.0.8
 
 - Handle infinity and NaN in cmp_float, thanks to Johannes Kloos
   (Closes: OF#1381)
 
-## [2.0.7]
+## v2.0.7
 
 - Prevent OUnitLoggerJUnit to fail when the hostname cannot be found, thanks
   to Bailey Parker for the fix (Closes: OF#1744)
 
-## [2.0.6]
+## v2.0.6
 
 - Fix internal uppercase_name.
 
-## [2.0.5]
+## v2.0.5
 
 - Allow to recover from interrupted Unix.select call. This allows to
   run more reliably the RunnerProcess with lwt. (Closes: OF#1363)
 
-## [2.0.4]
+## v2.0.4
 
 - minor bug fixes:
   - replace String.map by Buffer.* to be compatible with OCaml < 4.0.
 
-## [2.0.3]
+## v2.0.3
 
 - minor bug fixes:
   - use Marshal.from_string to be compatible with OCaml <= 4.01.
   - declare dependency on bytes in _oasis
 
-## [2.0.2]
+## v2.0.2
 
 - minor bug fixes:
   - replace String.uppercase_ascii.
 
-## [2.0.1]
+## v2.0.1
 
 - minor bug fixes
 - fix safe-string compatibility issuesi, thanks to Christoph Spiel
@@ -68,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix some format string errors, thanks to Damien Doligez (Closes: OF#1422)
 - fix backward incompatiblity with OUnit v1 (Closes: OF#1392)
 
-## [2.0.0]
+## v2.0.0
 
 - major rewrite of all the code!
 - implements a quickfix compatible way of outputing failures, it jumps to
@@ -97,17 +89,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - enforce environment cleanness by checking it before and after the test
   (e.g check that Sys.getcwd is the same).
 
-## [1.1.2]
+## v1.1.2
 
 - regenerate with oasis v0.3.0~rc6
 
-## [1.1.1]
+## v1.1.1
 
 - bracket now enforce returning unit
 - update examples
 - ListSimpleMake now use the provided comparator for all elements
 
-## [1.1.0]
+## v1.1.0
 
 - Add a ~pp_diff parameter to assert_equal and some classic diff operations
   (Closes: OF#635, OF#642)
@@ -126,42 +118,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Maintainance is now done by Sylvain Le Gall (OCamlCore SARL), thanks to
   Maas-Maarten Zeeman for all his work
 
-## [1.0.3]
+## v1.0.3
 
 - Add the possibility to skip test and mark tests as todo
 
-## [1.0.2]
+## v1.0.2
 
 - Refactored OUnit package. The test result and test event data structures
   are now clearly separated.
 
-## [1.0.1]
+## v1.0.1
 
 - Added optional compare function to assert_equal, and a float compare
   function. Thanks go to Daniel Buenzli
 
-## [1.0.0]
+## v1.0.0
 
 - Add bracket support (Thanks go to Laurent Vaucher)
 - Add an example for bracket usage
 
-## [0.1.0]
+## v0.1.0
 
 - Makefile improvements
 
-## [0.0.3]
+## v0.0.3
 
 - Added findlib support
 
-## [0.0.2]
+## v0.0.2
 
 - Added assert_raises which checkes if an exception is raised.
   (thanks go to Keita Yamaguchi, for the idea)
 - Fixed (hopefully) the .depend file
 
-## [0.0.1]
+## v0.0.1
 
 - First release of ocaml-unit
+
+## Changelog format
+The format is loosely based on [Keep a Changelog], and this project adheres to
+[Semantic Versioning].
+
+[Keep a Changelog]: https://keepachangelog.com/en/1.0.0
+[Semantic Versioning]: https://semver.org/spec/v2.0.0.html
 
 ## BTS references
 
