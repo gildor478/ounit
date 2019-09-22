@@ -19,12 +19,21 @@ matrix:
     - os: linux
       env: OCAML_VERSION=4.08 PACKAGE="ounit-lwt"
 
+    - os: linux
+      env: OCAML_VERSION=4.08 PACKAGE="ounit" REVDEPS="fileutils debian-formats"
+
     # Use oldest possible version for backward compatibility.
-    - os: linux PACKAGE="ounit"
-      env: OCAML_VERSION=4.02
+    - os: linux
+      env: OCAML_VERSION=4.02 PACKAGE="ounit"
 
     - os: osx
       env: OCAML_VERSION=4.08 PACKAGE="ounit"
+      cache:
+        directories:
+          - $HOME/Library/Caches/Homebrew
+
+    - os: osx
+      env: OCAML_VERSION=4.08 PACKAGE="ounit-lwt"
       cache:
         directories:
           - $HOME/Library/Caches/Homebrew
