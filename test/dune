@@ -1,9 +1,6 @@
-(executable
+(test
   (name test)
-  (libraries ounit ounit.advanced str testcommon))
-
-(alias
-  (name runtest)
+  (libraries ounit ounit.advanced str testcommon)
   (deps
     test.exe
     fakeHTML/fakeHTML.exe
@@ -12,7 +9,7 @@
     fakeBadFinaliser/fakeBadFinaliser.exe
     JUnit.xsd)
   (action
-    (run ./test.exe
+    (run %{test}
       -fakeHTML ./fakeHTML/fakeHTML.exe
       -fakeRunner ./fakeRunner/fakeRunner.exe
       -fakeShared ./fakeShared/fakeShared.exe
