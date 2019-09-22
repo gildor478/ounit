@@ -4,7 +4,7 @@ authors: [ "Sylvain Le Gall" ]
 homepage: "https://github.com/gildor478/ounit"
 dev-repo: "git+https://github.com/gildor478/ounit.git"
 bug-reports: "https://github.com/gildor478/ounit/issues"
-doc: "https://gildor478.github.io/ounit-lwt/"
+doc: "https://gildor478.github.io/ounit/"
 depends: [
   "ocaml" {>= "4.02.3"}
   "dune" {build & >= "1.11.0"}
