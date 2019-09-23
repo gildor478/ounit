@@ -7,4 +7,4 @@
   (name oUnitAdvanced)
   (public_name ounit.advanced)
   (wrapped false)
-  (libraries bytes stdlib-shims))
+  (libraries unix bytes stdlib-shims))
