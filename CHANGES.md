@@ -1,3 +1,10 @@
+## v2.1.2 - 2019-09-23
+
+## Fixed
+- Fix assert_raises type, which has been inadvertently changed during the
+  migration to dune.
+- Add unix dependency to ounit.advanced.
+
 ## v2.1.1 - 2019-09-23
 
 ### Changed
