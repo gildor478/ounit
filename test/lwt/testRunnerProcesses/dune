@@ -2,5 +2,5 @@
   (name testRunnerProcesses)
   (package ounit-lwt)
   (deps test.txt)
-  (libraries oUnit lwt lwt.unix ounit-lwt)
+  (libraries ounit lwt lwt.unix ounit-lwt)
   (action (run %{test} -runner processes)))

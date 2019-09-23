@@ -5,6 +5,6 @@
 
 (library
   (name oUnitAdvanced)
-  (public_name oUnit.advanced)
+  (public_name ounit.advanced)
   (wrapped false)
   (libraries bytes stdlib-shims))

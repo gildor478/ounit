@@ -3,4 +3,4 @@
   (modules testCommonRunner segfault)
   (c_names segfault)
   (wrapped false)
-  (libraries oUnit oUnit.advanced))
+  (libraries ounit ounit.advanced))

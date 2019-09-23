@@ -1,6 +1,6 @@
 (test
   (name test)
-  (libraries oUnit oUnit.advanced str testcommon)
+  (libraries ounit ounit.advanced str testcommon)
   (deps
     test.exe
     fakeHTML/fakeHTML.exe

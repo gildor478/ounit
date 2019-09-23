@@ -1,3 +1,3 @@
 (executable
   (name fakeRunner)
-  (libraries oUnit oUnit.threads testcommon))
+  (libraries ounit ounit.threads testcommon))
