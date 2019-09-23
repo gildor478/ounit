@@ -1,3 +1,11 @@
+## v2.1.1 - 2019-09-23
+
+### Changed
+- install a backward compatible META to help the transition from oUnit to ounit
+  library name. In order to depend on OUnit now, the name "ounit" should be
+  used (rather than the old "oUnit"). This change allows to be consistent with
+  the name of the opam package.
+
 ## v2.1.0 - 2019-09-22
 
 ### Added
