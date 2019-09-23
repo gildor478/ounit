@@ -320,8 +320,7 @@ let assert_command
 
 let raises f =
   try
-    f ();
-    None
+    let _ = f () in None
   with e ->
     Some e
 

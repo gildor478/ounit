@@ -118,7 +118,7 @@ val assert_equal :
     @param msg identify the failure
 
     @raise Failure description *)
-val assert_raises : ?msg:string -> exn -> (unit -> unit) -> unit
+val assert_raises : ?msg:string -> exn -> (unit -> 'a) -> unit
 
 (** {2 Skipping tests }
 
