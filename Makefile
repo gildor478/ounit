@@ -30,6 +30,8 @@
 #  See LICENSE.txt for details.                                            #
 ############################################################################
 
+version = dev
+
 default: test
 
 build:
@@ -45,16 +47,24 @@ all:
 	dune build @all
 	dune runtest
 
-install:
-	dune install
+install: install-ounit install-ounit-lwt
+
+install-ounit:
+	ocamlfind install oUnit src/lib/oUnit/META -patch-version $(version)
+	dune install ounit
+
+install-ounit-lwt:
+	dune install ounit-lwt
 
 uninstall:
+	ocamlfind remove oUnit
 	dune uninstall
 
 clean:
 	dune clean
 
-.PHONY: build doc test all install uninstall clean
+.PHONY: build doc test all uninstall clean
+.PHONY: install install-ounit install-ounit-lwt
 
 PRECOMMIT_ARGS= \
 	    --exclude log-html \

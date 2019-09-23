@@ -1,0 +1,13 @@
+description = "Transition package to ounit"
+requires = "ounit"
+
+package "threads" (
+ description = "Transition package to ounit.threads"
+ requires = "ounit.threads"
+)
+
+package "advanced" (
+ description = "Transition package to ounit.advanced"
+ requires = "ounit.advanced"
+)
+

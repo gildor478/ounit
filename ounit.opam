@@ -16,6 +16,9 @@ build: [
   ["dune" "runtest" "-p" name "-j" jobs] {with-test}
   ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
 ]
+install: [
+  [ make "install-ounit" "version=%{version}%" ]
+]
 synopsis: "OUnit testing framework"
 description: """
 OUnit is a unit test framework for OCaml. It allows one to easily create
