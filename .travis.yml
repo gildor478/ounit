@@ -5,6 +5,7 @@ script: bash -ex .travis-opam.sh
 env:
   global:
     - PACKAGE=ounit OUNIT_CI=true PINS="ounit:. ounit-lwt:."
+    - POST_INSTALL_HOOK="opam install -t re"
 matrix:
   include:
     - apt:
