@@ -125,6 +125,17 @@ let processes_kill_period =
     5.0
     "Delay to wait for a process to stop after killing it."
 
+let rec select_no_interrupt read_descrs write_descrs except_descrs timeout =
+  if timeout < 0.0 then begin
+    [], [], []
+  end else begin
+    try
+      Unix.select read_descrs write_descrs except_descrs 0.1
+    with Unix.Unix_error (Unix.EINTR, "select", "") ->
+      select_no_interrupt
+        read_descrs write_descrs except_descrs (timeout -. 0.1)
+  end
+
 let create_worker ~shard_id ~master_id ~worker_log_file conf map_test_cases =
   let safe_close fd = try close fd with Unix_error _ -> () in
   let pipe_read_from_worker, pipe_write_to_master = Unix.pipe () in
@@ -196,15 +207,9 @@ let create_worker ~shard_id ~master_id ~worker_log_file conf map_test_cases =
             if timeout < 0.0 then begin
               false, None
             end else begin
-              let running = is_running () in
-              if running then
-                begin
-                  begin
-                    try ignore (Unix.select [] [] [] 0.1)
-                    with Unix.Unix_error (Unix.EINTR, "select", "") -> ()
-                  end;
-                  wait_end (timeout -. 0.1)
-                end
+              if is_running () then
+                let _, _, _ = select_no_interrupt [] [] [] 0.1 in
+                wait_end (timeout -. 0.1)
               else
                   match !rstatus with
                   | Some status -> true, msg_of_process_status status
@@ -247,7 +252,7 @@ let workers_waiting ~timeout workers =
     List.rev_map (fun worker -> worker.select_fd) workers
   in
   let workers_fd_waiting_lst, _, _ =
-    Unix.select workers_fd_lst [] [] timeout
+    select_no_interrupt workers_fd_lst [] [] timeout
   in
     List.filter
       (fun workers -> List.memq workers.select_fd workers_fd_waiting_lst)
