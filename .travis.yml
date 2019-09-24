@@ -7,29 +7,34 @@ env:
     - PACKAGE=ounit OUNIT_CI=true PINS="ounit:. ounit-lwt:."
 matrix:
   include:
-    - apt:
+    - name: "ounit: linux"
+      apt:
         packages:
           - libxml2-utils
       os: linux
       env: OCAML_VERSION=4.08 PACKAGE="ounit"
 
-    - os: linux
+    - name: "ounit-lwt: linux"
+      os: linux
       env: OCAML_VERSION=4.08 PACKAGE="ounit-lwt"
 
-    - os: linux
-      env: OCAML_VERSION=4.08 PACKAGE="ounit" REVDEPS=true
+    - name: "ounit: reverse dependencies with linux"
+      os: linux
+      env: OCAML_VERSION=4.08 PACKAGE="ounit" REVDEPS="mock-ounit junit_ounit pa_ounit qcheck-ounit" POST_INSTALL_HOOK="opam install -t fileutils"
 
-    # Use oldest possible version for backward compatibility.
-    - os: linux
+    - name: "ounit: old ocaml release with linux"
+      os: linux
       env: OCAML_VERSION=4.02 PACKAGE="ounit"
 
-    - os: osx
+    - name: "ounit: MacOSX"
+      os: osx
       env: OCAML_VERSION=4.08 PACKAGE="ounit" REVDEPS="junit_ounit"
       cache:
         directories:
           - $HOME/Library/Caches/Homebrew
 
-    - os: osx
+    - name: "ounit-lwt: MacOSX"
+      os: osx
       env: OCAML_VERSION=4.08 PACKAGE="ounit-lwt"
       cache:
         directories:
