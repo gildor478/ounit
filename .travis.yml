@@ -24,7 +24,7 @@ matrix:
       env: OCAML_VERSION=4.02 PACKAGE="ounit"
 
     - os: osx
-      env: OCAML_VERSION=4.08 PACKAGE="ounit" REVDEPS="re"
+      env: OCAML_VERSION=4.08 PACKAGE="ounit" REVDEPS="junit_ounit"
       cache:
         directories:
           - $HOME/Library/Caches/Homebrew
