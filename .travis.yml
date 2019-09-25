@@ -4,13 +4,10 @@ install: test -e .travis.opam.sh || wget https://raw.githubusercontent.com/ocaml
 script: bash -ex .travis-opam.sh
 env:
   global:
-    - PACKAGE=ounit OUNIT_CI=true PINS="ounit:. ounit-lwt:."
+    - OUNIT_CI=true PINS="ounit:. ounit-lwt:. ounit2:. ounit2-lwt:."
 matrix:
   include:
     - name: "ounit: linux"
-      apt:
-        packages:
-          - libxml2-utils
       os: linux
       env: OCAML_VERSION=4.08 PACKAGE="ounit"
 
@@ -18,13 +15,24 @@ matrix:
       os: linux
       env: OCAML_VERSION=4.08 PACKAGE="ounit-lwt"
 
-    - name: "ounit: reverse dependencies with linux"
+    - name: "ounit2: linux"
+      apt:
+        packages:
+          - libxml2-utils
       os: linux
-      env: OCAML_VERSION=4.08 PACKAGE="ounit" REVDEPS="mock-ounit junit_ounit pa_ounit qcheck-ounit" POST_INSTALL_HOOK="opam install -t fileutils"
+      env: OCAML_VERSION=4.08 PACKAGE="ounit2"
 
-    - name: "ounit: old ocaml release with linux"
+    - name: "ounit2-lwt: linux"
       os: linux
-      env: OCAML_VERSION=4.02 PACKAGE="ounit"
+      env: OCAML_VERSION=4.08 PACKAGE="ounit2-lwt"
+
+    - name: "ounit2: reverse dependencies with linux"
+      os: linux
+      env: OCAML_VERSION=4.08 PACKAGE="ounit2" REVDEPS="mock-ounit junit_ounit pa_ounit qcheck-ounit" POST_INSTALL_HOOK="opam install -t fileutils"
+
+    - name: "ounit2: old ocaml release with linux"
+      os: linux
+      env: OCAML_VERSION=4.02 PACKAGE="ounit2"
 
     - name: "ounit: MacOSX"
       os: osx
@@ -33,9 +41,16 @@ matrix:
         directories:
           - $HOME/Library/Caches/Homebrew
 
-    - name: "ounit-lwt: MacOSX"
+    - name: "ounit2: MacOSX"
       os: osx
-      env: OCAML_VERSION=4.08 PACKAGE="ounit-lwt"
+      env: OCAML_VERSION=4.08 PACKAGE="ounit2" REVDEPS="junit_ounit"
+      cache:
+        directories:
+          - $HOME/Library/Caches/Homebrew
+
+    - name: "ounit2-lwt: MacOSX"
+      os: osx
+      env: OCAML_VERSION=4.08 PACKAGE="ounit2-lwt"
       cache:
         directories:
           - $HOME/Library/Caches/Homebrew

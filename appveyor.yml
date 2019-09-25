@@ -5,8 +5,10 @@ environment:
   FORK_USER: ocaml
   FORK_BRANCH: master
   CYG_ROOT: C:\cygwin64
+  PINS: ounit2:. ounit2-lwt:. ounit:. ounit-lwt:.
   EXTRA_DEPS: dune
   OUNIT_CI: true
+  # TODO: ounit -> ounit2
   PACKAGE: ounit
   REVDEPS: junit_ounit
 

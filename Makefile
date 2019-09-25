@@ -51,15 +51,16 @@ install: install-ounit install-ounit-lwt
 
 install-ounit:
 	-ocamlfind remove oUnit
-	dune install ounit
-	ocamlfind install oUnit src/lib/ounit-old/META -patch-version $(version)
+	ocamlfind install oUnit src/lib/oUnit/META -patch-version $(version)
 
 install-ounit-lwt:
-	dune install ounit-lwt
+	-ocamlfind remove ounit-lwt
+	ocamlfind install ounit-lwt src/lib/ounit-lwt/META -patch-version $(version)
 
 uninstall:
 	dune uninstall
 	-ocamlfind remove oUnit
+	-ocamlfind remove ounit-lwt
 
 clean:
 	dune clean

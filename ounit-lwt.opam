@@ -6,17 +6,14 @@ dev-repo: "git+https://github.com/gildor478/ounit.git"
 bug-reports: "https://github.com/gildor478/ounit/issues"
 doc: "https://gildor478.github.io/ounit/"
 depends: [
-  "ocaml" {>= "4.02.3"}
-  "dune" {>= "1.11.0"}
-  "lwt"
-  "ounit" {= version}
+  "ocamlfind"
+  "ounit2-lwt" {= version}
 ]
-build: [
-  ["dune" "build" "-p" name "-j" jobs]
-  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
-  ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
+install: [
+  [ make "install-ounit-lwt" "version=%{version}%" ]
 ]
-synopsis: "OUnit testing framework (Lwt)"
+synopsis: "This is a transition package, ounit-lwt is now ounit2-lwt."
 description:"""
-This library contains helper functions for building Lwt tests using OUnit.
+More details for the transition:
+https://github.com/gildor478/ounit#transition-to-ounit2
 """

@@ -1,4 +1,0 @@
-(library
-  (name oUnitLwt)
-  (public_name ounit-lwt)
-  (libraries lwt lwt.unix ounit.advanced))

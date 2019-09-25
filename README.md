@@ -40,3 +40,15 @@ Examples
   * [test_stack.ml](examples/test_stack.ml)
 * External projects:
   * [OASIS tests](https://github.com/ocaml/oasis/tree/master/test)
+
+Transition to ounit2
+--------------------
+
+In the past OUnit used the library name "oUnit". It is uncommon to use uppercase
+letters in library name. It caused some problems during the transition to
+"dune". It was also not the same name as the OPAM package. As of version 2.2,
+we have renamed the library ounit2.
+
+To do the transition for your own tests:
+* in OPAM, the library should now depends on "ounit2" or "ounit2-lwt"
+* in dune files/OASIS/Makefile/pkg.ml replace "oUnit" by "ounit2"

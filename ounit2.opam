@@ -6,11 +6,16 @@ dev-repo: "git+https://github.com/gildor478/ounit.git"
 bug-reports: "https://github.com/gildor478/ounit/issues"
 doc: "https://gildor478.github.io/ounit/"
 depends: [
-  "ocamlfind"
-  "ounit2" {= version}
+  "ocaml" {>= "4.02.3"}
+  "dune" {>= "1.11.0"}
+  "base-bytes"
+  "base-unix"
+  "stdlib-shims"
 ]
-install: [
-  [ make "install-ounit" "version=%{version}%" ]
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
 ]
 synopsis: "OUnit testing framework"
 description: """

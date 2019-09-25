@@ -1,0 +1,2 @@
+description = "Transition package to ounit2-lwt"
+requires = "ounit2-lwt"
