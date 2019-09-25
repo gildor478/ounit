@@ -4,7 +4,8 @@ install: test -e .travis.opam.sh || wget https://raw.githubusercontent.com/ocaml
 script: bash -ex .travis-opam.sh
 env:
   global:
-    - OUNIT_CI=true PINS="ounit:. ounit-lwt:. ounit2:. ounit2-lwt:."
+    # TODO: remove version on the pins.
+    - OUNIT_CI=true PINS="ounit.2.1.2:. ounit-lwt.2.1.2:. ounit2.2.1.2:. ounit2-lwt.2.1.2:."
 matrix:
   include:
     - name: "ounit: linux"

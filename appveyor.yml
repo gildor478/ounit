@@ -5,7 +5,8 @@ environment:
   FORK_USER: ocaml
   FORK_BRANCH: master
   CYG_ROOT: C:\cygwin64
-  PINS: ounit2:. ounit2-lwt:. ounit:. ounit-lwt:.
+  # TODO: remove version on the pins.
+  PINS: ounit2.2.1.2:. ounit2-lwt.2.1.2:. ounit.2.1.2:. ounit-lwt.2.1.2:.
   EXTRA_DEPS: dune
   OUNIT_CI: true
   # TODO: ounit -> ounit2
