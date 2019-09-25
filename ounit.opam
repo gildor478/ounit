@@ -12,7 +12,7 @@ depends: [
 install: [
   [ make "install-ounit" "version=%{version}%" ]
 ]
-synopsis: "This is a transition package, ounit is now ounit2."
+synopsis: "This is a transition package, ounit is now ounit2"
 description:"""
 More details for the transition:
 https://github.com/gildor478/ounit#transition-to-ounit2
