@@ -1,3 +1,13 @@
+## v2.2.0 - 2019-09-25
+
+### Changed
+- Rename ounit/ounit-lwt OPAM and library to ounit2/ounit2-lwt. The META file
+  to rename oUnit to ounit was not working on Windows and MacOSX because their
+  filesystems are case insensitive and the install directories were the same.
+  The new ounit2/ounit2-lwt packages avoid name clash on Windows/MacOSX and
+  we still have ounit/ounit-lwt to allow the transition to the new package
+  name. (Closes: #8)
+
 ## v2.1.2 - 2019-09-23
 
 ### Fixed

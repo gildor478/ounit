@@ -44,11 +44,15 @@ Examples
 Transition to ounit2
 --------------------
 
-In the past OUnit used the library name "oUnit". It is uncommon to use uppercase
-letters in library name. It caused some problems during the transition to
-"dune". It was also not the same name as the OPAM package. As of version 2.2,
-we have renamed the library ounit2.
+In the past OUnit used the ocamlfind package name "oUnit". It is uncommon to
+use uppercase letters in ocamlfind package name. It caused some problems during
+the transition to "dune". It was also not the same name as the OPAM package. As
+of version 2.2, the opam package ounit and the ocamlfind package oUnit are
+renamed to ounit2 (the same for both the ocamlfind and opam packages).
 
 To do the transition for your own tests:
 * in OPAM, the library should now depends on "ounit2" or "ounit2-lwt"
-* in dune files/OASIS/Makefile/pkg.ml replace "oUnit" by "ounit2"
+* in dune files/OASIS/Makefile/pkg.ml replace "oUnit" by "ounit2" and
+  "ounit-lwt" to "ounit2-lwt".
+
+We will keep OPAM packages "ounit"/"ounit-lwt" for the transition.
