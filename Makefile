@@ -90,7 +90,10 @@ deploy: doc test
 	dune-release lint
 	git push --all
 	dune-release tag
-	dune-release
+	dune-release distrib --skip-tests
+	dune-release publish
+	dune-release opam pkg
+	dune-release opma publish
 
 .PHONY: deploy
 

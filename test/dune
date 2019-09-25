@@ -1,6 +1,7 @@
 (test
   (name test)
   (libraries ounit2 ounit2.advanced str testcommon)
+  (package ounit2)
   (deps
     test.exe
     fakeHTML/fakeHTML.exe
