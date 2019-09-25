@@ -65,7 +65,10 @@ uninstall:
 clean:
 	dune clean
 
-.PHONY: build doc test all uninstall clean
+null:
+	true
+
+.PHONY: build doc test all uninstall clean null
 .PHONY: install install-ounit install-ounit-lwt
 
 PRECOMMIT_ARGS= \

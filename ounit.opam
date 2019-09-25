@@ -9,8 +9,13 @@ depends: [
   "ocamlfind"
   "ounit2" {= version}
 ]
+build: [
+  [make "null"]
+  [make "null"] {with-test}
+  [make "null"] {with-doc}
+]
 install: [
-  [ make "install-ounit" "version=%{version}%" ]
+  [make "install-ounit" "version=%{version}%"]
 ]
 synopsis: "This is a transition package, ounit is now ounit2"
 description:"""
