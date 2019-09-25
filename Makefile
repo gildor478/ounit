@@ -93,7 +93,7 @@ deploy: doc test
 	dune-release distrib --skip-tests
 	dune-release publish
 	dune-release opam pkg
-	dune-release opma publish
+	dune-release opam submit
 
 .PHONY: deploy
 
