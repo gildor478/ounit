@@ -2,4 +2,4 @@
   (name oUnitThreads)
   (public_name ounit2.threads)
   (private_modules oUnitRunnerThreads)
-  (libraries threads oUnit))
+  (libraries threads ounit2))
