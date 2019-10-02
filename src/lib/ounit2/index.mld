@@ -11,7 +11,7 @@ With OUnit, as with JUnit, you can easily create tests, name them,
 group them into suites, and execute them, with the framework
 checking the results automatically.
 
-{!indexlist}
+{!modules: OUnit2 OUnit}
 
 {2 Getting Started}
 
