@@ -135,7 +135,6 @@ let sequential_runner: runner = fun conf logger chooser test_cases ->
   iter state
 
 (**/**)
-
 (* Plugin interface. *)
 module Plugin =
   OUnitPlugin.Make
@@ -148,6 +147,7 @@ module Plugin =
        let default_value = sequential_runner
      end)
 (**/**)
+
 include Plugin
 
 
