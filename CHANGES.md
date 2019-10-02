@@ -1,3 +1,8 @@
+## v2.2.1 - 2019-10-02
+
+### Fixed
+- Fix problem with  OCaml 4.03 and ambiguous command (Closes: #10).
+
 ## v2.2.0 - 2019-09-25
 
 ### Changed
