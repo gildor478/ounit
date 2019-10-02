@@ -4,14 +4,11 @@
   (package ounit2)
   (deps
     test.exe
-    fakeHTML/fakeHTML.exe
-    fakeRunner/fakeRunner.exe
-    fakeShared/fakeShared.exe
-    fakeBadFinaliser/fakeBadFinaliser.exe
+    (:fakeHTML fakeHTML/fakeHTML.exe)
+    (:fakeRunner fakeRunner/fakeRunner.exe)
+    (:fakeShared fakeShared/fakeShared.exe)
+    (:fakeBadFinaliser fakeBadFinaliser/fakeBadFinaliser.exe)
     JUnit.xsd)
   (action
-    (run %{test}
-      -fakeHTML ./fakeHTML/fakeHTML.exe
-      -fakeRunner ./fakeRunner/fakeRunner.exe
-      -fakeShared ./fakeShared/fakeShared.exe
-      -fakeBadFinaliser ./fakeBadFinaliser/fakeBadFinaliser.exe)))
+    (run %{test} -fakeHTML %{fakeHTML} -fakeRunner %{fakeRunner}
+      -fakeShared %{fakeShared} -fakeBadFinaliser %{fakeBadFinaliser})))
