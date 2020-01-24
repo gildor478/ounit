@@ -78,6 +78,26 @@ let tests =
            "Temporary directory doesn't exist anymore."
            (not (Sys.file_exists dn)));
 
+    "tmpdir_with_symlink" >::
+    (fun test_ctxt ->
+       let () = TestCommon.skip_if_notunix () in
+       let tmpdn = bracket_tmpdir test_ctxt in
+       let tmpdn2 = Filename.concat tmpdn "bar" in
+       let _ =
+         Unix.mkdir tmpdn2 0700;
+         assert_bool
+           "Directory outside of temporary directory exists."
+           (Sys.file_exists tmpdn2);
+         with_bracket_holder
+           test_ctxt bracket_tmpdir
+           (fun dn ->
+              let target = Filename.concat dn "symlink" in
+              Unix.symlink tmpdn target)
+       in
+       assert_bool
+         "Directory outside of temporary directory still exists."
+         (Sys.file_exists tmpdn2));
+
     "chdir" >::
     (fun test_ctxt ->
        let tmpdn = bracket_tmpdir test_ctxt in

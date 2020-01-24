@@ -1,3 +1,8 @@
+## v2.2.2 - 2020-01-24
+
+### Fixed
+- Don't follow symlink in bracket_tmpdir removal code (Closes: #11).
+
 ## v2.2.1 - 2019-10-02
 
 ### Fixed

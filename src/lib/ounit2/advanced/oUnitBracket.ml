@@ -98,7 +98,12 @@ let bracket_tmpdir ?(prefix="ounit-") ?(suffix=".dir") test_ctxt =
          Array.iter
            (fun bn ->
               let fn' = Filename.concat fn bn in
-              let is_dir = try Sys.is_directory fn' with _ -> false in
+              let is_dir =
+                try
+                  let st = Unix.lstat fn' in
+                  st.Unix.st_kind = Unix.S_DIR
+                with _ -> false
+              in
                 if is_dir then begin
                   rmdir fn';
                   safe_run Unix.rmdir fn';
