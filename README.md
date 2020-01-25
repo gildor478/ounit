@@ -23,7 +23,7 @@ Installation
 The recommended way to install ounit is via the [opam package manager][opam]:
 
 ```sh
-$ opam install ounit
+$ opam install ounit2
 ```
 
 Documentation
