@@ -181,6 +181,17 @@ let _ =
 ;;
 ]}
 
+{3 OUnit2.Advanced}
+
+More modules are available in [ounit2.advanced]:
+{!modules: OUnitAssert OUnitBracket OUnitCache OUnitCheckEnv OUnitChooser OUnitConf OUnitCore OUnitDiff OUnitLogger OUnitLoggerCI OUnitLoggerHTML OUnitLoggerJUnit OUnitLoggerStd OUnitPlugin OUnitPropList OUnitResultSummary OUnitRunner OUnitRunnerProcesses OUnitShared OUnitState OUnitTest OUnitTestData OUnitUtils}
+
+{3 OUnit.Threads}
+
+Threading-related utilities.
+
+{!modules: OUnitThreads}
+
 {3 Effective OUnit}
 
 This section has general tips about unit testing and OUnit. It is the
