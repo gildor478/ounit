@@ -94,7 +94,7 @@ let check test_ctxt t =
       [
         (fun () ->
            assert_equal
-             ~msg:"Check that the current working dir hasn't change during the \
+             ~msg:"Check that the current working dir hasn't changed during the \
              test."
              ~printer:(fun s -> s)
              t.pwd
@@ -102,7 +102,7 @@ let check test_ctxt t =
         (fun () ->
            let convert t = SetEnv.of_list (Array.to_list t.env) in
              SetEnv.assert_equal
-               ~msg:"Check that the environment variables haven't change during \
+               ~msg:"Check that the environment variables haven't changed during \
                the test."
                (convert t)
                (convert t'));
