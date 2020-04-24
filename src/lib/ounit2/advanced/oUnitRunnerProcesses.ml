@@ -260,5 +260,8 @@ let workers_waiting ~timeout workers =
 
 let init () =
   if Sys.os_type = "Unix" then
-    OUnitRunner.register "processes" 100
-      (runner create_worker workers_waiting)
+    match Sys.backend_type with
+    | Native | Bytecode ->
+      OUnitRunner.register "processes" 100
+        (runner create_worker workers_waiting)
+    | Other _ -> ()
