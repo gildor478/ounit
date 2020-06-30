@@ -114,7 +114,7 @@ let extract_backtrace_position str =
               None
             else
               try
-                Scanf.sscanf eol "file \"%s@\", line %d, characters %d-%d"
+                Scanf.sscanf eol "%_s@\"%s@\", line %d, characters %d-%d"
                   (fun fn line _ _ -> Some (fn, line))
               with Scanf.Scan_failure _ ->
                 None
