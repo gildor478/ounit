@@ -183,12 +183,24 @@ let _ =
 
 {3 OUnit2.Advanced}
 
-More modules are available in [ounit2.advanced]:
+These modules should only be used when building low-level OUnit features. They
+allow to create your own process runner or logger.
+
+Modules available in [ounit2.advanced]:
 {!modules: OUnitAssert OUnitBracket OUnitCache OUnitCheckEnv OUnitChooser OUnitConf OUnitCore OUnitDiff OUnitLogger OUnitLoggerCI OUnitLoggerHTML OUnitLoggerJUnit OUnitLoggerStd OUnitPlugin OUnitPropList OUnitResultSummary OUnitRunner OUnitRunnerProcesses OUnitShared OUnitState OUnitTest OUnitTestData OUnitUtils}
 
-{3 OUnit.Threads}
+{3 OUnit2.Threads}
 
-Threading-related utilities.
+This module provide thread related utilities. In particular, it provides a
+"thread" runner, that allows to run concurrently tests using OCaml threads.
+This should provide a good level of parallelism on Windows, for UNIX systems
+it is recommended to use the standard "process" runner.
+
+To install the extra thread runner:
+
+{[
+let () = OUnitThreads.init ()
+]}
 
 {!modules: OUnitThreads}
 
