@@ -1,3 +1,8 @@
+## unreleased
+
+### Changed
+- Minimal OCaml version is now 4.04.
+
 ## v2.2.2 - 2020-01-24
 
 ### Fixed

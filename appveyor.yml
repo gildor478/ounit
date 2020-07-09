@@ -5,13 +5,9 @@ environment:
   FORK_USER: ocaml
   FORK_BRANCH: master
   CYG_ROOT: C:\cygwin64
-  # TODO: remove version on the pins.
-  PINS: ounit2.2.1.2:. ounit2-lwt.2.1.2:. ounit.2.1.2:. ounit-lwt.2.1.2:.
   EXTRA_DEPS: dune
   OUNIT_CI: true
-  # TODO: ounit -> ounit2
-  PACKAGE: ounit
-  REVDEPS: junit_ounit
+  PACKAGE: ounit2
 
 install:
   - ps: iex ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/$env:FORK_USER/ocaml-ci-scripts/$env:FORK_BRANCH/appveyor-install.ps1"))
