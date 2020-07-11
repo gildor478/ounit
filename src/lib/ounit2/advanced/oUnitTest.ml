@@ -98,10 +98,10 @@ type test =
 
 let delay_of_length =
   function
-    | Immediate -> 1.0
-    | Short -> 60.0
-    | Long -> 600.0
-    | Huge -> 1800.0
+    | Immediate -> 20.0 (* 20 seconds *)
+    | Short -> 600.0 (* 10 minutes *)
+    | Long -> 1800.0 (* 30 minutes *)
+    | Huge -> 3600.0 (* 1 hour *)
     | Custom_length f -> f
 
 let get_shard_id test_ctxt =

@@ -4,6 +4,9 @@
 - Minimal OCaml version is now 4.04.
 - Make colored output and JUnit features more prominent in the documentation.
   (Closes: #13, #12)
+- Increase default timeouts, so that they work as well for slow architecture
+  like s390x. The fastest timeout is now 20s (immediate test) and the longest
+  is 1h (huge test). (Closes: #18)
 
 ## v2.2.2 - 2020-01-24
 
