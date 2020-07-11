@@ -9,6 +9,11 @@ unit-tests for OCaml code. It is loosely based on [HUnit], a unit testing
 framework for Haskell. It is similar to [JUnit], and other XUnit testing
 frameworks.
 
+Features:
+- colored output
+- JUnit report generation
+- HTML report generation
+
 [HUnit]:          http://hunit.sourceforge.net/
 [JUnit]:          http://junit.org/
 [travis]:         https://travis-ci.org/gildor478/ounit

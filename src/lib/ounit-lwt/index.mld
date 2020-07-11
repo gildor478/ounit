@@ -1,0 +1,4 @@
+{1 OUnit-lwt transitional package}
+
+This is a transitional package for ounit2-lwt. Use
+{{: ../ounit2-lwt/index.html} ounit2-lwt package}.

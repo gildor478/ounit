@@ -15,8 +15,8 @@ checking the results automatically.
 
 {2 Getting Started}
 
-The basic principle of a OUnit test suite is to have a {i test.ml} file which will
-contain the tests, and an OCaml module under test, here named {i foo.ml}.
+The basic principle of a OUnit test suite is to have a {i test.ml} file which
+will contain the tests, and an OCaml module under test, here named {i foo.ml}.
 
 File {i foo.ml}:
 {[
@@ -77,6 +77,29 @@ OK
 
 When using {!OUnit2.run_test_tt_main}, a non-zero exit code signals that the
 test suite failed.
+
+{2 Extra features}
+
+OUnit supports colored output and JUnit/HTML generation. They are command line
+flags or environment variables that you can set before running OUnit test
+suites.
+
+{ul
+{- Colored output:
+{ul
+  {- Set the environment variable [OUNIT_CI=true]}
+  {- Use the command line flag [-ci true]}
+}}
+{- JUnit generation:
+{ul
+  {- Set the environment variable [OUNIT_OUTPUT_JUNIT_FILE=fn]}
+  {- Use the command line flag [-output-junit-file fn]}
+}}
+{- HTML report
+{ul
+  {- Set the environment variable [OUNIT_OUTPUT_HTML_DIR=fn]}
+  {- Use the command line flag [-output-html-dir fn]}
+}}}
 
 {2 Advanced usage}
 
@@ -181,14 +204,6 @@ let _ =
 ;;
 ]}
 
-{3 OUnit2.Advanced}
-
-These modules should only be used when building low-level OUnit features. They
-allow to create your own process runner or logger.
-
-Modules available in [ounit2.advanced]:
-{!modules: OUnitAssert OUnitBracket OUnitCache OUnitCheckEnv OUnitChooser OUnitConf OUnitCore OUnitDiff OUnitLogger OUnitLoggerCI OUnitLoggerHTML OUnitLoggerJUnit OUnitLoggerStd OUnitPlugin OUnitPropList OUnitResultSummary OUnitRunner OUnitRunnerProcesses OUnitShared OUnitState OUnitTest OUnitTestData OUnitUtils}
-
 {3 OUnit2.Threads}
 
 This module provide thread related utilities. In particular, it provides a
@@ -288,6 +303,14 @@ testing, you can use OUnit to do it and should not hesitate to do it.
 In terms of lines of codes, a test suite can represent from 10% to 150% of the
 code under test. With time, your test suite will grow faster than your
 program/library. A good ratio is 33%.
+
+{3 OUnit2.Advanced}
+
+These modules should only be used when building low-level OUnit features. They
+allow to create your own process runner or logger.
+
+Modules available in [ounit2.advanced]:
+{!modules: OUnitAssert OUnitBracket OUnitCache OUnitCheckEnv OUnitChooser OUnitConf OUnitCore OUnitDiff OUnitLogger OUnitLoggerCI OUnitLoggerHTML OUnitLoggerJUnit OUnitLoggerStd OUnitPlugin OUnitPropList OUnitResultSummary OUnitRunner OUnitRunnerProcesses OUnitShared OUnitState OUnitTest OUnitTestData OUnitUtils}
 
 @author Maas-Maarten Zeeman
 @author Sylvain Le Gall

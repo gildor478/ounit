@@ -32,7 +32,7 @@
 
 (** Property list.
 
-   @see <http://bit.ly/17mVpKv> Eigenclass Article on property list.
+   @see <http://mlton.org/PropertyList> MLton property list.
   *)
 
 type t = (int, unit -> unit) Hashtbl.t
