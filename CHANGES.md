@@ -1,7 +1,9 @@
-## unreleased
+## v2.2.3 - 2020-07-11
 
 ### Changed
 - Minimal OCaml version is now 4.04.
+
+### Fixed
 - Make colored output and JUnit features more prominent in the documentation.
   (Closes: #13, #12)
 - Increase default timeouts, so that they work as well for slow architecture
