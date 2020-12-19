@@ -1,3 +1,8 @@
+## v2.2.4 - 2020-12-20
+
+### Fixed
+- Skip AssertCodePosition test if no debug symbols are available. (Closes: #21)
+
 ## v2.2.3 - 2020-07-11
 
 ### Changed

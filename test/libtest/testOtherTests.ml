@@ -145,11 +145,16 @@ let tests =
               characters 11-24",
              Some ("src/oUnitRunner.ml", 14);
            ]);
+  ]
 
 
+let test_assert_code_position =
       "AssertCodePosition" >::
       (fun ctxt ->
          skip_if (not (Printexc.backtrace_status ())) "No backtrace.";
+         skip_if
+          ((Printexc.get_backtrace ()) = "Called from unknown location\n")
+          "No debug symbols available";
          let extract_exc e =
            let _, result, _ = OUnitTest.result_full_of_exception ctxt e in
            match result with
@@ -168,8 +173,7 @@ let tests =
          let fn2, lineno2 =
            try assert_equal 2 1; "", 0 with e -> extract_exc e
          in
-         let fn_exp = "test/testOtherTests.ml" in
+         let fn_exp = "test/libtest/testOtherTests.ml" in
            assert_equal ~printer:(fun s -> s) fn_exp fn1;
            assert_equal ~printer:(fun s -> s) fn_exp fn2;
-           assert_equal ~printer:string_of_int 3 (lineno2 - lineno1));
-  ]
+           assert_equal ~printer:string_of_int 3 (lineno2 - lineno1))

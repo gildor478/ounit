@@ -1,0 +1,8 @@
+(test
+  (name test_byte)
+  (libraries ounit2 ounit2.advanced str libtest)
+  (package ounit2)
+  (modes byte)
+  (deps test_byte.bc)
+  (action (run env OCAMLRUNPARAM=b %{test})))
+

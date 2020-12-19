@@ -1,6 +1,6 @@
 (test
   (name test)
-  (libraries ounit2 ounit2.advanced str testcommon)
+  (libraries ounit2 ounit2.advanced str libtest)
   (package ounit2)
   (deps
     test.exe
