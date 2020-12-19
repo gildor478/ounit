@@ -4,5 +4,5 @@
   (package ounit2)
   (modes byte)
   (deps test_byte.bc)
-  (action (run env OCAMLRUNPARAM=b %{test})))
+  (action (run %{test})))
 
