@@ -143,10 +143,9 @@ let create_worker ~shard_id ~master_id ~worker_log_file conf map_test_cases =
         Mutex.lock worker_finished_mutex
       done;
       if not !worker_finished then begin
-        (* This will fail... because probably not implemented. *)
-        Thread.kill thread;
-        worker_finished := true;
-        Condition.broadcast worker_finished_cond
+        (* We should kill [thread] here but there seems to be no way to kill a
+           thread so we will just fail. *)
+        raise (Invalid_argument "Thread.kill not implemented")
       end;
       Mutex.unlock worker_finished_mutex
     in
