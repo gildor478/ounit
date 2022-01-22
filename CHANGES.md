@@ -1,3 +1,9 @@
+## v2.2.5 - 2022-01-22
+
+### Fixed
+- Remove Thread.kill call, it was anyway not implemented and now it is
+  officially deprecated. (Closes: #85)
+
 ## v2.2.4 - 2020-12-20
 
 ### Fixed
