@@ -2,7 +2,7 @@
   (name oUnit)
   (public_name ounit2)
   (wrapped false)
-  (libraries unix ounit2.advanced))
+  (libraries unix seq ounit2.advanced))
 
 (documentation
   (package ounit2)
