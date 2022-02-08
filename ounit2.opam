@@ -5,6 +5,7 @@ homepage: "https://github.com/gildor478/ounit"
 dev-repo: "git+https://github.com/gildor478/ounit.git"
 bug-reports: "https://github.com/gildor478/ounit/issues"
 doc: "https://gildor478.github.io/ounit/"
+license: "MIT"
 depends: [
   "ocaml" {>= "4.04.0"}
   "dune" {>= "1.11.0"}
