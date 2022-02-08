@@ -1,3 +1,8 @@
+## v2.2.6 - 2022-02-08
+
+### Fixed
+- Use package seq to prepare for OCaml 5.00. Thanks to kit-ty-kate.
+
 ## v2.2.5 - 2022-01-22
 
 ### Fixed
