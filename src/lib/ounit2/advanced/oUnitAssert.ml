@@ -50,9 +50,10 @@ let assert_bool msg b =
 let assert_string str =
   if not (str = "") then assert_failure str
 
-(* TODO: Use Seq.forever from OCaml >= 4.14 *)
-let rec seq_forever f () =
-  Seq.Cons (f(), seq_forever f)
+let rec seq_of_channel channel () =
+  match input_char channel with
+  | exception End_of_file -> Seq.Nil
+  | char -> Seq.Cons (char, seq_of_channel channel)
 
 let assert_equal ?ctxt ?(cmp = ( = )) ?printer ?pp_diff ?msg expected actual =
   let get_error_string () =
@@ -316,7 +317,7 @@ let assert_command
            begin
              let chn = open_in fn_out in
                try
-                 foutput (seq_forever (fun () -> input_char chn))
+                 foutput (seq_of_channel chn)
                with e ->
                  close_in chn;
                  raise e
