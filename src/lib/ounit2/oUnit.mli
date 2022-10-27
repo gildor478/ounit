@@ -234,7 +234,7 @@ type path = node list (** The path to the test (in reverse order). *)
 val string_of_node : node -> string
 
 (** Make a string from a path. The path will be reversed before it is
-    tranlated into a string *)
+    translated into a string *)
 val string_of_path : path -> string
 
 (** Returns a list with paths of the test *)

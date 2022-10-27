@@ -309,7 +309,7 @@ let file_parse conf fn =
                   try
                     Scanf.sscanf str "%s = %s" (fun name value -> name, value)
                   with Scanf.Scan_failure _ ->
-                    failwithf "Unparseable line: %s\n%s" line origin
+                    failwithf "Unparsable line: %s\n%s" line origin
                 end
             in
               set ~origin conf name value
