@@ -1,11 +1,14 @@
 opam-version: "2.0"
-maintainer: "Sylvain Le Gall <sylvaini+ocaml@le-gall.net>"
-authors: [ "Sylvain Le Gall" ]
-homepage: "https://github.com/gildor478/ounit"
-dev-repo: "git+https://github.com/gildor478/ounit.git"
-bug-reports: "https://github.com/gildor478/ounit/issues"
-doc: "https://gildor478.github.io/ounit/"
+synopsis: "This is a transition package, ounit-lwt is now ounit2-lwt"
+description: """
+More details for the transition:
+https://github.com/gildor478/ounit#transition-to-ounit2
+"""
+maintainer: ["Sylvain Le Gall <sylvaini+ocaml@le-gall.net>"]
+authors: ["Sylvain Le Gall"]
 license: "MIT"
+homepage: "https://github.com/gildor467/ounit"
+bug-reports: "https://github.com/gildor467/ounit/issues"
 depends: [
   "ocamlfind" {build}
   "ounit2-lwt" {= version}
@@ -13,8 +16,4 @@ depends: [
 install: [
   [make "install-ounit-lwt" "version=%{version}%"]
 ]
-synopsis: "This is a transition package, ounit-lwt is now ounit2-lwt"
-description:"""
-More details for the transition:
-https://github.com/gildor478/ounit#transition-to-ounit2
-"""
+dev-repo: "git+https://github.com/gildor467/ounit.git"
