@@ -8,7 +8,7 @@ doc: "https://gildor478.github.io/ounit/"
 license: "MIT"
 depends: [
   "ocaml" {>= "4.04.0"}
-  "dune" {>= "1.11.0"}
+  "dune" {>= "3.0"}
   "lwt"
   "seq"
   "ounit2" {= version}

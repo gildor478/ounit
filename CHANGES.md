@@ -1,3 +1,8 @@
+## unreleased
+
+### Changed
+- Update to Dune 3.0 for newer stanzas and warnings. @MisterDA
+
 ## v2.2.6 - 2022-02-08
 
 ### Fixed
