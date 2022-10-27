@@ -9,7 +9,6 @@ license: "MIT"
 depends: [
   "ocaml" {>= "4.04.0"}
   "dune" {>= "1.11.0"}
-  "base-bytes"
   "base-unix"
   "seq"
   "stdlib-shims"
