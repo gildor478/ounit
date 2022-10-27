@@ -1,9 +1,9 @@
 (library
-  (name oUnit)
-  (public_name ounit2)
-  (wrapped false)
-  (libraries unix seq ounit2.advanced))
+ (name oUnit)
+ (public_name ounit2)
+ (wrapped false)
+ (libraries unix seq ounit2.advanced))
 
 (documentation
-  (package ounit2)
-  (mld_files index))
+ (package ounit2)
+ (mld_files index))

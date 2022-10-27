@@ -1,6 +1,7 @@
 (test
-  (name testRunnerProcesses)
-  (package ounit2-lwt)
-  (deps test.txt)
-  (libraries ounit2 lwt lwt.unix ounit2-lwt)
-  (action (run %{test} -runner processes)))
+ (name testRunnerProcesses)
+ (package ounit2-lwt)
+ (deps test.txt)
+ (libraries ounit2 lwt lwt.unix ounit2-lwt)
+ (action
+  (run %{test} -runner processes)))
