@@ -1,2 +1,2 @@
 (executable
-  (name data_gen))
+ (name data_gen))

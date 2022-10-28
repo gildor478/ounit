@@ -1,6 +1,8 @@
 (library
-  (name testcommon)
-  (modules testCommonRunner segfault)
-  (c_names segfault)
-  (wrapped false)
-  (libraries ounit2 ounit2.advanced))
+ (name testcommon)
+ (modules testCommonRunner segfault)
+ (foreign_stubs
+  (names segfault)
+  (language c))
+ (wrapped false)
+ (libraries ounit2 ounit2.advanced))

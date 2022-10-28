@@ -1,3 +1,3 @@
 (executable
-  (name fakeShared)
-  (libraries ounit2 ounit2.threads))
+ (name fakeShared)
+ (libraries ounit2 ounit2.threads))

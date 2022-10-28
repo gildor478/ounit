@@ -1,5 +1,5 @@
 (library
-  (name oUnitThreads)
-  (public_name ounit2.threads)
-  (private_modules oUnitRunnerThreads)
-  (libraries threads ounit2))
+ (name oUnitThreads)
+ (public_name ounit2.threads)
+ (private_modules oUnitRunnerThreads)
+ (libraries threads ounit2))

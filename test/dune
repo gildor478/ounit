@@ -1,14 +1,22 @@
 (test
-  (name test)
-  (libraries ounit2 ounit2.advanced str libtest)
-  (package ounit2)
-  (deps
-    test.exe
-    (:fakeHTML fakeHTML/fakeHTML.exe)
-    (:fakeRunner fakeRunner/fakeRunner.exe)
-    (:fakeShared fakeShared/fakeShared.exe)
-    (:fakeBadFinaliser fakeBadFinaliser/fakeBadFinaliser.exe)
-    JUnit.xsd)
-  (action
-    (run %{test} -fakeHTML %{fakeHTML} -fakeRunner %{fakeRunner}
-      -fakeShared %{fakeShared} -fakeBadFinaliser %{fakeBadFinaliser})))
+ (name test)
+ (libraries ounit2 ounit2.advanced str libtest)
+ (package ounit2)
+ (deps
+  test.exe
+  (:fakeHTML fakeHTML/fakeHTML.exe)
+  (:fakeRunner fakeRunner/fakeRunner.exe)
+  (:fakeShared fakeShared/fakeShared.exe)
+  (:fakeBadFinaliser fakeBadFinaliser/fakeBadFinaliser.exe)
+  JUnit.xsd)
+ (action
+  (run
+   %{test}
+   -fakeHTML
+   %{fakeHTML}
+   -fakeRunner
+   %{fakeRunner}
+   -fakeShared
+   %{fakeShared}
+   -fakeBadFinaliser
+   %{fakeBadFinaliser})))

@@ -211,7 +211,7 @@ let format_log_event ev =
             | GStart -> ispf "Start testing."
             | GEnd -> ispf "End testing."
             | GResults (running_time, results, test_case_count) ->
-                let countr = count results in
+                let counter = count results in
                 ispf "==============";
                 ispf "Summary:";
                 List.iter
@@ -223,11 +223,11 @@ let format_log_event ev =
                   (List.length results) running_time;
                 ispf "Cases: %d." test_case_count;
                 ispf "Tried: %d." (List.length results);
-                ispf "Errors: %d." (countr is_error);
-                ispf "Failures: %d." (countr is_failure);
-                ispf "Skip: %d." (countr is_skip);
-                ispf "Todo: %d." (countr is_todo);
-                ispf "Timeout: %d." (countr is_timeout)
+                ispf "Errors: %d." (counter is_error);
+                ispf "Failures: %d." (counter is_failure);
+                ispf "Skip: %d." (counter is_skip);
+                ispf "Todo: %d." (counter is_todo);
+                ispf "Timeout: %d." (counter is_timeout)
           end
 
       | TestEvent (path, e) ->

@@ -1,8 +1,7 @@
 OUnit - xUnit testing framework for OCaml
 =========================================================================
 
-[![Travis status][travis-img]][travis]
-[![AppVeyor status][appveyor-img]][appveyor]
+[![GitHub Actions][gha-badge]][gha]
 
 OUnit is a unit test framework for OCaml. It allows one to easily create
 unit-tests for OCaml code. It is loosely based on [HUnit], a unit testing
@@ -14,12 +13,10 @@ Features:
 - JUnit report generation
 - HTML report generation
 
-[HUnit]:          http://hunit.sourceforge.net/
-[JUnit]:          http://junit.org/
-[travis]:         https://travis-ci.org/gildor478/ounit
-[travis-img]:     https://travis-ci.org/gildor478/ounit.svg?branch=master
-[appveyor]:       https://ci.appveyor.com/project/gildor478/ounit
-[appveyor-img]:   https://ci.appveyor.com/api/projects/status/g86mhhc0dda25llx/branch/master?svg=true
+[HUnit]:          https://hunit.sourceforge.net/
+[JUnit]:          https://junit.org/
+[gha]:            https://github.com/gildor478/ounit/actions/workflows/main.yml
+[gha-badge]:      https://github.com/gildor478/ounit/actions/workflows/main.yml/badge.svg
 [opam]:           https://opam.ocaml.org
 
 Installation

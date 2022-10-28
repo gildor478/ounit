@@ -1,4 +1,4 @@
 (test
-  (name test)
-  (package ounit2-lwt)
-  (libraries ounit2 ounit2-lwt testcommon))
+ (name test)
+ (package ounit2-lwt)
+ (libraries ounit2 ounit2-lwt testcommon))

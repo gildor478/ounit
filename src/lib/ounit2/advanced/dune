@@ -1,10 +1,14 @@
 (rule
-  (target oUnitLoggerHTMLData.ml)
-  (deps (:data_gen ../../../tools/data_gen/data_gen.exe) oUnit.css oUnit.js)
-  (action (run %{data_gen})))
+ (target oUnitLoggerHTMLData.ml)
+ (deps
+  (:data_gen ../../../tools/data_gen/data_gen.exe)
+  oUnit.css
+  oUnit.js)
+ (action
+  (run %{data_gen})))
 
 (library
-  (name oUnitAdvanced)
-  (public_name ounit2.advanced)
-  (wrapped false)
-  (libraries unix seq stdlib-shims))
+ (name oUnitAdvanced)
+ (public_name ounit2.advanced)
+ (wrapped false)
+ (libraries unix seq stdlib-shims))

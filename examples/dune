@@ -1,4 +1,4 @@
 (tests
-  (names test_list test_stack)
-  (package ounit2)
-  (libraries ounit2))
+ (names test_list test_stack)
+ (package ounit2)
+ (libraries ounit2))
