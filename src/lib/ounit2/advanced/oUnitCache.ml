@@ -48,7 +48,7 @@ let load conf =
     | Some fn ->
         begin
           try
-            let chn = open_in fn in
+            let chn = open_in_bin fn in
             let cache : cache =
               try
                 Marshal.from_channel chn
@@ -69,7 +69,7 @@ let dump conf cache =
     | Some fn ->
         begin
           try
-            let chn = open_out fn in
+            let chn = open_out_bin fn in
               Marshal.to_channel chn cache [];
               close_out chn
           with _ ->

@@ -293,7 +293,7 @@ let assert_command
          in
            (* Dump process output to stderr *)
            begin
-             let chn = open_in fn_out in
+             let chn = open_in_bin fn_out in
              let buff = Bytes.make 4096 'X' in
              let len = ref (-1) in
                while !len <> 0 do
@@ -315,7 +315,7 @@ let assert_command
              real_exit_code;
 
            begin
-             let chn = open_in fn_out in
+             let chn = open_in_bin fn_out in
                try
                  foutput (seq_of_channel chn)
                with e ->
@@ -352,4 +352,3 @@ let assert_raises ?msg exn (f: unit -> 'a) =
 
       | Some e ->
           assert_equal ?msg ~printer:pexn exn e
-
