@@ -1,7 +1,16 @@
 ## unreleased
 
+### Fixed
+
+- Handle end of channel in Seq API.
+  #95, @Leonidas-from-XIV
+
+- Windows and OCaml 5 compatibility.
+  #96, @MisterDA
+
 ### Changed
-- Update to Dune 3.0 for newer stanzas and warnings. @MisterDA
+- Update to Dune 3.0 for newer stanzas and warnings.
+  #96, @MisterDA
 
 ## v2.2.6 - 2022-02-08
 
