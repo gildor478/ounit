@@ -1,7 +1,6 @@
-## unreleased
+## v2.2.7 - 2022-02-08
 
 ### Fixed
-
 - Handle end of channel in Seq API.
   #95, @Leonidas-from-XIV
 

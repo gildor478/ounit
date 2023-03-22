@@ -9,8 +9,9 @@ other XUnit testing frameworks.
 maintainer: ["Sylvain Le Gall <sylvaini+ocaml@le-gall.net>"]
 authors: ["Maas-Maarten Zeeman" "Sylvain Le Gall"]
 license: "MIT"
-homepage: "https://github.com/gildor467/ounit"
-bug-reports: "https://github.com/gildor467/ounit/issues"
+homepage: "https://github.com/gildor478/ounit"
+doc: "https://gildor478.github.io/ounit"
+bug-reports: "https://github.com/gildor478/ounit/issues"
 depends: [
   "dune" {>= "3.0"}
   "ocaml" {>= "4.04.0"}
@@ -32,4 +33,4 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/gildor467/ounit.git"
+dev-repo: "git+https://github.com/gildor478/ounit.git"

@@ -7,8 +7,9 @@ https://github.com/gildor478/ounit#transition-to-ounit2
 maintainer: ["Sylvain Le Gall <sylvaini+ocaml@le-gall.net>"]
 authors: ["Sylvain Le Gall"]
 license: "MIT"
-homepage: "https://github.com/gildor467/ounit"
-bug-reports: "https://github.com/gildor467/ounit/issues"
+homepage: "https://github.com/gildor478/ounit"
+doc: "https://gildor478.github.io/ounit"
+bug-reports: "https://github.com/gildor478/ounit/issues"
 depends: [
   "ocamlfind" {build}
   "ounit2" {= version}
@@ -16,4 +17,4 @@ depends: [
 install: [
   [make "install-ounit" "version=%{version}%"]
 ]
-dev-repo: "git+https://github.com/gildor467/ounit.git"
+dev-repo: "git+https://github.com/gildor478/ounit.git"
