@@ -3,6 +3,7 @@
  (package ounit2-lwt)
  (deps test.txt)
  (libraries ounit2 lwt lwt.unix ounit2-lwt)
- (enabled_if (<> %{os_type} Win32))
+ (enabled_if
+  (<> %{os_type} Win32))
  (action
   (run %{test} -runner processes)))
