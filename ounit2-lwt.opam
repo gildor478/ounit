@@ -11,7 +11,7 @@ bug-reports: "https://github.com/gildor467/ounit/issues"
 depends: [
   "dune" {>= "3.0"}
   "ocaml" {>= "4.04.0"}
-  "lwt"
+  "lwt" {>= "2.5.2"}
   "seq"
   "ounit2" {= version}
   "odoc" {with-doc}
