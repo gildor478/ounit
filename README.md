@@ -39,8 +39,8 @@ Examples
 
 * From the examples/ directory of ounit:
   * [example_intro.ml](examples/example_intro.ml)
-  * [example_list.ml](examples/test_list.ml)
-  * [example_stack.ml](examples/test_stack.ml)
+  * [example_list.ml](examples/example_list.ml)
+  * [example_stack.ml](examples/example_stack.ml)
 * External projects:
   * [OASIS tests](https://github.com/ocaml/oasis/tree/master/test)
 
